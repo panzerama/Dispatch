@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Dispatch</string>
+    <string name="title_activity_route_map">Route Map</string>
+</resources>
