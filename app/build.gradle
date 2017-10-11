@@ -16,15 +16,16 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
+        debug {
+            buildConfigField 'String', 'GOOGLE_MAP_API_KEY', keystoreProperties['GoogleMapsAPI']
+        }
         release {
+            buildConfigField 'String', 'GOOGLE_MAP_API_KEY', keystoreProperties['GoogleMapsAPI']
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 
-    buildTypes.each {
-        it.buildConfigField 'String', 'GOOGLE_MAP_API_KEY', keystoreProperties['GoogleMapsAPI']
-    }
 }
 
 dependencies {
