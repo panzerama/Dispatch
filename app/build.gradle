@@ -1,9 +1,5 @@
 apply plugin: 'com.android.application'
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
@@ -17,10 +13,9 @@ android {
     }
     buildTypes {
         debug {
-            buildConfigField 'String', 'GOOGLE_MAP_API_KEY', keystoreProperties['GoogleMapsAPI']
+
         }
         release {
-            buildConfigField 'String', 'GOOGLE_MAP_API_KEY', keystoreProperties['GoogleMapsAPI']
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
