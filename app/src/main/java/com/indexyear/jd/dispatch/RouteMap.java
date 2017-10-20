@@ -15,7 +15,7 @@ public class RouteMap extends FragmentActivity implements OnMapReadyCallback {
     private GoogleMap mMap;
 
     //google maps api key may be obtained programmatically with
-    String apiKey = getString(R.string.google_maps_key);
+    //String apiKey = getString(R.string.google_maps_key);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
