@@ -1,5 +1,6 @@
 package com.indexyear.jd.dispatch;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -91,8 +92,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return;
         }
 
-        //todo showProgressDialog();
+        final Intent authenticationHandoff = new Intent(this, RouteMap.class);
 
+        //todo showProgressDialog();
         // [START sign_in_with_email]
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -103,6 +105,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
+                            startActivity(authenticationHandoff);
+
                             //todo pass off to next activity!
                         } else {
                             // If sign in fails, display a message to the user.
