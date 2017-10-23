@@ -16,4 +16,30 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
+    <!--App Bar Strings-->
+    <string name="title_activity_main">DESC</string>
+    <string name="user_status_spinner">Status</string>
+    <string name="menu_user_role_title">Manage User Roles</string>
+
+    <string-array name="status_spinner_items">
+        <item>Active</item>
+        <item>Off-Duty</item>
+        <item>On-Break</item>
+        <item>Dispatched</item>
+    </string-array>
+
+    <!--Drawer Menu Strings-->
+    <string-array name="drawer_menu_items">
+        <item>User Roles</item>
+    </string-array>
+    <string name="drawer_open">Open Drawer</string>
+    <string name="drawer_close">Close Drawer</string>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
 </resources>
