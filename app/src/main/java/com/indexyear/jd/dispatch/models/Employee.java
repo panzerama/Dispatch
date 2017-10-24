@@ -1,23 +1,38 @@
 package com.indexyear.jd.dispatch.models;
 
+import com.indexyear.jd.dispatch.activities.MainActivity;
+
 /**
  * Created by karibullard on 10/23/17.
  */
 
 public class Employee {
-    private String firstName;
-    private String lastName;
-    private String phone;
-    private MCT currentMCT;
-    private UserRole currentRole;
+    public String firstName;
+    public String lastName;
+    public String userID;
+    public String phone;
+    public MCT currentMCT;
+    public UserRole currentRole;
+    public MainActivity.UserStatus currentStatus;
 
+    public Employee(){
+
+    }
     public Employee(String firstName, String lastName, String phone){
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
     }
 
-    private enum UserRole {
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+
+    public enum UserRole {
         DISPATCHER, MCTMEMBER
     }
 
@@ -59,5 +74,13 @@ public class Employee {
 
     public void setCurrentRole(UserRole currentRole) {
         this.currentRole = currentRole;
+    }
+
+    public MainActivity.UserStatus getCurrentStatus() {
+        return currentStatus;
+    }
+
+    public void setCurrentStatus(MainActivity.UserStatus currentStatus) {
+        this.currentStatus = currentStatus;
     }
 }
