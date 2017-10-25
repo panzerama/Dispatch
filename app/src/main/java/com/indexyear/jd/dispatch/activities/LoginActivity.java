@@ -117,13 +117,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             params.putString("time_stamp", "");
 
                             Log.d(TAG, "signInWithEmail:success");
-                            mAnalyticsInstance.logEvent(loginSuccess, params);
+                            mAnalyticsInstance.logEvent(FirebaseAnalytics.Event.LOGIN, params);
 
                             updateUI(user);
                             startActivity(authenticationHandoff);
                         } else {
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Bundle params = new Bundle;
+                            Bundle params = new Bundle();
                             params.putString("time_stamp", "");
                             mAnalyticsInstance.logEvent("login_failure", params);
 
