@@ -17,6 +17,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.indexyear.jd.dispatch.R;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -26,13 +27,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
+    private FirebaseAnalytics mAnalyticsInstance;
+
     private EditText mEmailField;
     private EditText mPasswordField;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login); // todo arrange layout appropriately with logos and branding
+        setContentView(R.layout.activity_login); // todo jd arrange layout appropriately with logos and branding
+        //todo jd do we need field completion?
 
         // Set up the login form.
         mEmailField = (AutoCompleteTextView) findViewById(R.id.email);
@@ -58,6 +62,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // ...
             }
         };
+
+        mAnalyticsInstance = FirebaseAnalytics.getInstance(this);
     }
 
     @Override
@@ -79,7 +85,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void updateUI(FirebaseUser user){
-        //todo progressdialog?
+        //todo jd progressdialog?
         if (user != null) {
             //set something in the ui to reflect signed in?
         } else {
@@ -95,25 +101,35 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         final Intent authenticationHandoff = new Intent(this, MainActivity.class);
 
-        //todo showProgressDialog();
+        //todo jd showProgressDialog();
         // [START sign_in_with_email]
+
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+
+                            //todo jd Sign in success, update UI with the signed-in user's information
+                            String loginSuccess = "User " + user.getUid() + " has signed in.";
+                            Bundle params = new Bundle();
+                            params.putString("time_stamp", "");
+
+                            Log.d(TAG, "signInWithEmail:success");
+                            mAnalyticsInstance.logEvent(loginSuccess, params);
+
                             updateUI(user);
                             startActivity(authenticationHandoff);
-
-                            //todo pass off to next activity!
                         } else {
-                            // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            Bundle params = new Bundle;
+                            params.putString("time_stamp", "");
+                            mAnalyticsInstance.logEvent("login_failure", params);
+
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
+
                             updateUI(null);
                         }
 
