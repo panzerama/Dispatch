@@ -145,7 +145,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void signOut() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        String userID = user.getUid();
+
         mAuth.signOut();
+
+        //todo jd is a check of mAuth needed here?
+        Bundle logParams = new Bundle();
+        logParams.putString("user_logout", "User " + userID + " has logged out.");
+        logParams.putString("time_stamp", " ");
+
+        mAnalyticsInstance.logEvent("user_logout", logParams);
+
+
         updateUI(null);
     }
 
@@ -171,7 +183,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return valid;
     }
 
-
+    //todo jd is this needed still?
     private interface ProfileQuery {
         String[] PROJECTION = {
                 ContactsContract.CommonDataKinds.Email.ADDRESS,
