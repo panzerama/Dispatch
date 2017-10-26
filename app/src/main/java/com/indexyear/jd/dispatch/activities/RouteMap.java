@@ -7,6 +7,7 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,6 +20,7 @@ import com.indexyear.jd.dispatch.R;
 public class RouteMap extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private final String TAG = "RouteMap";
 
     //google maps api key may be obtained programmatically with
     //String apiKey = getString(R.string.google_maps_key);
@@ -28,10 +30,11 @@ public class RouteMap extends FragmentActivity implements OnMapReadyCallback {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_route_map);
 
+        Log.d(TAG, ": oncreate");
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
@@ -47,6 +50,7 @@ public class RouteMap extends FragmentActivity implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        Log.d(TAG, ": onmapready");
 
         // Add a marker in Seattle and move the camera
         LatLng seattle = new LatLng(47, -122);
