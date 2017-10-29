@@ -6,6 +6,7 @@ import java.util.List;
 
 public class Crisis {
 
+    private String crisisID;
     private String crisisAddress;
     private Date crisisDate;
     private Calendar timeCallReceived;
@@ -18,7 +19,8 @@ public class Crisis {
     private MCT responseTeam;
     private List<Employee> responseTeamMembers;
 
-    public Crisis(String crisisAddress){
+    public Crisis(String crisisID, String crisisAddress){
+        this.crisisID = crisisID;
         this.crisisAddress = crisisAddress;
     }
 
@@ -29,6 +31,10 @@ public class Crisis {
     private enum ReferralReason {
         MH, CD, MHCD, OTHER
     }
+
+    public String getCrisisID() { return crisisID; }
+
+    public void setCrisisID(String crisisID) { this.crisisID = crisisID; }
 
     public String getCrisisAddress() {
         return crisisAddress;

@@ -1,5 +1,6 @@
 package com.indexyear.jd.dispatch.data;
 
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.models.Crisis;
@@ -19,8 +20,20 @@ public class ManageCrisis {
     }
 
     public void CreateNewCrisis(String crisisID, String address){
-        Crisis crisis = new Crisis(address);
+        Crisis crisis = new Crisis(crisisID, address);
         mDatabase.child("crisis").child(crisisID).setValue(crisis);
+    }
+
+    //GetAddress of crisis based on ID
+    public String GetCrisisAddress(DataSnapshot dataSnapshot, String crisisID) {
+
+        for (DataSnapshot addressDataSnapshot : dataSnapshot.getChildren()) {
+            String addressCheck = String.valueOf(addressDataSnapshot.child("address").getValue());
+            if (crisisID.equals(addressDataSnapshot.child("crisisID").getValue())) {
+               return addressCheck;
+            }
+        }
+        return "address not found";
     }
 
     //set time automatically, to be called from MapActivity listener
@@ -33,5 +46,7 @@ public class ManageCrisis {
     public void SetArrivalTime(String crisisID, String time) {
         mDatabase.child("crisis").child(crisisID).child("arrivalTime").setValue(time);
     }
+
+
 
 }

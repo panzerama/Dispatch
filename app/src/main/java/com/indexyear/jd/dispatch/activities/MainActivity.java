@@ -38,6 +38,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 
 import static com.indexyear.jd.dispatch.R.id.spinner;
@@ -60,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     DatabaseReference ref;
     private String userID;
     private UserStatus currentStatus;
+
+    //String crisisID is for testing purposes entered by LJS 10/29/17
+    private String crisisID;
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -122,6 +126,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         ManageUsers newUser = new ManageUsers();
         newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
         userID = "kbullard";
+
+        //For Testing added by Luke
+        ManageCrisis newCrisis = new ManageCrisis();
+        crisisID = "testCrisis";
+        newCrisis.CreateNewCrisis(crisisID, "8738 18TH AVE NW, Seattle WA, 98117");
+
+        //For Testing purposes we'll call our getAddress method using the crisisID and see
+        //if we can create a Dialog for it.
+
+
+
+
         //Register data listeners
         ref = database.getReference("team-orange-20666/employees/"+userID);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
