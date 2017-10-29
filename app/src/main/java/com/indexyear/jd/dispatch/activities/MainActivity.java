@@ -49,6 +49,7 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBre
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
+    //todo jd fix level of zoom on default view
     private static final String TAG = "MainActivity";
     private String[] menuItems;
     private DrawerLayout mDrawerLayout;
@@ -59,9 +60,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     DatabaseReference ref;
     private String userID;
     private UserStatus currentStatus;
-
-    // For manipulating inset map
-    private GoogleMap mMap;
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
