@@ -9,6 +9,7 @@ public class Crisis {
     private String crisisAddress;
     private Date crisisDate;
     private Calendar timeCallReceived;
+    private Calendar timeArrived;
     private Boolean policeOnScene;
     private ReferringAgency referringAgency;
     private ReferralReason referralReason;
@@ -51,6 +52,12 @@ public class Crisis {
 
     public void setTimeCallReceived(Calendar timeCallReceived) {
         this.timeCallReceived = timeCallReceived;
+    }
+
+    public Calendar getTimeArrived() { return timeArrived; }
+
+    public void setTimeArrived(Calendar timeArrived) {
+        this.timeArrived = timeArrived;
     }
 
     public Boolean getPoliceOnScene() {
