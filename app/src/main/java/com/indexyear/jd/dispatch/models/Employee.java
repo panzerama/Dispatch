@@ -19,6 +19,13 @@ public class Employee {
 
     }
 
+    public Employee(String userID, String firstName, String lastName, String phone){
+        this.userID = userID;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+    }
+
     public Employee(String firstName, String lastName, String phone){
         this.firstName = firstName;
         this.lastName = lastName;
