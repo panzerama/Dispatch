@@ -1,6 +1,7 @@
 package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -11,6 +12,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -20,6 +22,15 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -27,6 +38,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 
 import static com.indexyear.jd.dispatch.R.id.spinner;
@@ -36,19 +48,38 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSe
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
+    //todo jd fix level of zoom on default view
     private static final String TAG = "MainActivity";
     private String[] menuItems;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private DatabaseReference mDatabase; //Firebase reference
-    private FirebaseAuth mAuth; //Firebase Auth
     private Spinner statusSpinner;
     final FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref;
     private String userID;
     private UserStatus currentStatus;
+
+    //String crisisID is for testing purposes entered by LJS 10/29/17
+    private String crisisID;
+
+    // Retrieving User UID for database calls and logging
+    private FirebaseAuth mAuth;
+
+    // For managing Firebase analytics logging
+    private FirebaseAnalytics mAnalytics;
+
+    // For location tracking and map updates
+    private GoogleMap mMap;
+    private CameraPosition mCameraPosition;
+    private FusedLocationProviderClient mFusedLocationProviderClient;
+    private Location mLastKnownLocation;
+
+    // Keys for storing activity state.
+    private static final String KEY_CAMERA_POSITION = "camera_position";
+    private static final String KEY_LOCATION = "location";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,10 +109,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
+        // Obtain last known location and camera position from saved instance state.
+        if (savedInstanceState != null) {
+            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+            mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
+        }
+
+        // Obtain Auth instance for logging and database access
+        mAuth = FirebaseAuth.getInstance();
+
         //For Testing
         ManageUsers newUser = new ManageUsers();
         newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
         userID = "kbullard";
+
+        //For Testing added by Luke
+        ManageCrisis newCrisis = new ManageCrisis();
+        crisisID = "testCrisis";
+        newCrisis.CreateNewCrisis(crisisID, "8738 18TH AVE NW, Seattle WA, 98117");
+
+        //For Testing purposes we'll call our getAddress method using the crisisID and see
+        //if we can create a Dialog for it.
+
+
+
+
         //Register data listeners
         ref = database.getReference("team-orange-20666/employees/"+userID);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -191,6 +247,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        Log.d(TAG, ": onmapready");
+
+        // Add a marker in Seattle and move the camera
+        LatLng seattle = new LatLng(47, -122);
+        mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(seattle));
     }
 
 }
