@@ -11,13 +11,13 @@
     <item android:title="Communicate">
         <menu>
             <item
-                android:id="@+id/nav_share"
+                android:id="@+id/nav_dispatch"
                 android:icon="@drawable/ic_menu_share"
                 android:title="Dispatch" />
             <item
-                android:id="@+id/nav_send"
+                android:id="@+id/nav_message"
                 android:icon="@drawable/ic_menu_send"
-                android:title="Message Team" />
+                android:title="Messenger" />
         </menu>
     </item>
 

@@ -42,4 +42,11 @@
 
     <string name="action_settings">Settings</string>
 
+    <!--Messaging Activity Strings-->
+    <string name="title_activity_messenger">Messenger</string>
+    <string name="lorem_ipsum">chat stuff.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>
