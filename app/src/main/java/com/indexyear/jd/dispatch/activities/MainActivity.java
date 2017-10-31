@@ -1,6 +1,7 @@
 package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -10,6 +11,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -130,12 +132,39 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //For Testing added by Luke
         ManageCrisis newCrisis = new ManageCrisis();
         crisisID = "testCrisis";
+        //This adds a crisis to the JSON Database
         newCrisis.CreateNewCrisis(crisisID, "8738 18TH AVE NW, Seattle WA, 98117");
+
 
         //For Testing purposes we'll call our getAddress method using the crisisID and see
         //if we can create a Dialog for it.
+        ref = database.getReference("team-orange-20666/crisis/" + crisisID);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String address = (String) dataSnapshot.getValue();
+
+                // https://stackoverflow.com/questions/26097513/android-simple-alert-dialog
+                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+                alertDialog.setTitle("Address Alert");
+                alertDialog.setMessage("Go to this address? \n " + address);
+                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //put your Intent to the map activity with the address here maybe?
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
 
 
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+                // TODO handle when there is an error
+            }
+        });
 
 
         //Register data listeners
