@@ -1,11 +1,16 @@
 package com.indexyear.jd.dispatch.activities;
 
-import android.content.Context;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -20,9 +25,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -48,7 +58,7 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSe
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     //todo jd fix level of zoom on default view
     private static final String TAG = "MainActivity";
@@ -73,6 +83,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // For location tracking and map updates
     private GoogleMap mMap;
+    GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
+    LocationRequest mLocationRequest;
+
+
     private CameraPosition mCameraPosition;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private Location mLastKnownLocation;
@@ -124,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //For Testing
         ManageUsers newUser = new ManageUsers();
-        newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
+        newUser.AddNewEmployee("70axWbn2qHeyy9j9UR6lECknuHh1", "Kari", "Bullard", "541-335-9392");
         userID = "kbullard";
 
         //For Testing added by Luke
@@ -136,10 +151,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //if we can create a Dialog for it.
 
 
-
-
         //Register data listeners
-        ref = database.getReference("team-orange-20666/employees/"+userID);
+        ref = database.getReference("team-orange-20666/employees/" + userID);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -197,12 +210,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return true;
     }
 
+
+
     public enum UserStatus {
         Active, OffDuty, OnBreak, Dispatched, NotSet
     }
 
-    private UserStatus getSpinnerValueAsEnum(String value){
-        switch(value){
+    private UserStatus getSpinnerValueAsEnum(String value) {
+        switch (value) {
             case "Active":
                 return Active;
             case "Off-Duty":
@@ -221,13 +236,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, id, duration);
-        toast.show();
+//        int id = item.getItemId();
+//        Context context = getApplicationContext();
+//        int duration = Toast.LENGTH_SHORT;
+//
+//        Toast toast = Toast.makeText(context, id, duration);
+//        toast.show();
 
         return super.onOptionsItemSelected(item);
     }
@@ -236,28 +250,97 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
-        int id = item.getItemId();
+//        int id = item.getItemId();
 
-        Context context = getApplicationContext();
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, id, duration);
-        toast.show();
+        switch (item.getItemId()) {
+            case R.id.nav_message:
+                Intent intent = new Intent(this, MessengerActivity.class);
+                this.startActivity(intent);
+                break;
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
+
+
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        Log.d(TAG, ": onmapready");
 
-        // Add a marker in Seattle and move the camera
-        LatLng seattle = new LatLng(47, -122);
-        mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(seattle));
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+
+            return;
+        }
+        buildGoogleApiClient();
+        mMap.setMyLocationEnabled(true);
+
     }
+
+    protected synchronized void buildGoogleApiClient(){
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+
+        mLastLocation = location;
+        LatLng latLng = new LatLng(location.getLatitude(),location.getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));////zoom value 1-21
+
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference refAvailable = FirebaseDatabase.getInstance().getReference("Available");
+        DatabaseReference refWorking = FirebaseDatabase.getInstance().getReference("Working");
+        DatabaseReference refOnBreak = FirebaseDatabase.getInstance().getReference("On-Break");
+        GeoFire geoFireAvailable = new GeoFire(refAvailable);
+        GeoFire geoFireWorking = new GeoFire(refWorking);
+        GeoFire geoFireOnBreak= new GeoFire(refOnBreak);
+
+        //GeoFire.setLocation(userId, new GeoLocation(location.getLatitude(),location.getLongitude()));
+
+
+    }
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        //get the location from second to second of each seconds something is going to happen next  we get our location
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+        }
+        //ths request vocational trades will trigger the refreshment of the Location
+        //"this"  if you call this you only get the location once but if you call it will refresh with an interval of a thousands millseconds
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
 
 }
