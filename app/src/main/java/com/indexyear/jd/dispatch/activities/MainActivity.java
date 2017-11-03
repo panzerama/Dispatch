@@ -2,6 +2,8 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -43,6 +45,8 @@ import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 
+import java.util.List;
+
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
@@ -64,8 +68,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String userID;
     private UserStatus currentStatus;
 
-    //String crisisID is for testing purposes entered by LJS 10/29/17
+    //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
+    private String crisisAddress;
+    //LatLng for testing purposes
+    private LatLng crisisPin = new LatLng(47, -122);;
+
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -111,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -129,42 +139,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
         userID = "kbullard";
 
-        //For Testing added by Luke
-        ManageCrisis newCrisis = new ManageCrisis();
-        crisisID = "testCrisis";
-        //This adds a crisis to the JSON Database
-        newCrisis.CreateNewCrisis(crisisID, "8738 18TH AVE NW, Seattle WA, 98117");
 
-
-        //For Testing purposes we'll call our getAddress method using the crisisID and see
-        //if we can create a Dialog for it.
-        ref = database.getReference("team-orange-20666/crisis/" + crisisID);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String address = (String) dataSnapshot.getValue();
-
-                // https://stackoverflow.com/questions/26097513/android-simple-alert-dialog
-                AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-                alertDialog.setTitle("Address Alert");
-                alertDialog.setMessage("Go to this address? \n " + address);
-                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                //put your Intent to the map activity with the address here maybe?
-                                dialog.dismiss();
-                            }
-                        });
-                alertDialog.show();
-
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-                // TODO handle when there is an error
-            }
-        });
 
 
         //Register data listeners
@@ -180,7 +155,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //TO DO
             }
         });
+        DispatchAlertDialog();
     }
+
+    public void DispatchAlertDialog() {
+        //For Testing added by Luke
+        ManageCrisis newCrisis = new ManageCrisis();
+        crisisID = "testCrisis";
+        crisisAddress = "8507 18TH AVE NW, Seattle WA, 98117";
+        //This adds a crisis to the JSON Database
+        newCrisis.CreateNewCrisis(crisisID, crisisAddress);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+        alertDialog.setTitle("Crisis Alert");
+        alertDialog.setMessage("Go to this address? \n " + crisisAddress);
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //put your call to the Map activity here maybe?
+                        // need the LatLang to give it
+                        crisisPin = getLocationFromAddress(MainActivity.this, crisisAddress);
+
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+        /*
+        //For Testing purposes we'll call our getAddress method using the crisisID and see
+        //if we can create a Dialog for it.
+        //ref = database.getReference("team-orange-20666/crisis/" + crisisID);
+        //ref.addListenerForSingleValueEvent(new ValueEventListener() {
+
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String address = (String) dataSnapshot.getValue();
+
+                // https://stackoverflow.com/questions/26097513/android-simple-alert-dialog
+
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+                // TODO handle when there is an error
+            }
+        });*/
+    }
+
+
 
     @Override
     public void onBackPressed() {
@@ -283,10 +305,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         Log.d(TAG, ": onmapready");
 
+        //trying to place the marker on my house using the AlertDialog because my dog is a crisis.
+        mMap.addMarker(new MarkerOptions().position(crisisPin).title("Marker in Sydney"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPin));
+        /*
         // Add a marker in Seattle and move the camera
         LatLng seattle = new LatLng(47, -122);
         mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(seattle));
+        */
+    }
+
+
+    public LatLng getLocationFromAddress(Context context, String strAddress)
+    {
+        Geocoder coder= new Geocoder(context);
+        List<Address> address;
+        LatLng p1 = null;
+
+        try
+        {
+            address = coder.getFromLocationName(strAddress, 5);
+            if(address==null)
+            {
+                return null;
+            }
+            Address location = address.get(0);
+            location.getLatitude();
+            location.getLongitude();
+
+            p1 = new LatLng(location.getLatitude(), location.getLongitude());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return p1;
+
     }
 
 }
