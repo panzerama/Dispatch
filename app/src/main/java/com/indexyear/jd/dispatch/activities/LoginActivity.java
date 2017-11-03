@@ -14,18 +14,20 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.models.Employee;
 
-import static android.R.attr.value;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -215,14 +217,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void createEmployee(){
         //get database reference
-        mDB = FirebaseDatabase.getInstance().getReference("team-orange-20666/employees/");
+        mDB = FirebaseDatabase.getInstance().getReference("employees/");
 
         // i need to get a data snapshot
         mDB.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.hasChild(mAuth.getCurrentUser().getUid())){
-                    mDB.child(mAuth.getCurrentUser().getUid()).child("uid").setValue(mAuth.getCurrentUser().getUid());
+                    Employee newEmployee = new Employee(mAuth.getCurrentUser().getUid(), "Example", "User", "123-456-7890");
+                    Map<String, Object> employeeValues = newEmployee.toMap();
+
+                    Map<String, Object> databaseValue = new HashMap<>();
+                    databaseValue.put(mAuth.getCurrentUser().getUid(), employeeValues);
+
+                    mDB.updateChildren(databaseValue);
                 }
             }
 
