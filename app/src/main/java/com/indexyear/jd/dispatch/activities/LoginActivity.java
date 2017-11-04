@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // TODO: 10/31/17 JD update the ui function, modify layout to conform to material standards
+        // TODO: 10/31/17 JD update the ui function, modify layout to conform to material standards, welcome user already logged in
 
         // Set up the login form.
         mEmailField = (AutoCompleteTextView) findViewById(R.id.email);
@@ -132,6 +132,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                             Log.d(TAG, "signInWithEmail:success");
                             mAnalyticsInstance.logEvent(FirebaseAnalytics.Event.LOGIN, params);
+                            //get or add employee in database
                             createEmployee();
                             updateUI(user);
                             startActivity(authenticationHandoff);
@@ -219,18 +220,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //get database reference
         mDB = FirebaseDatabase.getInstance().getReference("employees/");
 
-        // i need to get a data snapshot
         mDB.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.hasChild(mAuth.getCurrentUser().getUid())){
-                    Employee newEmployee = new Employee(mAuth.getCurrentUser().getUid(), "Example", "User", "123-456-7890");
+
+                    Employee newEmployee = new Employee(mAuth.getCurrentUser().getUid(), "OtherExample", "User", "123-456-7890");
                     Map<String, Object> employeeValues = newEmployee.toMap();
 
                     Map<String, Object> databaseValue = new HashMap<>();
                     databaseValue.put(mAuth.getCurrentUser().getUid(), employeeValues);
 
                     mDB.updateChildren(databaseValue);
+                } else {
+                    Log.d(TAG, " employee found in database, do something here?");
                 }
             }
 
@@ -239,6 +242,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
         });
+
     }
 
 }

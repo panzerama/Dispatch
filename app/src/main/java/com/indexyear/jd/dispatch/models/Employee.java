@@ -105,4 +105,12 @@ public class Employee {
 
         return employeeValues;
     }
+
+    public void updateEmployee(){
+
+    }
+
+    public void createEmployee(){
+
+    }
 }
