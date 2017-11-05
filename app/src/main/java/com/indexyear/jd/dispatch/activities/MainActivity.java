@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     DatabaseReference ref;
     private String userID;
     private UserStatus currentStatus;
-    private String crisisAddress;
 
     //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
@@ -171,7 +170,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //TO DO
             }
         });
-        DispatchAlertDialog();
+        // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
+        // DispatchAlertDialog();
 
     }
 
