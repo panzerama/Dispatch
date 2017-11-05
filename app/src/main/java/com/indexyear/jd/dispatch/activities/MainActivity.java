@@ -2,6 +2,8 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.location.Address;
+import android.location.Geocoder;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
@@ -25,11 +27,22 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -43,6 +56,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+import java.util.Locale;
 
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
@@ -64,10 +83,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     DatabaseReference ref;
     private String userID;
     private UserStatus currentStatus;
-    private String crisisAddress;
 
-    //String crisisID is for testing purposes entered by LJS 10/29/17
+    //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
+    private String crisisAddress;
+    //LatLng for testing purposes
+    private LatLng crisisPin = new LatLng(47, -122);
+    ;
+
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -114,6 +137,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -132,19 +156,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
         userID = "kbullard";
 
-        //For Testing added by Luke
-        ManageCrisis newCrisis = new ManageCrisis();
-        crisisID = "testCrisis";
-        newCrisis.CreateNewCrisis(crisisID, "8738 18TH AVE NW, Seattle WA, 98117");
-
-        //For Testing purposes we'll call our getAddress method using the crisisID and see
-        //if we can create a Dialog for it.
-
-
-
 
         //Register data listeners
-        ref = database.getReference("team-orange-20666/employees/"+userID);
+        ref = database.getReference("team-orange-20666/employees/" + userID);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -156,6 +170,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //TO DO
             }
         });
+        // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
+        // DispatchAlertDialog();
+
+    }
+
+    public void DispatchAlertDialog() {
+        //For Testing added by Luke
+        Log.d(TAG, "In DispatchAlertDialog");
+        ManageCrisis newCrisis = new ManageCrisis();
+        crisisID = "testCrisis";
+        crisisAddress = "8507 18TH AVE NW, Seattle, WA 98117";
+        //This adds a crisis to the JSON Database
+        newCrisis.CreateNewCrisis(crisisID, crisisAddress);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+        alertDialog.setTitle("Crisis Alert");
+        alertDialog.setMessage("Go to this address? \n " + crisisAddress);
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //put your call to the Map activity here maybe?
+                        // need the LatLang to give it
+                        GetLatLng(crisisAddress);
+
+                        dialog.dismiss();
+                    }
+                });
+        alertDialog.show();
+
     }
 
     @Override
@@ -235,8 +278,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Active, OffDuty, OnBreak, Dispatched, NotSet
     }
 
-    private UserStatus getSpinnerValueAsEnum(String value){
-        switch(value){
+    private UserStatus getSpinnerValueAsEnum(String value) {
+        switch (value) {
             case "Active":
                 return Active;
             case "Off-Duty":
@@ -288,10 +331,120 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         Log.d(TAG, ": onmapready");
 
-        // Add a marker in Seattle and move the camera
-        LatLng seattle = new LatLng(47, -122);
-        mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(seattle));
+        //trying to place the marker on my house using the AlertDialog.
+        mMap.addMarker(new MarkerOptions().position(crisisPin).title("Marker"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPin));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPin, 10));
+
     }
 
+
+    // returns a LatLng object from an address given
+    public LatLng getLocationFromAddress(Context context, String address) {
+        Log.d(TAG, "In getLocationFromAddress");
+        LatLng latLng = null;
+        Log.d(TAG, "getLocationFromAddress, made new latlng");
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        Log.d(TAG, "getLocationFromAddress, made new geocoder");
+        List<Address> geoResults = null;
+        Log.d(TAG, "getLocationFromAddress, made list.");
+
+        try {
+            geoResults = geocoder.getFromLocationName(address, 1);
+            String addressFromCoder = geoResults.get(0).toString();
+            Log.d(TAG, addressFromCoder);
+            while (geoResults.size()==0) {
+                geoResults = geocoder.getFromLocationName(address, 1);
+
+
+
+            }
+            if (geoResults.size()>0) {
+                Address addr = geoResults.get(0);
+                latLng = new LatLng(addr.getLatitude(), addr.getLongitude());
+            }
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+        //latLng = new LatLng(47.6909439,-122.3823438);
+        Log.d(TAG, "Returning a LatLng value");
+        return latLng; //LatLng value of address
+
+    }
+
+    public void GetLatLng(String crisisAddress) {
+
+        crisisAddress = ConvertAddressToJSON(crisisAddress);
+
+        RequestQueue mRequestQueue;
+
+        // Instantiate the cache
+        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        Network network = new BasicNetwork(new HurlStack());
+
+        // Instantiate the RequestQueue with the cache and network.
+        mRequestQueue = new RequestQueue(cache, network);
+
+        // Start the queue
+        mRequestQueue.start();
+        Log.d(TAG, getResources().getString(R.string.google_geocoding_key));
+        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
+                "&key=" + getResources().getString(R.string.google_geocoding_key);
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG,"Response: " + response.toString());
+                        LatLng addressPosition;
+                        double lat = -122;
+                        double lng = 47;
+
+
+                        try {
+                             lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                             lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        addressPosition = new LatLng(lat, lng);
+
+                        MarkerOptions markerOptions = new MarkerOptions();
+                        markerOptions.position(addressPosition);
+                        mMap.addMarker(markerOptions
+                                .title("Crisis Location").icon(BitmapDescriptorFactory
+                                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        mRequestQueue.add(jsObjRequest);
+
+
+    }
+
+    public String ConvertAddressToJSON(String address) {
+
+        address.replace(' ', '+');
+
+        return address;
+    }
 }
