@@ -23,6 +23,7 @@ android {
 
 }
 
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -41,15 +42,6 @@ dependencies {
     compile 'com.firebaseui:firebase-ui:0.6.0'
     testCompile 'junit:junit:4.12'
 }
-
-
-
-
-
-
-
-
-
 
 
 

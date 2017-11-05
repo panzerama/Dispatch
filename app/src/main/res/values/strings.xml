@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Dispatch</string>
-    <string name="title_activity_route_map">Route Map</string>
     <string name="title_activity_login">Log In</string>
 
     <!-- Strings related to login -->
@@ -9,18 +8,10 @@
     <string name="action_sign_in">Sign in or register</string>
     <string name="action_sign_out">Sign out</string>
     <string name="action_sign_in_short">Sign in</string>
-    <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
-    <string name="error_incorrect_password">This password is incorrect</string>
-    <string name="error_field_required">This field is required</string>
-    <string name="permission_rationale">"Contacts permissions are needed for providing email
-        completions."
-    </string>
 
     <!--App Bar Strings-->
     <string name="title_activity_main">DESC</string>
     <string name="user_status_spinner">Status</string>
-    <string name="menu_user_role_title">Manage User Roles</string>
 
     <string-array name="status_spinner_items">
         <item>Active</item>
@@ -30,23 +21,13 @@
     </string-array>
 
     <!--Drawer Menu Strings-->
-    <string-array name="drawer_menu_items">
-        <item>User Roles</item>
-    </string-array>
-    <string name="drawer_open">Open Drawer</string>
-    <string name="drawer_close">Close Drawer</string>
-    <string name="title_activity_main2">Main2Activity</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_settings">Settings</string>
-
     <!--Messaging Activity Strings-->
     <string name="title_activity_messenger">Messenger</string>
-    <string name="lorem_ipsum">chat stuff.</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

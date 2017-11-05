@@ -1,17 +1,21 @@
 package com.indexyear.jd.dispatch.activities;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     DatabaseReference ref;
     private String userID;
     private UserStatus currentStatus;
+    private String crisisAddress;
 
     //String crisisID is for testing purposes entered by LJS 10/29/17
     private String crisisID;
@@ -79,12 +84,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // Keys for storing activity state.
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
+    private static Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        this.context = getApplicationContext();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -93,8 +100,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                CreateAddressDialog();
             }
         });
 
@@ -160,6 +166,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             super.onBackPressed();
         }
+    }
+
+    private void CreateAddressDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Incident Address : ");
+
+        //address input
+        final AppCompatEditText input = new AppCompatEditText(this);
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        builder.setPositiveButton("Calculate Travel Times", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                crisisAddress = input.getText().toString();
+                Intent i = new Intent(context, DispatchTeamActivity.class);
+                i.putExtra("crisisAddress", crisisAddress);
+                startActivity(i);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     @Override
