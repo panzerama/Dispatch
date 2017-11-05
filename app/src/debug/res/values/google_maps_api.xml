@@ -1,3 +1,6 @@
 <resources>
     <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyC1YB48qzarZF4YZqfmKsQqXxpubT79mhc</string>
+    <string name="google_geocoding_key" templateMergeStrategy="preserve" translatable="false">
+        AIzaSyBHcaTpHBIMLOx-z3DW_ap-i41OeP-KcaA
+    </string>
 </resources>

@@ -26,6 +26,16 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -46,8 +56,11 @@ import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 
-import java.io.IOException;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.List;
+import java.util.Locale;
 
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
@@ -55,6 +68,8 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispa
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSet;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
+
+//import com.google.android.gms.common.api.Response;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
@@ -156,13 +171,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         DispatchAlertDialog();
+
     }
 
     public void DispatchAlertDialog() {
         //For Testing added by Luke
+        Log.d(TAG, "In DispatchAlertDialog");
         ManageCrisis newCrisis = new ManageCrisis();
         crisisID = "testCrisis";
-        crisisAddress = "8507 18TH AVE NW Seattle WA 98117";
+        crisisAddress = "8507 18TH AVE NW, Seattle, WA 98117";
         //This adds a crisis to the JSON Database
         newCrisis.CreateNewCrisis(crisisID, crisisAddress);
 
@@ -174,19 +191,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     public void onClick(DialogInterface dialog, int which) {
                         //put your call to the Map activity here maybe?
                         // need the LatLang to give it
-                        crisisPin = getLocationFromAddress(MainActivity.this, crisisAddress);
-                        if (crisisPin != null) {
-                            MarkerOptions markerOptions = new MarkerOptions();
-                            markerOptions.position(crisisPin);
-                            mMap.addMarker(markerOptions
-                                    .title("Crisis Location").icon(BitmapDescriptorFactory
-                                            .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(crisisPin, 12));
-
-                        } else {
-                            Log.d(TAG, "Made it through the AlertDialog but the crisisPin " +
-                                    "Address is null.");
-                        }
+                        GetLatLng(crisisAddress);
 
                         dialog.dismiss();
                     }
@@ -306,26 +311,110 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // returns a LatLng object from an address given
     public LatLng getLocationFromAddress(Context context, String address) {
-        Geocoder coder= new Geocoder(context);
-        List<Address> addresses;
+        Log.d(TAG, "In getLocationFromAddress");
+        LatLng latLng = null;
+        Log.d(TAG, "getLocationFromAddress, made new latlng");
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+        Log.d(TAG, "getLocationFromAddress, made new geocoder");
+        List<Address> geoResults = null;
+        Log.d(TAG, "getLocationFromAddress, made list.");
+
         try {
-            addresses = coder.getFromLocationName(address, 5);
-            if (addresses == null) {
+            geoResults = geocoder.getFromLocationName(address, 1);
+            String addressFromCoder = geoResults.get(0).toString();
+            Log.d(TAG, addressFromCoder);
+            while (geoResults.size()==0) {
+                geoResults = geocoder.getFromLocationName(address, 1);
+
+
+
             }
-            Address location = addresses.get(0);
-            double lat = location.getLatitude();
-            double lng = location.getLongitude();
-            Log.i("Lat",""+lat);
-            Log.i("Lng",""+lng);
-            return new LatLng(lat,lng);
+            if (geoResults.size()>0) {
+                Address addr = geoResults.get(0);
+                latLng = new LatLng(addr.getLatitude(), addr.getLongitude());
+            }
+        } catch (Exception e) {
+            System.out.print(e.getMessage());
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        } // end catch
-         // end if
-      return null;
+
+        //latLng = new LatLng(47.6909439,-122.3823438);
+        Log.d(TAG, "Returning a LatLng value");
+        return latLng; //LatLng value of address
+
     }
 
+    public void GetLatLng(String crisisAddress) {
+
+        crisisAddress = ConvertAddressToJSON(crisisAddress);
+
+        RequestQueue mRequestQueue;
+
+        // Instantiate the cache
+        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        Network network = new BasicNetwork(new HurlStack());
+
+        // Instantiate the RequestQueue with the cache and network.
+        mRequestQueue = new RequestQueue(cache, network);
+
+        // Start the queue
+        mRequestQueue.start();
+        Log.d(TAG, getResources().getString(R.string.google_geocoding_key));
+        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
+                "&key=" + getResources().getString(R.string.google_geocoding_key);
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d(TAG,"Response: " + response.toString());
+                        LatLng addressPosition;
+                        double lat = -122;
+                        double lng = 47;
 
 
+                        try {
+                             lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                             lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        addressPosition = new LatLng(lat, lng);
+
+                        MarkerOptions markerOptions = new MarkerOptions();
+                        markerOptions.position(addressPosition);
+                        mMap.addMarker(markerOptions
+                                .title("Crisis Location").icon(BitmapDescriptorFactory
+                                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        mRequestQueue.add(jsObjRequest);
+
+
+    }
+
+    public String ConvertAddressToJSON(String address) {
+
+        address.replace(' ', '+');
+
+        return address;
+    }
 }
