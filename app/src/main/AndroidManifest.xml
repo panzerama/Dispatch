@@ -82,10 +82,17 @@
         </service>
 
         <activity android:name=".activities.ChatActivity">
+
             <!-- Parent activity meta-data to support 4.0 and lower -->
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MessengerActivity" />
+        </activity>
+        <activity android:name=".activities.DispatchTeamActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.DispatchTeamActivity" />
         </activity>
     </application>
 
