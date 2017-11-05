@@ -43,6 +43,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private EditText mEmailField;
     private EditText mPasswordField;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,7 +116,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return;
         }
 
-        final Intent authenticationHandoff = new Intent(this, MainActivity.class);
+        final Intent authenticationHandoff = new Intent(this, ShiftStartActivity.class);
 
         // TODO: 10/31/17 JD implement the showprogress dialog, low priority
 
