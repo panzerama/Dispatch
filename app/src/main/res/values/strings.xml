@@ -1,17 +1,26 @@
 <resources>
     <string name="app_name">Dispatch</string>
+    <string name="title_activity_route_map">Route Map</string>
     <string name="title_activity_login">Log In</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in">Sign in</string>
     <string name="action_sign_out">Sign out</string>
     <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
 
     <!--App Bar Strings-->
     <string name="title_activity_main">DESC</string>
     <string name="user_status_spinner">Status</string>
+    <string name="menu_user_role_title">Manage User Roles</string>
 
     <string-array name="status_spinner_items">
         <item>Active</item>
@@ -21,13 +30,46 @@
     </string-array>
 
     <!--Drawer Menu Strings-->
+    <string-array name="drawer_menu_items">
+        <item>User Roles</item>
+    </string-array>
+    <string name="drawer_open">Open Drawer</string>
+    <string name="drawer_close">Close Drawer</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <string name="action_settings">Settings</string>
+
     <!--Messaging Activity Strings-->
     <string name="title_activity_messenger">Messenger</string>
+    <string name="lorem_ipsum">chat stuff.</string>
 
     <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_shift_start">Choose Role and Status</string>
+    <string name="role_label">Choose role</string>
+    <string name="status_label">Set your status</string>
+    <string name="team_label">Choose your team</string>
+
+    <string-array name="role_spinner_options">
+        <item>MCT</item>
+        <item>Dispatcher</item>
+    </string-array>
+
+    <string-array name="mct_spinner_options">
+        <item>Blue</item>
+        <item>Orange</item>
+        <item>New Team</item>
+    </string-array>
+
+    <string-array name="status_spinner_options">
+        <item>Active</item>
+        <item>Busy</item>
+        <item>Other</item>
+    </string-array>
+
+    <string name="begin_shift_button_text">Begin Shift</string>
 
 </resources>

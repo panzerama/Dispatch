@@ -2,6 +2,9 @@ package com.indexyear.jd.dispatch.models;
 
 import com.indexyear.jd.dispatch.activities.MainActivity;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by karibullard on 10/23/17.
  */
@@ -90,5 +93,24 @@ public class Employee {
 
     public void setCurrentStatus(MainActivity.UserStatus currentStatus) {
         this.currentStatus = currentStatus;
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> employeeValues = new HashMap<>();
+
+        employeeValues.put("firstName", firstName);
+        employeeValues.put("lastName", lastName);
+        employeeValues.put("uid", userID);
+        employeeValues.put("phone", phone);
+
+        return employeeValues;
+    }
+
+    public void updateEmployee(){
+
+    }
+
+    public void createEmployee(){
+
     }
 }
