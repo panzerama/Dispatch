@@ -48,6 +48,28 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="title_activity_shift_start">ShiftStartActivity</string>
+    <string name="title_activity_shift_start">Choose Role and Status</string>
+    <string name="role_label">Choose role</string>
+    <string name="status_label">Set your status</string>
+    <string name="team_label">Choose your team</string>
+
+    <string-array name="role_spinner_options">
+        <item>MCT</item>
+        <item>Dispatcher</item>
+    </string-array>
+
+    <string-array name="mct_spinner_options">
+        <item>Blue</item>
+        <item>Orange</item>
+        <item>New Team</item>
+    </string-array>
+
+    <string-array name="status_spinner_options">
+        <item>Active</item>
+        <item>Busy</item>
+        <item>Other</item>
+    </string-array>
+
+    <string name="begin_shift_button_text">Begin Shift</string>
 
 </resources>
