@@ -31,6 +31,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -45,6 +46,7 @@ import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.indexyear.jd.dispatch.R.id.spinner;
@@ -72,7 +74,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String crisisID;
     private String crisisAddress;
     //LatLng for testing purposes
-    private LatLng crisisPin = new LatLng(47, -122);;
+    private LatLng crisisPin = new LatLng(47, -122);
+    ;
 
 
     // Retrieving User UID for database calls and logging
@@ -120,7 +123,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         navigationView.setNavigationItemSelectedListener(this);
 
 
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -140,10 +142,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         userID = "kbullard";
 
 
-
-
         //Register data listeners
-        ref = database.getReference("team-orange-20666/employees/"+userID);
+        ref = database.getReference("team-orange-20666/employees/" + userID);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //For Testing added by Luke
         ManageCrisis newCrisis = new ManageCrisis();
         crisisID = "testCrisis";
-        crisisAddress = "8507 18TH AVE NW, Seattle WA, 98117";
+        crisisAddress = "8507 18TH AVE NW Seattle WA 98117";
         //This adds a crisis to the JSON Database
         newCrisis.CreateNewCrisis(crisisID, crisisAddress);
 
@@ -175,34 +175,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         //put your call to the Map activity here maybe?
                         // need the LatLang to give it
                         crisisPin = getLocationFromAddress(MainActivity.this, crisisAddress);
+                        if (crisisPin != null) {
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(crisisPin);
+                            mMap.addMarker(markerOptions
+                                    .title("Crisis Location").icon(BitmapDescriptorFactory
+                                            .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(crisisPin, 12));
+
+                        } else {
+                            Log.d(TAG, "Made it through the AlertDialog but the crisisPin " +
+                                    "Address is null.");
+                        }
 
                         dialog.dismiss();
                     }
                 });
         alertDialog.show();
-        /*
-        //For Testing purposes we'll call our getAddress method using the crisisID and see
-        //if we can create a Dialog for it.
-        //ref = database.getReference("team-orange-20666/crisis/" + crisisID);
-        //ref.addListenerForSingleValueEvent(new ValueEventListener() {
 
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String address = (String) dataSnapshot.getValue();
-
-                // https://stackoverflow.com/questions/26097513/android-simple-alert-dialog
-
-
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-                // TODO handle when there is an error
-            }
-        });*/
     }
-
-
 
     @Override
     public void onBackPressed() {
@@ -252,8 +243,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Active, OffDuty, OnBreak, Dispatched, NotSet
     }
 
-    private UserStatus getSpinnerValueAsEnum(String value){
-        switch(value){
+    private UserStatus getSpinnerValueAsEnum(String value) {
+        switch (value) {
             case "Active":
                 return Active;
             case "Off-Duty":
@@ -305,43 +296,36 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         Log.d(TAG, ": onmapready");
 
-        //trying to place the marker on my house using the AlertDialog because my dog is a crisis.
-        mMap.addMarker(new MarkerOptions().position(crisisPin).title("Marker in Sydney"));
+        //trying to place the marker on my house using the AlertDialog.
+        mMap.addMarker(new MarkerOptions().position(crisisPin).title("Marker"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPin));
-        /*
-        // Add a marker in Seattle and move the camera
-        LatLng seattle = new LatLng(47, -122);
-        mMap.addMarker(new MarkerOptions().position(seattle).title("Marker in Seattle"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(seattle));
-        */
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPin, 10));
+
     }
 
 
-    public LatLng getLocationFromAddress(Context context, String strAddress)
-    {
+    // returns a LatLng object from an address given
+    public LatLng getLocationFromAddress(Context context, String address) {
         Geocoder coder= new Geocoder(context);
-        List<Address> address;
-        LatLng p1 = null;
-
-        try
-        {
-            address = coder.getFromLocationName(strAddress, 5);
-            if(address==null)
-            {
-                return null;
+        List<Address> addresses;
+        try {
+            addresses = coder.getFromLocationName(address, 5);
+            if (addresses == null) {
             }
-            Address location = address.get(0);
-            location.getLatitude();
-            location.getLongitude();
-
-            p1 = new LatLng(location.getLatitude(), location.getLongitude());
+            Address location = addresses.get(0);
+            double lat = location.getLatitude();
+            double lng = location.getLongitude();
+            Log.i("Lat",""+lat);
+            Log.i("Lng",""+lng);
+            return new LatLng(lat,lng);
         }
-        catch (Exception e)
-        {
+        catch (IOException e) {
             e.printStackTrace();
-        }
-        return p1;
-
+        } // end catch
+         // end if
+      return null;
     }
+
+
 
 }
