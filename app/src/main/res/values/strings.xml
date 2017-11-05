@@ -6,7 +6,7 @@
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password (optional)</string>
-    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in">Sign in</string>
     <string name="action_sign_out">Sign out</string>
     <string name="action_sign_in_short">Sign in</string>
     <string name="error_invalid_email">This email address is invalid</string>
@@ -41,5 +41,35 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+
+    <!--Messaging Activity Strings-->
+    <string name="title_activity_messenger">Messenger</string>
+    <string name="lorem_ipsum">chat stuff.</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_shift_start">Choose Role and Status</string>
+    <string name="role_label">Choose role</string>
+    <string name="status_label">Set your status</string>
+    <string name="team_label">Choose your team</string>
+
+    <string-array name="role_spinner_options">
+        <item>MCT</item>
+        <item>Dispatcher</item>
+    </string-array>
+
+    <string-array name="mct_spinner_options">
+        <item>Blue</item>
+        <item>Orange</item>
+        <item>New Team</item>
+    </string-array>
+
+    <string-array name="status_spinner_options">
+        <item>Active</item>
+        <item>Busy</item>
+        <item>Other</item>
+    </string-array>
+
+    <string name="begin_shift_button_text">Begin Shift</string>
 
 </resources>
