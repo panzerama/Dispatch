@@ -2,9 +2,9 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
-import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -38,6 +38,7 @@ import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -45,6 +46,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -88,8 +90,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String crisisID;
     private String crisisAddress;
     //LatLng for testing purposes
-    private LatLng crisisPin = new LatLng(47, -122);
-    ;
+    private LatLng crisisPinStart = new LatLng(47, -122);
+    private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
 
 
     // Retrieving User UID for database calls and logging
@@ -170,8 +172,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //TO DO
             }
         });
+        //This is storing the dummy initial LatLng in our LatLngBounds
+        latLngBounds.include(crisisPinStart);
+
         // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
-        // DispatchAlertDialog();
+         DispatchAlertDialog();
 
     }
 
@@ -332,9 +337,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, ": onmapready");
 
         //trying to place the marker on my house using the AlertDialog.
-        mMap.addMarker(new MarkerOptions().position(crisisPin).title("Marker"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPin));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPin, 10));
+        mMap.addMarker(new MarkerOptions().position(crisisPinStart).title("Marker"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPinStart));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPinStart, 10));
 
     }
 
@@ -418,13 +423,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
 
                         addressPosition = new LatLng(lat, lng);
+                        PlacePinAndPositionCamera(addressPosition);
 
-                        MarkerOptions markerOptions = new MarkerOptions();
-                        markerOptions.position(addressPosition);
-                        mMap.addMarker(markerOptions
-                                .title("Crisis Location").icon(BitmapDescriptorFactory
-                                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
                     }
                 }, new Response.ErrorListener() {
 
@@ -441,10 +441,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    //Making the address given parsable by HTTP
     public String ConvertAddressToJSON(String address) {
 
         address.replace(' ', '+');
 
         return address;
+    }
+
+    public void PlacePinAndPositionCamera(LatLng addressPosition) {
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(addressPosition);
+        mMap.addMarker(markerOptions
+                .title("Crisis Location").icon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+
+        latLngBounds.include(addressPosition);
+
+        LatLngBounds bounds = latLngBounds.build();
+
+        int padding = 150; // offset from edges of the map in pixels
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+        mMap.animateCamera(cu);
     }
 }
