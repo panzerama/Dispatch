@@ -92,7 +92,11 @@
         <activity
             android:name=".activities.ShiftStartActivity"
             android:label="@string/title_activity_shift_start"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+        <service
+            android:name=".services.CrisisIntentService"
+            android:exported="false"></service>
     </application>
 
 </manifest>
