@@ -96,7 +96,12 @@
 
         <service
             android:name=".services.CrisisIntentService"
-            android:exported="false"></service>
+            android:exported="false" />
+
+        <receiver
+            android:name=".activities.CrisisUpdateReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>

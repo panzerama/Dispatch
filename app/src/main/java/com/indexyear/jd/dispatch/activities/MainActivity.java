@@ -56,6 +56,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
+import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -151,6 +152,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Obtain Auth instance for logging and database access
         mAuth = FirebaseAuth.getInstance();
 
+        // Start CrisisIntentService and register BroadcastReceiver
+        listenForCrisis();
+        setBroadcastReceiver();
+
         //For Testing
         ManageUsers newUser = new ManageUsers();
         newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
@@ -175,22 +180,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    public void ListenForCrisis() {
-        ref = database.getReference("team-orange-20666/crisis/");
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(ref team == the user team) {
-                    get the address and call the alert dialog
-                }
-                else(start listening some more)
-            }
+    public void listenForCrisis() {
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                //TO DO
-            }
-        });
+        // send intent to service
+
+        Intent crisisService = new Intent(this, CrisisIntentService.class);
+
+        String databaseUri = "team-orange-20666";
+        String nodePath = "crisis";
+
+        crisisService.putExtra("DATABASE_URI", databaseUri);
+        crisisService.putExtra("DATABASE_NODE", nodePath);
+
+        startService(crisisService);
+    }
+
+    public void setBroadcastReceiver(){
+
     }
 
     public void DispatchAlertDialog() {
