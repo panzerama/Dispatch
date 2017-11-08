@@ -36,6 +36,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // Set up the login form.
         mEmailField = (AutoCompleteTextView) findViewById(R.id.email);
+        // Test Push
 
         mPasswordField = (EditText) findViewById(R.id.password);
 
