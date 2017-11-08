@@ -3,6 +3,7 @@ package com.indexyear.jd.dispatch.services;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -20,6 +21,9 @@ import com.google.firebase.database.ValueEventListener;
  * @author JD Panzer
  */
 public class CrisisIntentService extends IntentService {
+    static final String TAG = "CrisisIntentService";
+
+
     // Core function - connect to database and monitor
     private static final String ACTION_DATABASE_CONNECT = "com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT";
     // will the intent ever be required to update the crisis table? Why not?
@@ -40,6 +44,8 @@ public class CrisisIntentService extends IntentService {
      * @see IntentService
      */
     public static void startActionDatabaseConnect(Context context, String databaseUri, String databaseNode) {
+        Log.d(TAG, " init");
+
         Intent intent = new Intent(context, CrisisIntentService.class);
         intent.setAction(ACTION_DATABASE_CONNECT);
         intent.putExtra(DATABASE_URI, databaseUri);

@@ -2,6 +2,7 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.IntentFilter;
 import android.location.Address;
 import android.location.Geocoder;
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -181,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void listenForCrisis() {
-
+        Log.d(TAG, " listenForCrisis");
         // send intent to service
 
         Intent crisisService = new Intent(this, CrisisIntentService.class);
@@ -191,12 +193,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         crisisService.putExtra("DATABASE_URI", databaseUri);
         crisisService.putExtra("DATABASE_NODE", nodePath);
+        crisisService.setAction("com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT");
 
         startService(crisisService);
     }
 
     public void setBroadcastReceiver(){
+        Log.d(TAG, " setBroadcastReceiver");
+        CrisisUpdateReceiver mCrisisReceiver = new CrisisUpdateReceiver();
 
+        IntentFilter mCrisisBroadcastIntent =
+                new IntentFilter("com.indexyear.jd.dispatch.services.CrisisIntentService");
+        LocalBroadcastManager.getInstance(this)
+                             .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
     }
 
     public void DispatchAlertDialog() {

@@ -222,7 +222,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //get database reference
         mDB = FirebaseDatabase.getInstance().getReference("employees/");
 
-        mDB.addValueEventListener(new ValueEventListener() {
+        mDB.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.hasChild(mAuth.getCurrentUser().getUid())){
