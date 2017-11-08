@@ -1,14 +1,18 @@
 package com.indexyear.jd.dispatch.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +31,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.android.volley.Cache;
 import com.android.volley.Network;
@@ -37,7 +43,13 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -45,9 +57,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -60,8 +75,12 @@ import com.indexyear.jd.dispatch.data.ManageUsers;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
@@ -70,10 +89,14 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSe
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback,
+        NavigationView.OnNavigationItemSelectedListener,
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     //todo jd fix level of zoom on default view
     private static final String TAG = "MainActivity";
+    private static final float MAP_ZOOM_LEVEL = 0.5f;
+
     private String[] menuItems;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -89,7 +112,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private String crisisAddress;
     //LatLng for testing purposes
     private LatLng crisisPin = new LatLng(47, -122);
-    ;
+
+    GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
+    boolean mRequestingLocationUpdates;
 
 
     // Retrieving User UID for database calls and logging
@@ -108,6 +134,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String KEY_CAMERA_POSITION = "camera_position";
     private static final String KEY_LOCATION = "location";
     private static Context context;
+    private Address mCurrentLocation;
+    private String mLastUpdateTime;
+    private HashMap mCoordinate;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,6 +187,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         userID = "kbullard";
 
 
+
+
         //Register data listeners
         ref = database.getReference("team-orange-20666/employees/" + userID);
         ref.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -171,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
-        // DispatchAlertDialog();
+        DispatchAlertDialog();
 
     }
 
@@ -211,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void CreateAddressDialog(){
+    private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Incident Address : ");
 
@@ -270,8 +302,108 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         });
-
         return true;
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        // TODO: 11/7/2017 Kari / Mahillet Set UserLocation object data
+        Location mCurrentLocation = location;
+//        DateFormat dateFormat = new DateFormat("yyyy/MM/dd HH:mm:ss");
+//        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+//        Date date = new Date();
+//        String mLastUpdateTime = dateFormat.format(date).toString();
+
+        saveToFirebase(mCurrentLocation);
+
+        //Retrieve saved locations and draw as marker on map
+       //drawLocations();
+
+        // Update UI to draw bread crumb with the latest bus location.
+        mMap.clear();
+
+        
+        LatLng mLatlng = new LatLng(mCurrentLocation.getLatitude(),
+                mCurrentLocation.getLongitude());
+        MarkerOptions mMarkerOption = new MarkerOptions()
+                .position(mLatlng)
+                .title(mLastUpdateTime).icon(BitmapDescriptorFactory.fromResource(R.drawable.code_the_road_small));
+
+        Marker mMarker = mMap.addMarker(mMarkerOption);
+
+    }
+
+    private static String GetCurrentUser(){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String userID = user.getUid();
+        return userID;
+    }
+
+    private void saveToFirebase(Location userLocation) {
+
+//        Map mLocations = new HashMap();
+//        //Log.d("location check" , "Check Save firebase");
+//        //mLocations.put("timestamp", mLastUpdateTime);
+//        Map  mCoordinate = new HashMap();
+//    // LatLng busLocation = new LatLng(37.783879,-122.401254);
+//        mCoordinate.put("latitude", mCurrentLocation.getLatitude());
+//       mCoordinate.put("longitude", mCurrentLocation.getLongitude());
+//      ;
+       // mCoordinate.put("latitude",37.783879);
+       // mCoordinate.put("longitude", -122.401254);
+        //mLocations.put("location", mCoordinate);
+        String userID = GetCurrentUser();
+        if(userID != null){
+            DatabaseReference employeeReference = database.getReference("team-orange-20666/employees/" + userID);
+            employeeReference.child("userLocation").setValue(userLocation);
+        } else {
+            Toast toast = Toast.makeText(context, "Unable to find user ID.", Toast.LENGTH_LONG);
+            toast.show();
+        }
+        ref.child("employees").setValue(userLocation);
+    }
+
+
+    private void drawLocations(Location userLocation) {
+        // Get only latest logged locations - since 'START' button clicked
+//        Query queryRef = ref.orderByChild("timestamp").startAt(userLocation.getTime());
+//        // Add listener for a child added at the data at this location
+//       queryRef.addChildEventListener(new ChildEventListener() {
+//           LatLngBounds bounds;
+//            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+//           @Override
+//           public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//               Map  data = (Map ) dataSnapshot.getValue();
+//                String timestamp = (String) data.get("timestamp");
+//                // Get recorded latitude and longitude
+//
+//        Map  mCoordinate = (HashMap)data.get("location");
+//               double latitude = (double) (mCoordinate.get("latitude"));
+//                double longitude = (double) (mCoordinate.get("longitude"));
+//
+//               // Create LatLng for each locations
+//               LatLng mLatlng = new LatLng(latitude, longitude);
+//                // Make sure the map boundary contains the location
+//               builder.include(mLatlng);
+//                bounds = builder.build();
+//
+//                // Add a marker for each logged location
+//               MarkerOptions mMarkerOption = new MarkerOptions().position(mLatlng)
+//                       .title(timestamp).icon(BitmapDescriptorFactory.fromResource(R.drawable.measle_blue));
+//               Marker mMarker = mMap.addMarker(mMarkerOption);
+//
+//           markerList.add(mMarker);
+//
+//                // Zoom map to the boundary that contains every logged location
+//                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, MAP_ZOOM_LEVEL));
+           // }
+
+        //});
     }
 
     public enum UserStatus {
@@ -314,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Handle navigation view item clicks here.
 //        int id = item.getItemId();
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.nav_message:
                 Intent intent = new Intent(this, MessengerActivity.class);
                 this.startActivity(intent);
@@ -353,13 +485,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             geoResults = geocoder.getFromLocationName(address, 1);
             String addressFromCoder = geoResults.get(0).toString();
             Log.d(TAG, addressFromCoder);
-            while (geoResults.size()==0) {
+            while (geoResults.size() == 0) {
                 geoResults = geocoder.getFromLocationName(address, 1);
 
 
-
             }
-            if (geoResults.size()>0) {
+            if (geoResults.size() > 0) {
                 Address addr = geoResults.get(0);
                 latLng = new LatLng(addr.getLatitude(), addr.getLongitude());
             }
@@ -399,20 +530,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG,"Response: " + response.toString());
+                        Log.d(TAG, "Response: " + response.toString());
                         LatLng addressPosition;
                         double lat = -122;
                         double lng = 47;
 
 
                         try {
-                             lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                            lat = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
 
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                         try {
-                             lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                            lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -422,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         MarkerOptions markerOptions = new MarkerOptions();
                         markerOptions.position(addressPosition);
                         mMap.addMarker(markerOptions
-                                .title("Crisis Location").icon(BitmapDescriptorFactory
+                                .title("Crisis UserLocation").icon(BitmapDescriptorFactory
                                         .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
                     }
@@ -447,4 +578,62 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         return address;
     }
+
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+
+            return;
+        }
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(mLastLocation.getLatitude(),
+                        mLastLocation.getLongitude()),
+                MAP_ZOOM_LEVEL));
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    public static final long UPDATE_INTERVAL_IN_MS = 120000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MS =
+            UPDATE_INTERVAL_IN_MS / 4;
+    protected LocationRequest mLocationRequest;
+
+
+    private void startLogging() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL_IN_MS);
+        mLocationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (mGoogleApiClient.isConnected() && !mRequestingLocationUpdates) {
+            mRequestingLocationUpdates = true;
+            startLocationUpdates();
+        }
+
+    }
+
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(
+                mGoogleApiClient, mLocationRequest, this);
+    }
+
+
 }

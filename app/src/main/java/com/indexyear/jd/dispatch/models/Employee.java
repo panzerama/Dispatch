@@ -1,5 +1,7 @@
 package com.indexyear.jd.dispatch.models;
 
+import android.location.Location;
+
 import com.indexyear.jd.dispatch.activities.MainActivity;
 
 import java.util.HashMap;
@@ -17,6 +19,8 @@ public class Employee {
     public MCT currentMCT;
     public UserRole currentRole;
     public MainActivity.UserStatus currentStatus;
+    public Location userLocation;
+
 
     public Employee(){
 
@@ -33,6 +37,14 @@ public class Employee {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
+    }
+
+    public Location getUserLocation() {
+        return userLocation;
+    }
+
+    public void setUserLocation(Location userLocation) {
+        this.userLocation = userLocation;
     }
 
     public String getUserID() {
@@ -102,6 +114,7 @@ public class Employee {
         employeeValues.put("lastName", lastName);
         employeeValues.put("uid", userID);
         employeeValues.put("phone", phone);
+        employeeValues.put("location", userLocation);
 
         return employeeValues;
     }
