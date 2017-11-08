@@ -175,6 +175,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    public void ListenForCrisis() {
+        ref = database.getReference("team-orange-20666/crisis/");
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(ref team == the user team) {
+                    get the address and call the alert dialog
+                }
+                else(start listening some more)
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //TO DO
+            }
+        });
+    }
+
     public void DispatchAlertDialog() {
         //For Testing added by Luke
         Log.d(TAG, "In DispatchAlertDialog");
