@@ -33,6 +33,8 @@ public class CrisisIntentService extends IntentService {
     private static final String DATABASE_URI = "com.indexyear.jd.dispatch.services.extra.DATABASE_URI";
     private static final String DATABASE_NODE = "com.indexyear.jd.dispatch.services.extra.DATABASE_NODE";
 
+    DatabaseReference mDB;
+
     public CrisisIntentService() {
         super("CrisisIntentService");
     }
@@ -89,17 +91,36 @@ public class CrisisIntentService extends IntentService {
      * that parameters are valid strings
      */
     private void handleActionDatabaseConnect(String databaseUri, String nodeReference) {
-        DatabaseReference mDB = FirebaseDatabase.getInstance().getReference(databaseUri + nodeReference);
+        mDB = FirebaseDatabase.getInstance().getReference(databaseUri + nodeReference);
+        
+        final OnGetDataListener dataListener = new OnGetDataListener() {
+            @Override
+            public void onStart() {
+                // TODO: 11/9/17 JD  create broadcast object?
+            }
 
+            @Override
+            public void onSuccess(DataSnapshot data) {
+                // TODO: 11/9/17 JD trigger broadcast
+            }
+
+            @Override
+            public void onFailed(DatabaseError databaseError) {
+                // TODO: 11/9/17 JD message local and firebase logs
+            }
+        };
+        
         mDB.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Notify the activity of the new crisis. Do not put logic about teams here...?
+                Log.d(TAG, "database updated!");
+                dataListener.onSuccess(dataSnapshot);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                dataListener.onFailed(databaseError);
             }
         });
 
@@ -112,5 +133,9 @@ public class CrisisIntentService extends IntentService {
     private void handleActionBaz(String param1, String param2) {
         // TODO: Handle action Baz
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    private void readCrisisData(){
+
     }
 }
