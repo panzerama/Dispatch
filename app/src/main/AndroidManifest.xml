@@ -101,7 +101,12 @@
         <receiver
             android:name=".activities.CrisisUpdateReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="com.indexyear.jd.dispatch.CRISIS_BROADCAST"></action>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

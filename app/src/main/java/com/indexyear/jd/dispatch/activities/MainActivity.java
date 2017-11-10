@@ -114,6 +114,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String KEY_LOCATION = "location";
     private static Context context;
 
+    CrisisUpdateReceiver mCrisisReceiver = new CrisisUpdateReceiver();
+
+    IntentFilter mCrisisBroadcastIntent =
+            new IntentFilter("com.indexyear.jd.dispatch.services.MainActivity");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -185,6 +190,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
         // DispatchAlertDialog();
 
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
+
     }
 
     public void listenForCrisis() {
@@ -205,12 +213,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void setBroadcastReceiver(){
         Log.d(TAG, " setBroadcastReceiver");
-        CrisisUpdateReceiver mCrisisReceiver = new CrisisUpdateReceiver();
 
-        IntentFilter mCrisisBroadcastIntent =
-                new IntentFilter("com.indexyear.jd.dispatch.services.CrisisIntentService");
-        LocalBroadcastManager.getInstance(this)
-                             .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
+
     }
 
     public void DispatchAlertDialog() {

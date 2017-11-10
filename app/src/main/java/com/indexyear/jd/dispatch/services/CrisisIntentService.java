@@ -33,7 +33,7 @@ public class CrisisIntentService extends IntentService {
     private static final String DATABASE_URI = "com.indexyear.jd.dispatch.services.extra.DATABASE_URI";
     private static final String DATABASE_NODE = "com.indexyear.jd.dispatch.services.extra.DATABASE_NODE";
 
-    private static final String BROADCAST_ACTION = "com.indexyear.jd.dispatch.activities.MainActivity";
+    private static final String BROADCAST_ACTION = "com.indexyear.jd.dispatch.CRISIS_BROADCAST";
 
     DatabaseReference mDB;
 
@@ -107,10 +107,10 @@ public class CrisisIntentService extends IntentService {
             public void onSuccess(DataSnapshot data) {
                 // TODO: 11/9/17 JD trigger broadcast
                 Log.d(TAG, " on database success");
-                Intent broadcastCrisis = new Intent();
-                broadcastCrisis.setAction(BROADCAST_ACTION);
-                broadcastCrisis.putExtra("example crisis info", "a crisis address");
-                sendBroadcast(broadcastCrisis);
+                Intent broadcastCrisisIntent = new Intent();
+                broadcastCrisisIntent.setAction(BROADCAST_ACTION);
+                broadcastCrisisIntent.putExtra("example crisis info", "a crisis address");
+                sendBroadcast(broadcastCrisisIntent);
             }
 
             @Override
