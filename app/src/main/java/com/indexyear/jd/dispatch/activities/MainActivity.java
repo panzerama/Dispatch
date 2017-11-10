@@ -193,11 +193,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         Intent crisisService = new Intent(this, CrisisIntentService.class);
 
-        String databaseUri = "team-orange-20666";
+        String databaseUri = "";
         String nodePath = "crisis";
 
-        crisisService.putExtra("DATABASE_URI", databaseUri);
-        crisisService.putExtra("DATABASE_NODE", nodePath);
+        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_URI", databaseUri);
+        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_NODE", nodePath);
         crisisService.setAction("com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT");
 
         startService(crisisService);

@@ -23,7 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 public class CrisisIntentService extends IntentService {
     static final String TAG = "CrisisIntentService";
 
-
+    // TODO: 11/9/17 JD abstract constants into class?
     // Core function - connect to database and monitor
     private static final String ACTION_DATABASE_CONNECT = "com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT";
     // will the intent ever be required to update the crisis table? Why not?
@@ -32,6 +32,8 @@ public class CrisisIntentService extends IntentService {
     // Database criteria. I could generalize to any database monitoring, couldn't I?
     private static final String DATABASE_URI = "com.indexyear.jd.dispatch.services.extra.DATABASE_URI";
     private static final String DATABASE_NODE = "com.indexyear.jd.dispatch.services.extra.DATABASE_NODE";
+
+    private static final String BROADCAST_ACTION = "com.indexyear.jd.dispatch.activities.MainActivity";
 
     DatabaseReference mDB;
 
@@ -91,22 +93,30 @@ public class CrisisIntentService extends IntentService {
      * that parameters are valid strings
      */
     private void handleActionDatabaseConnect(String databaseUri, String nodeReference) {
-        mDB = FirebaseDatabase.getInstance().getReference(databaseUri + nodeReference);
+        mDB = FirebaseDatabase.getInstance().getReference(databaseUri + "/" + nodeReference + "/");
+        Log.d(TAG, " " + databaseUri + "/" + nodeReference + "/");
         
         final OnGetDataListener dataListener = new OnGetDataListener() {
             @Override
             public void onStart() {
                 // TODO: 11/9/17 JD  create broadcast object?
+                Log.d(TAG, " on database listener create");
             }
 
             @Override
             public void onSuccess(DataSnapshot data) {
                 // TODO: 11/9/17 JD trigger broadcast
+                Log.d(TAG, " on database success");
+                Intent broadcastCrisis = new Intent();
+                broadcastCrisis.setAction(BROADCAST_ACTION);
+                broadcastCrisis.putExtra("example crisis info", "a crisis address");
+                sendBroadcast(broadcastCrisis);
             }
 
             @Override
             public void onFailed(DatabaseError databaseError) {
                 // TODO: 11/9/17 JD message local and firebase logs
+                Log.d(TAG, " on database error");
             }
         };
         
