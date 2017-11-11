@@ -99,14 +99,18 @@
             android:exported="false" />
 
         <receiver
-            android:name=".activities.CrisisUpdateReceiver"
+            android:name=".event_handlers.CrisisUpdateReceiver"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
-                <action android:name="com.indexyear.jd.dispatch.CRISIS_BROADCAST"></action>
+                <action android:name="com.indexyear.jd.dispatch.CRISIS_BROADCAST" />
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".services.DatabaseService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>

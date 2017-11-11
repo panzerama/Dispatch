@@ -1,4 +1,4 @@
-package com.indexyear.jd.dispatch.activities;
+package com.indexyear.jd.dispatch.event_handlers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

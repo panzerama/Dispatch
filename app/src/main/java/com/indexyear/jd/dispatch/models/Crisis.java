@@ -1,13 +1,11 @@
 package com.indexyear.jd.dispatch.models;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 public class Crisis {
 
     private String crisisID;
     private String crisisAddress;
+
+    /*
     private Date crisisDate;
     private Calendar timeCallReceived;
     private Calendar timeArrived;
@@ -18,12 +16,14 @@ public class Crisis {
     private String dispatchComments;
     private MCT responseTeam;
     private List<Employee> responseTeamMembers;
+    */
 
     public Crisis(String crisisID, String crisisAddress){
         this.crisisID = crisisID;
         this.crisisAddress = crisisAddress;
     }
 
+    /*
     private enum ReferringAgency {
         DMHP, FIRE, POLICE, CC
     }
@@ -31,6 +31,7 @@ public class Crisis {
     private enum ReferralReason {
         MH, CD, MHCD, OTHER
     }
+    */
 
     public String getCrisisID() { return crisisID; }
 
@@ -44,6 +45,7 @@ public class Crisis {
         this.crisisAddress = crisisAddress;
     }
 
+    /*
     public Date getCrisisDate() {
         return crisisDate;
     }
@@ -121,4 +123,5 @@ public class Crisis {
     public void setResponseTeamMembers(List<Employee> responseTeamMembers) {
         this.responseTeamMembers = responseTeamMembers;
     }
+    */
 }
