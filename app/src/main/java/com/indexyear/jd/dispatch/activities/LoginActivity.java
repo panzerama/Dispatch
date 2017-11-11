@@ -23,6 +23,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.models.Employee;
 
@@ -133,6 +134,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             params.putString("time_stamp", "");
 
                             Log.d(TAG, "signInWithEmail:success");
+                            Log.d(TAG, "instanceid: " + FirebaseInstanceId.getInstance().getToken());
                             mAnalyticsInstance.logEvent(FirebaseAnalytics.Event.LOGIN, params);
                             //get or add employee in database
                             createEmployee();

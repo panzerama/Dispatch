@@ -83,6 +83,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                 //do something to raise error
             }
 
+            startServices();
             startActivity(ShiftStartHandoff);
         }
 
@@ -104,6 +105,9 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         mDB.child(mAuth.getUid()).child("role").setValue(role);
     }
-    //pass to main activity
+
+    private void startServices(){
+
+    }
 
 }

@@ -110,7 +110,12 @@
         <service
             android:name=".services.DatabaseService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity
+            android:name=".activities.CrisisReceived"
+            android:label="@string/title_activity_crisis_received"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
     </application>
 
 </manifest>

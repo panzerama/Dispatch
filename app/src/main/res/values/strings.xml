@@ -71,5 +71,6 @@
     </string-array>
 
     <string name="begin_shift_button_text">Begin Shift</string>
+    <string name="title_activity_crisis_received">CrisisReceived</string>
 
 </resources>

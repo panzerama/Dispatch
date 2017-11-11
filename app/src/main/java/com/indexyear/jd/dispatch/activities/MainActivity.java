@@ -76,9 +76,10 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSe
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity
+        implements OnMapReadyCallback,
+                   NavigationView.OnNavigationItemSelectedListener {
 
-    //todo jd fix level of zoom on default view
     private static final String TAG = "MainActivity";
     private String[] menuItems;
     private DrawerLayout mDrawerLayout;
@@ -93,10 +94,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
     private String crisisAddress;
+
     //LatLng for testing purposes
     private LatLng crisisPinStart = new LatLng(47, -122);
     private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
-
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -193,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
+        // TODO: 11/11/17 JD shouldb e removed?
 
     }
 
@@ -505,4 +507,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.animateCamera(cu);
     }
+
 }
