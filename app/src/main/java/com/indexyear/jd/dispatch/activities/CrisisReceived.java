@@ -1,5 +1,6 @@
 package com.indexyear.jd.dispatch.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,10 +12,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.models.Crisis;
 
 public class CrisisReceived extends AppCompatActivity implements View.OnClickListener{
 
     final String TAG = "CrisisReceived";
+    String crisisAddress, crisisId;
+    Crisis crisisWaitingResponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,12 +41,14 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
             }
         });
 
-        String crisis_address = getIntent().getStringExtra("crisis_address");
-        String crisis_timestamp = getIntent().getStringExtra("crisis_timestamp");
+        crisisAddress = getIntent().getStringExtra("crisis_address");
+        crisisId = getIntent().getStringExtra("crisis_id");
 
-        Log.d(TAG, " receved: " + crisis_address + " " + crisis_timestamp);
-        crisisAddressTextView.setText(crisis_address);
-        crisisAddressTextView.setText(crisis_address);
+        crisisWaitingResponse = new Crisis(crisisId, crisisAddress);
+
+        Log.d(TAG, " receved: " + crisisId + " " + crisisAddress);
+        crisisAddressTextView.setText(crisisAddress);
+        crisisTimeTextView.setText(crisisId);
 
         acceptCrisisButton.setOnClickListener(this);
 
@@ -51,6 +57,11 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
     @Override
     public void onClick(View v) {
         Log.d(TAG, "crisis accept button");
+
+        Intent crisisPinIntent = new Intent(this, MainActivity.class);
+        crisisPinIntent.putExtra("crisis", crisisWaitingResponse);
+
+        startActivity(crisisPinIntent);
     }
 
 }

@@ -1,6 +1,9 @@
 package com.indexyear.jd.dispatch.models;
 
-public class Crisis {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Crisis implements Parcelable{
 
     private String crisisID;
     private String crisisAddress;
@@ -21,6 +24,12 @@ public class Crisis {
     public Crisis(String crisisID, String crisisAddress){
         this.crisisID = crisisID;
         this.crisisAddress = crisisAddress;
+    }
+
+    // jdp - requires that the fields be read in the same order that they are serialized elsewhere
+    public Crisis(Parcel input){
+        crisisID = input.readString();
+        crisisAddress = input.readString();
     }
 
     /*
@@ -44,6 +53,22 @@ public class Crisis {
     public void setCrisisAddress(String crisisAddress) {
         this.crisisAddress = crisisAddress;
     }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(crisisID);
+        dest.writeString(crisisAddress);
+    }
+
+    public static final Parcelable.Creator<Crisis> CREATOR = new Parcelable.Creator<Crisis>(){
+        public Crisis createFromParcel(Parcel in) {
+            return new Crisis(in);
+        }
+
+        public Crisis[] newArray(int size) {
+            return new Crisis[size];
+        }
+    };
 
     /*
     public Date getCrisisDate() {
@@ -124,4 +149,8 @@ public class Crisis {
         this.responseTeamMembers = responseTeamMembers;
     }
     */
+
+    public int describeContents(){
+        return 0;
+    }
 }
