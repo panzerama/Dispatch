@@ -94,6 +94,11 @@
             android:label="@string/title_activity_shift_start"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
 
+        <activity
+            android:name=".activities.DispatchTeamActivity"
+            android:label="@string/title_activity_shift_start"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
         <service
             android:name=".services.CrisisIntentService"
             android:exported="false" />

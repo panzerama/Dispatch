@@ -12,6 +12,7 @@ import android.util.Log;
 import com.google.firebase.messaging.RemoteMessage;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.activities.CrisisReceived;
+import com.indexyear.jd.dispatch.models.Crisis;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // TODO(developer): Handle FCM messages here.
+
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
         Map<String, String> messageDataMap = new HashMap<>();
@@ -36,9 +37,11 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
             for (Map.Entry<String, String> entry : remoteMessage.getData().entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                Log.d(TAG, "key, " + key + " value " + value);
+                Log.d(TAG, "key: " + key + " value: " + value);
                 messageDataMap.put(key, value);
             }
+
+            sendNotification("Some notification text", messageDataMap);
         }
 
         // Check if message contains a notification payload.
@@ -46,7 +49,8 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
-        sendNotification("Some notification text", messageDataMap);
+
+        // TODO: 11/11/17 JD message acknowledged?
     }
 
     /**
@@ -81,10 +85,10 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("source", "crisis message");
 
-        if (!messageDataSet.isEmpty()){
-            intent.putExtra("crisis_address", messageDataSet.get("crisis_address"));
-            intent.putExtra("crisis_timestamp", messageDataSet.get("crisis_timestamp"));
-        }
+        Crisis receivedCrisis = new Crisis(messageDataSet.get("crisis_timestamp"), messageDataSet.get("crisis_address"));
+
+        Log.d(TAG, "message data: " + messageDataSet.get("crisis_timestamp") +  messageDataSet.get("crisis_address"));
+        intent.putExtra("crisis", receivedCrisis);
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 

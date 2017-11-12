@@ -38,4 +38,8 @@ public class Database {
     public Map returnRecord(String uid){
         return new HashMap();
     }
+
+    public void setValueAt(String nodeReference, String value){
+        dataRef.child(nodeReference).setValue(value);
+    }
 }

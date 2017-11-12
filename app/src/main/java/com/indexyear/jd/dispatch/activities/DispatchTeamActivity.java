@@ -20,6 +20,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.models.MCT;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DispatchTeamActivity extends AppCompatActivity {
 
     private ListView listOfTeams;
@@ -60,6 +63,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
 
                 selectedTeam = team.getTeamID();
                 createConfirmDispatchDialog();
+                triggerNotification();
             }
         });
 
@@ -111,5 +115,14 @@ public class DispatchTeamActivity extends AppCompatActivity {
 
         builder.show();
     }
+
+    private void triggerNotification(){
+        Map<String, Object> crisisInfo = new HashMap<>();
+        crisisInfo.put("crisisID", "000001");
+        crisisInfo.put("crisisAddress", "1210 N 152nd St 98133");
+        crisisInfo.put("team", "MCT1");
+
+        db.child("crisis/").child("000001").updateChildren(crisisInfo);
+    } // set this information programmatically
 
 }

@@ -2,8 +2,6 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -14,8 +12,9 @@ import android.widget.Spinner;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.ManageUsers;
+import com.indexyear.jd.dispatch.models.Employee;
 
 public class ShiftStartActivity extends AppCompatActivity implements View.OnClickListener,
         AdapterView.OnItemSelectedListener{
@@ -23,10 +22,10 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private static final String TAG = "ShiftStartActivity: ";
 
     private FirebaseAuth mAuth;
-
     private FirebaseAnalytics mAnalyticsInstance;
-
     private DatabaseReference mDB;
+    private ManageUsers mUser;
+    private Employee mEmployee;
 
     Spinner role_spinner;
     Spinner team_spinner;
@@ -39,26 +38,18 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //get spinner values?
-        //set up button
         findViewById(R.id.shift_start_button).setOnClickListener(this);
 
         role_spinner = (Spinner) findViewById(R.id.role_spinner);
         role_spinner.setOnItemSelectedListener(this);
+        // jdp not sure how to set default values, may need to define arrayadapter programmatically
+        // instead of in string values resource
 
         team_spinner = (Spinner) findViewById(R.id.team_spinner);
         status_spinner = (Spinner) findViewById(R.id.status_spinner);
 
         mAuth = FirebaseAuth.getInstance();
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        mUser = new ManageUsers();
     }
 
     //when the button is clicked, take values from spinners
@@ -87,17 +78,21 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                 //do something to raise error
             }
 
-            startServices();
             startActivity(ShiftStartHandoff);
         }
 
     }
 
+    // jdp this is where I had intended to control which spinners are available, but it isn't
+    // functioning as expected. it won't update a second time
     public void onItemSelected(AdapterView adapterView,View view, int pos, long id){
         if (role_spinner.getSelectedItem().toString().equals("MCT")){
             // make other spinners visible
             team_spinner.setVisibility(View.VISIBLE);
             status_spinner.setVisibility(View.VISIBLE);
+        } else if (role_spinner.getSelectedItem().toString().equals("Dispatch")) {
+            team_spinner.setVisibility(View.INVISIBLE);
+            status_spinner.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -108,22 +103,18 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     //update the employee status with relevant values
     private void updateEmployeeAsMCT(String role, String team, String status){
         Log.d(TAG, "updateEmployeeAsMCT");
-        mDB = FirebaseDatabase.getInstance().getReference("employees/");
+        String uid = mAuth.getCurrentUser().getUid();
 
-        mDB.child(mAuth.getUid()).child("role").setValue(role);
-        mDB.child(mAuth.getUid()).child("team").setValue(team);
-        mDB.child(mAuth.getUid()).child("status").setValue(status);
+        mUser.setUserRole(uid, role);
+        mUser.setUserTeam(uid, team);
+        mUser.setUserStatus(uid, status);
     }
 
     private void updateEmployeeAsDispatch(String role){
         Log.d(TAG, "updateEmployeeAsDispatch");
-        mDB = FirebaseDatabase.getInstance().getReference("employees/");
+        String uid = mAuth.getCurrentUser().getUid();
 
-        mDB.child(mAuth.getUid()).child("role").setValue(role);
-    }
-
-    private void startServices(){
-
+        mUser.setUserRole(uid, role);
     }
 
 }

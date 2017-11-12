@@ -27,8 +27,16 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        crisisWaitingResponse = getIntent().getParcelableExtra("crisis");
+
+
         TextView crisisAddressTextView = (TextView) findViewById(R.id.crisisAddress);
         TextView crisisTimeTextView = (TextView) findViewById(R.id.crisisTimestamp);
+
+        Log.d(TAG, " received: " + crisisWaitingResponse.getCrisisID() + " " + crisisWaitingResponse.getCrisisAddress());
+        crisisAddressTextView.setText(crisisWaitingResponse.getCrisisAddress());
+        crisisTimeTextView.setText(crisisWaitingResponse.getCrisisID());
+
         Button acceptCrisisButton = (Button) findViewById(R.id.acceptDispatchButton);
 
 
@@ -41,14 +49,10 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
             }
         });
 
-        crisisAddress = getIntent().getStringExtra("crisis_address");
-        crisisId = getIntent().getStringExtra("crisis_id");
+        //crisisAddress = getIntent().getStringExtra("crisis_address");
+        //crisisId = getIntent().getStringExtra("crisis_id");
 
-        crisisWaitingResponse = new Crisis(crisisId, crisisAddress);
 
-        Log.d(TAG, " receved: " + crisisId + " " + crisisAddress);
-        crisisAddressTextView.setText(crisisAddress);
-        crisisTimeTextView.setText(crisisId);
 
         acceptCrisisButton.setOnClickListener(this);
 

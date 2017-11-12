@@ -128,15 +128,10 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // If the current user is dispatch, then this should be create address dialog.
-        // If the current user is MCT, this should offer a message dialog
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                CreateAddressDialog();
-            }
-        });
+        // Obtain Auth instance for logging and database access
+        mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
+        mDatabase = FirebaseDatabase.getInstance().getReference("team_orange_20666/");
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -159,9 +154,6 @@ public class MainActivity extends AppCompatActivity
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
-        // Obtain Auth instance for logging and database access
-        mAuth = FirebaseAuth.getInstance();
-
         // End Init
 
         // figure out which way to handle the incoming intent
@@ -175,8 +167,6 @@ public class MainActivity extends AppCompatActivity
             // set it up as you would normally, with the current location of the team
             // being set as map marker
         }
-
-        userID = mAuth.getCurrentUser().getUid();
 
         /*// Start CrisisIntentService and register BroadcastReceiver
         listenForCrisis();
@@ -212,6 +202,15 @@ public class MainActivity extends AppCompatActivity
                 .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
         // TODO: 11/11/17 JD shouldb e removed?
 
+        // If the current user is dispatch, then this should be create address dialog.
+        // If the current user is MCT, this should offer a message dialog
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CreateAddressDialog();
+            }
+        });
     }
 
     public void listenForCrisis() {
@@ -309,6 +308,7 @@ public class MainActivity extends AppCompatActivity
         MenuItem item = menu.findItem(spinner);
         statusSpinner = (Spinner) MenuItemCompat.getActionView(item);
 
+        // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -316,14 +316,14 @@ public class MainActivity extends AppCompatActivity
 
         statusSpinner.setSelection(0);
         ManageUsers newUser = new ManageUsers();
-        newUser.SetUserStatus(userID, Active);
+        newUser.setUserStatus(userID, "active");
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
                 ManageUsers user = new ManageUsers();
-                user.SetUserStatus(userID, getSpinnerValueAsEnum(text));
+                user.setUserStatus(userID, text);
             }
 
             @Override
@@ -452,6 +452,7 @@ public class MainActivity extends AppCompatActivity
         // Start the queue
         mRequestQueue.start();
         Log.d(TAG, getResources().getString(R.string.google_geocoding_key));
+        Log.d(TAG, crisisAddress);
         String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
                 "&key=" + getResources().getString(R.string.google_geocoding_key);
 
