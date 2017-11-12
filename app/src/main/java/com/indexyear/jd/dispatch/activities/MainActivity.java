@@ -1,15 +1,18 @@
 package com.indexyear.jd.dispatch.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
@@ -59,6 +62,7 @@ import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
+import com.indexyear.jd.dispatch.models.Tracking;
 import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
@@ -67,6 +71,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
+import static com.google.android.gms.location.LocationServices.FusedLocationApi;
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
@@ -127,6 +132,9 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //Firebase Reference
+        locations = FirebaseDatabase.getInstance().getReference("Locations");
 
         // Obtain Auth instance for logging and database access
         mAuth = FirebaseAuth.getInstance();
@@ -211,6 +219,9 @@ public class MainActivity extends AppCompatActivity
                 CreateAddressDialog();
             }
         });
+
+
+
     }
 
     public void listenForCrisis() {
@@ -259,6 +270,26 @@ public class MainActivity extends AppCompatActivity
                 });
         alertDialog.show();
 
+    }
+
+    public void setCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mLastLocation = FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            //Update to Firebase
+            locations.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .setValue(new Tracking(FirebaseAuth.getInstance().getCurrentUser().getEmail(),
+                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                            String.valueOf(mLastLocation.getLatitude()),
+                            String.valueOf(mLastLocation.getLongitude())));
+
+        } else {
+            //Toast.makeText(this, "Couldn't get location.", Toast.LENGTH_SHORT).show();
+            Log.d("TEST", " Couldn't load location");
+        }
     }
 
     @Override
@@ -386,7 +417,6 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
