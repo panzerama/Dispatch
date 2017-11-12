@@ -13,6 +13,9 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.activities.CrisisReceived;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DescMessagingService extends com.google.firebase.messaging.FirebaseMessagingService {
 
     private static final String TAG = "DescMessagingService";
@@ -22,22 +25,20 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
+        Map<String, String> messageDataMap = new HashMap<>();
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
 
-            // Create a Crisis object here? The crisis object should contain the logic for
-            // finding the latlng of the address.
 
-            if (/* Check if data needs to be processed by long running job */ true) {
-                // For long-running tasks (10 seconds or more) use Firebase Job Dispatcher.
-                // scheduleJob();
-            } else {
-                // Handle message within 10 seconds
-                // handleNow();
+
+            for (Map.Entry<String, String> entry : remoteMessage.getData().entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                Log.d(TAG, "key, " + key + " value " + value);
+                messageDataMap.put(key, value);
             }
-
         }
 
         // Check if message contains a notification payload.
@@ -45,7 +46,7 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
-        sendNotification("Some notification text");
+        sendNotification("Some notification text", messageDataMap);
     }
 
     /**
@@ -74,10 +75,16 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
      *
      * @param messageBody FCM message body received.
      */
-    public void sendNotification(String messageBody) {
+    public void sendNotification(String messageBody, Map<String, String> messageDataSet) {
         Log.d(TAG, " sendNotification");
         Intent intent = new Intent(this, CrisisReceived.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra("source", "crisis message");
+
+        if (!messageDataSet.isEmpty()){
+            intent.putExtra("crisis_address", messageDataSet.get("crisis_address"));
+            intent.putExtra("crisis_timestamp", messageDataSet.get("crisis_timestamp"));
+        }
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
@@ -96,6 +103,7 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
                         .setContentTitle("FCM Message")
                         .setContentText(messageBody)
                         .setSound(defaultSoundUri)
+                        .setAutoCancel(true)
                         .setContentIntent(resultPendingIntent);
 
         NotificationManager notificationManager =

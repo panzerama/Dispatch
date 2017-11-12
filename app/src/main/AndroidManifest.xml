@@ -115,7 +115,11 @@
         <activity
             android:name=".activities.CrisisReceived"
             android:label="@string/title_activity_crisis_received"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="CRISIS_RECEIVED" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

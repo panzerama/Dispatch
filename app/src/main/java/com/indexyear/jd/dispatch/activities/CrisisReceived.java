@@ -20,7 +20,7 @@ public class CrisisReceived extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         TextView debugTextView = (TextView) findViewById(R.id.crisisMessageTextView);
-        debugTextView.setText("thingy");
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -30,6 +30,10 @@ public class CrisisReceived extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        String crisis_address = getIntent().getStringExtra("crisis_address");
+        debugTextView.setText(crisis_address);
+
     }
 
 }
