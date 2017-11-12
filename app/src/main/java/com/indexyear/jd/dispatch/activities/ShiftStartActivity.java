@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Spinner;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -16,7 +17,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
 
-public class ShiftStartActivity extends AppCompatActivity implements View.OnClickListener{
+public class ShiftStartActivity extends AppCompatActivity implements View.OnClickListener,
+        AdapterView.OnItemSelectedListener{
 
     private static final String TAG = "ShiftStartActivity: ";
 
@@ -42,6 +44,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         findViewById(R.id.shift_start_button).setOnClickListener(this);
 
         role_spinner = (Spinner) findViewById(R.id.role_spinner);
+        role_spinner.setOnItemSelectedListener(this);
+
         team_spinner = (Spinner) findViewById(R.id.team_spinner);
         status_spinner = (Spinner) findViewById(R.id.status_spinner);
 
@@ -87,6 +91,18 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
             startActivity(ShiftStartHandoff);
         }
 
+    }
+
+    public void onItemSelected(AdapterView adapterView,View view, int pos, long id){
+        if (role_spinner.getSelectedItem().toString().equals("MCT")){
+            // make other spinners visible
+            team_spinner.setVisibility(View.VISIBLE);
+            status_spinner.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void onNothingSelected(AdapterView adapterView){
+        // do nothing?
     }
 
     //update the employee status with relevant values

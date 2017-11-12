@@ -60,6 +60,7 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
 
         Intent crisisPinIntent = new Intent(this, MainActivity.class);
         crisisPinIntent.putExtra("crisis", crisisWaitingResponse);
+        crisisPinIntent.putExtra("intent_purpose", "crisis_map_update");
 
         startActivity(crisisPinIntent);
     }

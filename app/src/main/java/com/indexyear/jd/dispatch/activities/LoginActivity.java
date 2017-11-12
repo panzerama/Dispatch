@@ -119,7 +119,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         final Intent authenticationHandoff = new Intent(this, ShiftStartActivity.class);
 
-        // TODO: 10/31/17 JD implement the showprogress dialog, low priority
+        // TODO: 11/11/17 JD implement the showprogress dialog, encapsulate the actual login process
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {

@@ -54,6 +54,7 @@
     <string name="team_label">Choose your team</string>
 
     <string-array name="role_spinner_options">
+        <item>Select role...</item>
         <item>MCT</item>
         <item>Dispatcher</item>
     </string-array>

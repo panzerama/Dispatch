@@ -52,15 +52,13 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
+import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
@@ -123,14 +121,15 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Start Init
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        this.context = getApplicationContext();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        // If the current user is dispatch, then this should be create address dialog.
+        // If the current user is MCT, this should offer a message dialog
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,14 +144,14 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        this.context = getApplicationContext();
 
         // Obtain last known location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -163,7 +162,23 @@ public class MainActivity extends AppCompatActivity
         // Obtain Auth instance for logging and database access
         mAuth = FirebaseAuth.getInstance();
 
-        // Start CrisisIntentService and register BroadcastReceiver
+        // End Init
+
+        // figure out which way to handle the incoming intent
+        String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
+
+        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")){
+            // do a thing to the map
+            Crisis acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+            GetLatLng(acceptedCrisisEvent.getCrisisAddress());
+        } else {
+            // set it up as you would normally, with the current location of the team
+            // being set as map marker
+        }
+
+        userID = mAuth.getCurrentUser().getUid();
+
+        /*// Start CrisisIntentService and register BroadcastReceiver
         listenForCrisis();
         setBroadcastReceiver();
 
@@ -185,7 +200,8 @@ public class MainActivity extends AppCompatActivity
             public void onCancelled(DatabaseError databaseError) {
                 //TO DO
             }
-        });
+        });*/
+
         //This is storing the dummy initial LatLng in our LatLngBounds
         latLngBounds.include(crisisPinStart);
 
@@ -451,13 +467,8 @@ public class MainActivity extends AppCompatActivity
 
 
                         try {
-                             lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                             lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                            lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                            lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
