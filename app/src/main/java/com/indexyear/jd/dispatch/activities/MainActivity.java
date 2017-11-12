@@ -1,15 +1,23 @@
 package com.indexyear.jd.dispatch.activities;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
@@ -28,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.android.volley.Cache;
 import com.android.volley.Network;
@@ -39,7 +48,12 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -52,6 +66,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
@@ -67,6 +82,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
+import static com.indexyear.jd.dispatch.R.id.map;
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
@@ -76,7 +92,10 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBre
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
-                   NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener,
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "MainActivity";
     private String[] menuItems;
@@ -96,6 +115,12 @@ public class MainActivity extends AppCompatActivity
     //LatLng for testing purposes
     private LatLng crisisPinStart = new LatLng(47, -122);
     private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
+
+    //For location
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
+    private LatLng userLocation;
+    private LocationManager lm;
+    private LocationListener locationListener;
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -118,6 +143,10 @@ public class MainActivity extends AppCompatActivity
 
     IntentFilter mCrisisBroadcastIntent =
             new IntentFilter("com.indexyear.jd.dispatch.services.MainActivity");
+    private int MY_LOCATION_REQUEST_CODE;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private Location mLastLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,11 +156,6 @@ public class MainActivity extends AppCompatActivity
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        // Obtain Auth instance for logging and database access
-        mAuth = FirebaseAuth.getInstance();
-        userID = mAuth.getCurrentUser().getUid();
-        mDatabase = FirebaseDatabase.getInstance().getReference("team_orange_20666/");
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -143,7 +167,7 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(map);
         mapFragment.getMapAsync(this);
 
         this.context = getApplicationContext();
@@ -154,12 +178,17 @@ public class MainActivity extends AppCompatActivity
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
+        // Obtain Auth instance for logging and database access
+        mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
         // End Init
 
         // figure out which way to handle the incoming intent
         String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
 
-        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")){
+        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
             // do a thing to the map
             Crisis acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
             GetLatLng(acceptedCrisisEvent.getCrisisAddress());
@@ -168,6 +197,13 @@ public class MainActivity extends AppCompatActivity
             // being set as map marker
         }
 
+        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            checkLocationPermissions();
+            return;
+        }
+        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        userLocation = new LatLng(location.getLatitude(), location.getLongitude());
         /*// Start CrisisIntentService and register BroadcastReceiver
         listenForCrisis();
         setBroadcastReceiver();
@@ -193,7 +229,7 @@ public class MainActivity extends AppCompatActivity
         });*/
 
         //This is storing the dummy initial LatLng in our LatLngBounds
-        latLngBounds.include(crisisPinStart);
+        //latLngBounds.include(crisisPinStart);
 
         // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
         // DispatchAlertDialog();
@@ -213,6 +249,51 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkLocationPermissions() {
+        int hasLocationPermissionsGranted = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (hasLocationPermissionsGranted != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_CODE_ASK_PERMISSIONS);
+            return;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                    locationListener = new LocationListener() {
+                        public void onLocationChanged(Location location) {
+                            mMap.clear();
+                            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                            mLastLocation = location;
+
+                            //Write User Location to Database
+                            String userID = getAuthUserID();
+                            if(userID != null){
+                                mDatabase.child("employees").child(userID).child("latitude").setValue(userLocation.latitude);
+                                mDatabase.child("employees").child(userID).child("longitude").setValue(userLocation.longitude);
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    };
+                } else {
+                    // Permission Denied
+                    Toast.makeText(MainActivity.this, "Location Permissions Denied", Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+
     public void listenForCrisis() {
         Log.d(TAG, " listenForCrisis");
         // send intent to service
@@ -229,7 +310,7 @@ public class MainActivity extends AppCompatActivity
         startService(crisisService);
     }
 
-    public void setBroadcastReceiver(){
+    public void setBroadcastReceiver() {
         Log.d(TAG, " setBroadcastReceiver");
 
 
@@ -271,7 +352,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void CreateAddressDialog(){
+    private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Incident Address : ");
 
@@ -335,6 +416,22 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(2000);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
     public enum UserStatus {
         Active, OffDuty, OnBreak, Dispatched, NotSet
     }
@@ -375,7 +472,7 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
 //        int id = item.getItemId();
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.nav_message:
                 Intent intent = new Intent(this, MessengerActivity.class);
                 this.startActivity(intent);
@@ -387,18 +484,42 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private String getAuthUserID(){
+        FirebaseUser user = mAuth.getCurrentUser();
+        if(user != null){
+            return user.getUid();
+        }
+        return null;
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        Log.d(TAG, ": onmapready");
+        if (mMap != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                checkLocationPermissions();
+                return;
+            } else {
+                mMap.setMyLocationEnabled(true);
+                buildGoogleApiClient();
+                String userID = getAuthUserID();
+                if(userID != null){
+                    mDatabase.child("employees").child(userID).child("latitude").setValue(userLocation.latitude);
+                    mDatabase.child("employees").child(userID).child("longitude").setValue(userLocation.longitude);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        }
 
         //trying to place the marker on my house using the AlertDialog.
-        mMap.addMarker(new MarkerOptions().position(crisisPinStart).title("Marker"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPinStart));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPinStart, 10));
+        //mMap.addMarker(new MarkerOptions().position(crisisPinStart).title("Marker"));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPinStart));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPinStart, 10));
+        PositionCameraOverUserLocation(userLocation);
 
     }
-
 
     // returns a LatLng object from an address given
     public LatLng getLocationFromAddress(Context context, String address) {
@@ -520,4 +641,30 @@ public class MainActivity extends AppCompatActivity
         mMap.animateCamera(cu);
     }
 
+    public void PositionCameraOverUserLocation(LatLng addressPosition) {
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(addressPosition)      // Sets the center of the map to Mountain View
+                .zoom(17)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        // Use the GoogleApiClient.Builder class to create an instance of the
+        // Google Play Services API client//
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        // Connect to Google Play Services, by calling the connect() method//
+        mGoogleApiClient.connect();
+    }
+
+    private boolean writeTeamLocationBasedOnUser(){
+
+        return false;
+    }
 }
