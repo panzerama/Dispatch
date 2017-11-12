@@ -3,12 +3,14 @@ package com.indexyear.jd.dispatch.activities;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -50,14 +52,14 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
+import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
+import com.indexyear.jd.dispatch.models.Crisis;
+import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,9 +74,10 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSe
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity
+        implements OnMapReadyCallback,
+                   NavigationView.OnNavigationItemSelectedListener {
 
-    //todo jd fix level of zoom on default view
     private static final String TAG = "MainActivity";
     private String[] menuItems;
     private DrawerLayout mDrawerLayout;
@@ -89,10 +92,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
     private String crisisAddress;
+
     //LatLng for testing purposes
     private LatLng crisisPinStart = new LatLng(47, -122);
     private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
-
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -111,23 +114,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String KEY_LOCATION = "location";
     private static Context context;
 
+    CrisisUpdateReceiver mCrisisReceiver = new CrisisUpdateReceiver();
+
+    IntentFilter mCrisisBroadcastIntent =
+            new IntentFilter("com.indexyear.jd.dispatch.services.MainActivity");
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Start Init
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        this.context = getApplicationContext();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                CreateAddressDialog();
-            }
-        });
+        // Obtain Auth instance for logging and database access
+        mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
+        mDatabase = FirebaseDatabase.getInstance().getReference("team_orange_20666/");
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -135,14 +139,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        this.context = getApplicationContext();
 
         // Obtain last known location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -150,8 +154,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
-        // Obtain Auth instance for logging and database access
-        mAuth = FirebaseAuth.getInstance();
+        // End Init
+
+        // figure out which way to handle the incoming intent
+        String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
+
+        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")){
+            // do a thing to the map
+            Crisis acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+            GetLatLng(acceptedCrisisEvent.getCrisisAddress());
+        } else {
+            // set it up as you would normally, with the current location of the team
+            // being set as map marker
+        }
+
+        /*// Start CrisisIntentService and register BroadcastReceiver
+        listenForCrisis();
+        setBroadcastReceiver();
 
         //For Testing
         ManageUsers newUser = new ManageUsers();
@@ -171,12 +190,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onCancelled(DatabaseError databaseError) {
                 //TO DO
             }
-        });
+        });*/
+
         //This is storing the dummy initial LatLng in our LatLngBounds
         latLngBounds.include(crisisPinStart);
 
         // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
-         DispatchAlertDialog();
+        // DispatchAlertDialog();
+
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
+        // TODO: 11/11/17 JD shouldb e removed?
+
+        // If the current user is dispatch, then this should be create address dialog.
+        // If the current user is MCT, this should offer a message dialog
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                CreateAddressDialog();
+            }
+        });
+    }
+
+    public void listenForCrisis() {
+        Log.d(TAG, " listenForCrisis");
+        // send intent to service
+
+        Intent crisisService = new Intent(this, CrisisIntentService.class);
+
+        String databaseUri = "";
+        String nodePath = "crisis";
+
+        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_URI", databaseUri);
+        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_NODE", nodePath);
+        crisisService.setAction("com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT");
+
+        startService(crisisService);
+    }
+
+    public void setBroadcastReceiver(){
+        Log.d(TAG, " setBroadcastReceiver");
+
 
     }
 
@@ -253,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         MenuItem item = menu.findItem(spinner);
         statusSpinner = (Spinner) MenuItemCompat.getActionView(item);
 
+        // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -260,14 +316,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         statusSpinner.setSelection(0);
         ManageUsers newUser = new ManageUsers();
-        newUser.SetUserStatus(userID, Active);
+        newUser.setUserStatus(userID, "active");
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
                 ManageUsers user = new ManageUsers();
-                user.SetUserStatus(userID, getSpinnerValueAsEnum(text));
+                user.setUserStatus(userID, text);
             }
 
             @Override
@@ -396,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Start the queue
         mRequestQueue.start();
         Log.d(TAG, getResources().getString(R.string.google_geocoding_key));
+        Log.d(TAG, crisisAddress);
         String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
                 "&key=" + getResources().getString(R.string.google_geocoding_key);
 
@@ -411,13 +468,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
                         try {
-                             lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                             lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                            lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                            lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -467,4 +519,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mMap.animateCamera(cu);
     }
+
 }

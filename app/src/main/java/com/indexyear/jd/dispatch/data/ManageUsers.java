@@ -2,7 +2,6 @@ package com.indexyear.jd.dispatch.data;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.indexyear.jd.dispatch.activities.MainActivity;
 import com.indexyear.jd.dispatch.models.Employee;
 import com.indexyear.jd.dispatch.models.MCT;
 
@@ -43,7 +42,18 @@ public class ManageUsers {
         mDatabase.child("teams").child(teamID).setValue(teamName);
     }
 
-    public void SetUserStatus(String userID, MainActivity.UserStatus status){
+    public void setUserStatus(String userID, String status){
         mDatabase.child("employees").child(userID).child("currentStatus").setValue(status);
     }
+
+    public void setUserRole(String userID, String role){
+        mDatabase.child("employees").child(userID).child("currentRole").setValue(role);
+    }
+
+    public void setUserTeam(String userID, String team){
+        mDatabase.child("employees").child(userID).child("currentTeam").setValue(team);
+    }
+    // TODO: 11/11/17 JD team management is still an issue
+
+
 }

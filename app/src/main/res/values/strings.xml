@@ -54,22 +54,31 @@
     <string name="team_label">Choose your team</string>
 
     <string-array name="role_spinner_options">
+        <item>Select role...</item>
         <item>MCT</item>
         <item>Dispatcher</item>
     </string-array>
 
     <string-array name="mct_spinner_options">
+        <item>Select team...</item>
         <item>Blue</item>
         <item>Orange</item>
         <item>New Team</item>
     </string-array>
 
     <string-array name="status_spinner_options">
+        <item>Set status...</item>
         <item>Active</item>
         <item>Busy</item>
         <item>Other</item>
     </string-array>
 
     <string name="begin_shift_button_text">Begin Shift</string>
+    <string name="title_activity_crisis_received">CrisisReceived</string>
+
+    <string name="crisis_header">New Dispatch Event!</string>
+    <string name="crisis_address">CrisisAddress</string>
+    <string name="crisis_timestamp">CrisisTime</string>
+    <string name="accept_dispatch_button">Accept</string>
 
 </resources>

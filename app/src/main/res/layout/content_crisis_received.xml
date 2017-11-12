@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.indexyear.jd.dispatch.activities.CrisisReceived"
+    tools:showIn="@layout/activity_crisis_received">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/crisisHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginStart="84dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/crisis_header"
+            android:textSize="30sp"
+            app:layout_constraintBottom_toTopOf="@+id/crisisTimestamp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.552" />
+
+        <TextView
+            android:id="@+id/crisisTimestamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@string/crisis_timestamp"
+            android:textSize="30sp"
+            app:layout_constraintBottom_toTopOf="@+id/crisisAddress"
+            tools:layout_editor_absoluteX="134dp" />
+
+        <TextView
+            android:id="@+id/crisisAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="36dp"
+            android:text="@string/crisis_address"
+            android:textSize="30sp"
+            app:layout_constraintBottom_toTopOf="@+id/acceptDispatchButton"
+            tools:layout_editor_absoluteX="113dp" />
+
+        <Button
+            android:id="@+id/acceptDispatchButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/accept_dispatch_button"
+            tools:layout_editor_absoluteX="161dp"
+            tools:layout_editor_absoluteY="371dp" />
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

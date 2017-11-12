@@ -1,13 +1,14 @@
 package com.indexyear.jd.dispatch.models;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Crisis {
+public class Crisis implements Parcelable{
 
     private String crisisID;
     private String crisisAddress;
+
+    /*
     private Date crisisDate;
     private Calendar timeCallReceived;
     private Calendar timeArrived;
@@ -18,12 +19,20 @@ public class Crisis {
     private String dispatchComments;
     private MCT responseTeam;
     private List<Employee> responseTeamMembers;
+    */
 
     public Crisis(String crisisID, String crisisAddress){
         this.crisisID = crisisID;
         this.crisisAddress = crisisAddress;
     }
 
+    // jdp - requires that the fields be read in the same order that they are serialized elsewhere
+    public Crisis(Parcel input){
+        crisisID = input.readString();
+        crisisAddress = input.readString();
+    }
+
+    /*
     private enum ReferringAgency {
         DMHP, FIRE, POLICE, CC
     }
@@ -31,6 +40,7 @@ public class Crisis {
     private enum ReferralReason {
         MH, CD, MHCD, OTHER
     }
+    */
 
     public String getCrisisID() { return crisisID; }
 
@@ -44,6 +54,23 @@ public class Crisis {
         this.crisisAddress = crisisAddress;
     }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(crisisID);
+        dest.writeString(crisisAddress);
+    }
+
+    public static final Parcelable.Creator<Crisis> CREATOR = new Parcelable.Creator<Crisis>(){
+        public Crisis createFromParcel(Parcel in) {
+            return new Crisis(in);
+        }
+
+        public Crisis[] newArray(int size) {
+            return new Crisis[size];
+        }
+    };
+
+    /*
     public Date getCrisisDate() {
         return crisisDate;
     }
@@ -120,5 +147,10 @@ public class Crisis {
 
     public void setResponseTeamMembers(List<Employee> responseTeamMembers) {
         this.responseTeamMembers = responseTeamMembers;
+    }
+    */
+
+    public int describeContents(){
+        return 0;
     }
 }
