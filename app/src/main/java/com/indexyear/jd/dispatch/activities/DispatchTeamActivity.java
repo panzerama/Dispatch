@@ -121,6 +121,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
         crisisInfo.put("crisisID", "000001");
         crisisInfo.put("crisisAddress", "1210 N 152nd St 98133");
         crisisInfo.put("team", "MCT1");
+        crisisInfo.put("status", "open");
 
         db.child("crisis/").child("000001").updateChildren(crisisInfo);
     } // set this information programmatically
