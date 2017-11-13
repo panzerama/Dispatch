@@ -9,7 +9,12 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -31,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.android.volley.Cache;
 import com.android.volley.Network;
@@ -42,7 +48,13 @@ import com.android.volley.toolbox.BasicNetwork;
 import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -55,6 +67,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
@@ -62,7 +75,6 @@ import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
-import com.indexyear.jd.dispatch.models.Tracking;
 import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
@@ -71,7 +83,7 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
-import static com.google.android.gms.location.LocationServices.FusedLocationApi;
+import static com.indexyear.jd.dispatch.R.id.map;
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
@@ -81,7 +93,10 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBre
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
-                   NavigationView.OnNavigationItemSelectedListener {
+        NavigationView.OnNavigationItemSelectedListener,
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "MainActivity";
     private String[] menuItems;
@@ -101,6 +116,13 @@ public class MainActivity extends AppCompatActivity
     //LatLng for testing purposes
     private LatLng crisisPinStart = new LatLng(47, -122);
     private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
+
+    //For location
+    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
+    private LatLng userLocation;
+    private LocationManager lm;
+    private LocationListener locationListener;
+    private DatabaseReference locations;
 
     // Retrieving User UID for database calls and logging
     private FirebaseAuth mAuth;
@@ -123,7 +145,14 @@ public class MainActivity extends AppCompatActivity
 
     IntentFilter mCrisisBroadcastIntent =
             new IntentFilter("com.indexyear.jd.dispatch.services.MainActivity");
+    private int MY_LOCATION_REQUEST_CODE;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private Location mLastLocation;
+    private FusedLocationProviderClient mFusedLocationClient;
+    private LocationCallback mLocationCallback;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Start Init
@@ -151,60 +180,45 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(map);
         mapFragment.getMapAsync(this);
 
         this.context = getApplicationContext();
 
         // Obtain last known location and camera position from saved instance state.
-        if (savedInstanceState != null) {
-            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-            mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
-        }
+//        if (savedInstanceState != null) {
+//            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+//            mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
+//        }
 
+        // Obtain Auth instance for logging and database access
+        mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // End Init
 
         // figure out which way to handle the incoming intent
         String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
 
-        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")){
+        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
             // do a thing to the map
             Crisis acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
             GetLatLng(acceptedCrisisEvent.getCrisisAddress());
         } else {
             // set it up as you would normally, with the current location of the team
             // being set as map marker
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                checkLocationPermissions();
+            } else {
+                Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            }
         }
 
-        /*// Start CrisisIntentService and register BroadcastReceiver
+        // Start CrisisIntentService and register BroadcastReceiver
         listenForCrisis();
         setBroadcastReceiver();
-
-        //For Testing
-        ManageUsers newUser = new ManageUsers();
-        newUser.AddNewEmployee("kbullard", "Kari", "Bullard", "541-335-9392");
-        userID = "kbullard";
-
-
-        //Register data listeners
-        ref = database.getReference("team-orange-20666/employees/" + userID);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                //TO DO
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                //TO DO
-            }
-        });*/
-
-        //This is storing the dummy initial LatLng in our LatLngBounds
-        latLngBounds.include(crisisPinStart);
-
-        // This triggers the Alert Dialog. It is currently set to a static address - JD and Luke
-        // DispatchAlertDialog();
 
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
@@ -221,8 +235,52 @@ public class MainActivity extends AppCompatActivity
         });
 
 
-
     }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void checkLocationPermissions() {
+        int hasLocationPermissionsGranted = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (hasLocationPermissionsGranted != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_CODE_ASK_PERMISSIONS);
+            return;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                    locationListener = new LocationListener() {
+                        public void onLocationChanged(Location location) {
+                            mMap.clear();
+                            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                            mLastLocation = location;
+
+                            //Write User Location to Database
+                            String userID = getAuthUserID();
+                            if (userID != null) {
+                                mDatabase.child("employees").child(userID).child("latitude").setValue(userLocation.latitude);
+                                mDatabase.child("employees").child(userID).child("longitude").setValue(userLocation.longitude);
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
+                                        Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    };
+                } else {
+                    // Permission Denied
+                    Toast.makeText(MainActivity.this, "Location Permissions Denied", Toast.LENGTH_SHORT)
+                            .show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
 
     public void listenForCrisis() {
         Log.d(TAG, " listenForCrisis");
@@ -240,7 +298,7 @@ public class MainActivity extends AppCompatActivity
         startService(crisisService);
     }
 
-    public void setBroadcastReceiver(){
+    public void setBroadcastReceiver() {
         Log.d(TAG, " setBroadcastReceiver");
 
 
@@ -272,25 +330,26 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void setCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        mLastLocation = FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null) {
-            //Update to Firebase
-            locations.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                    .setValue(new Tracking(FirebaseAuth.getInstance().getCurrentUser().getEmail(),
-                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                            String.valueOf(mLastLocation.getLatitude()),
-                            String.valueOf(mLastLocation.getLongitude())));
-
-        } else {
-            //Toast.makeText(this, "Couldn't get location.", Toast.LENGTH_SHORT).show();
-            Log.d("TEST", " Couldn't load location");
-        }
-    }
+//    public void setCurrentLocation() {
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+//                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//
+//            return;
+//        }
+//        mLastLocation = FusedLocationApi.getLastLocation(mGoogleApiClient);
+//        if (mLastLocation != null) {
+//            //Update to Firebase
+//            locations.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+//                    .setValue(new Tracking(FirebaseAuth.getInstance().getCurrentUser().getEmail(),
+//                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
+//                            String.valueOf(mLastLocation.getLatitude()),
+//                            String.valueOf(mLastLocation.getLongitude())));
+//
+//        } else {
+//            //Toast.makeText(this, "Couldn't get location.", Toast.LENGTH_SHORT).show();
+//            Log.d("TEST", " Couldn't load location");
+//        }
+//    }
 
     @Override
     public void onBackPressed() {
@@ -302,7 +361,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void CreateAddressDialog(){
+    private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Incident Address : ");
 
@@ -339,7 +398,7 @@ public class MainActivity extends AppCompatActivity
         MenuItem item = menu.findItem(spinner);
         statusSpinner = (Spinner) MenuItemCompat.getActionView(item);
 
-        // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances 
+        // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -364,6 +423,22 @@ public class MainActivity extends AppCompatActivity
         });
 
         return true;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(2000);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 
     public enum UserStatus {
@@ -406,7 +481,7 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
 //        int id = item.getItemId();
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.nav_message:
                 Intent intent = new Intent(this, MessengerActivity.class);
                 this.startActivity(intent);
@@ -417,18 +492,47 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    private String getAuthUserID() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            return user.getUid();
+        }
+        return null;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        Log.d(TAG, ": onmapready");
+        if (mMap != null) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                checkLocationPermissions();
+                return;
+            } else {
+                mMap.setMyLocationEnabled(true);
+                LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocationLatLng, 13));
+                //PositionCameraOverUserLocation(userLocation);
+                buildGoogleApiClient();
+                String userID = getAuthUserID();
+                if (userID != null) {
+                    mDatabase.child("employees").child(userID).child("latitude").setValue(userLocation.latitude);
+                    mDatabase.child("employees").child(userID).child("longitude").setValue(userLocation.longitude);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        }
 
         //trying to place the marker on my house using the AlertDialog.
-        mMap.addMarker(new MarkerOptions().position(crisisPinStart).title("Marker"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPinStart));
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPinStart, 10));
+        //mMap.addMarker(new MarkerOptions().position(crisisPinStart).title("Marker"));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng(crisisPinStart));
+        //mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(crisisPinStart, 10));
+        //PositionCameraOverUserLocation(userLocation);
 
     }
-
 
     // returns a LatLng object from an address given
     public LatLng getLocationFromAddress(Context context, String address) {
@@ -444,13 +548,12 @@ public class MainActivity extends AppCompatActivity
             geoResults = geocoder.getFromLocationName(address, 1);
             String addressFromCoder = geoResults.get(0).toString();
             Log.d(TAG, addressFromCoder);
-            while (geoResults.size()==0) {
+            while (geoResults.size() == 0) {
                 geoResults = geocoder.getFromLocationName(address, 1);
 
 
-
             }
-            if (geoResults.size()>0) {
+            if (geoResults.size() > 0) {
                 Address addr = geoResults.get(0);
                 latLng = new LatLng(addr.getLatitude(), addr.getLongitude());
             }
@@ -491,14 +594,14 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG,"Response: " + response.toString());
+                        Log.d(TAG, "Response: " + response.toString());
                         LatLng addressPosition;
                         double lat = -122;
                         double lng = 47;
 
 
                         try {
-                            lat =  response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
+                            lat = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
                             lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -550,4 +653,30 @@ public class MainActivity extends AppCompatActivity
         mMap.animateCamera(cu);
     }
 
+    public void PositionCameraOverUserLocation(LatLng addressPosition) {
+
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(addressPosition)      // Sets the center of the map to Mountain View
+                .zoom(17)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        // Use the GoogleApiClient.Builder class to create an instance of the
+        // Google Play Services API client//
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        // Connect to Google Play Services, by calling the connect() method//
+        mGoogleApiClient.connect();
+    }
+
+    private boolean writeTeamLocationBasedOnUser() {
+
+        return false;
+    }
 }

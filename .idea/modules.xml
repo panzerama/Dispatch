@@ -2,10 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Dispatch.iml" filepath="$PROJECT_DIR$/Dispatch.iml" />
       <module fileurl="file://C:\Users\NikoPC\Documents\GitHub\Dispatch\Dispatch.iml" filepath="C:\Users\NikoPC\Documents\GitHub\Dispatch\Dispatch.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://C:\Users\NikoPC\Documents\GitHub\Dispatch\app\app.iml" filepath="C:\Users\NikoPC\Documents\GitHub\Dispatch\app\app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Dispatch.iml" filepath="$PROJECT_DIR$/Dispatch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
 </project>
