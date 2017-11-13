@@ -12,6 +12,9 @@ import java.util.Map;
 
 public class MCT {
 
+    public String teamID;
+    public String teamName;
+
     public String getTeamID() {
         return teamID;
     }
@@ -19,9 +22,6 @@ public class MCT {
     public void setTeamID(String teamID) {
         this.teamID = teamID;
     }
-
-    public String teamID;
-    public String teamName;
 
     public String getTeamName() {
         return teamName;
