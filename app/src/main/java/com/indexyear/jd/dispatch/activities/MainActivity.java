@@ -74,6 +74,7 @@ import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
+import com.indexyear.jd.dispatch.models.Tracking;
 import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
@@ -82,7 +83,11 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Locale;
 
+<<<<<<< HEAD
 import static com.indexyear.jd.dispatch.R.id.map;
+=======
+import static com.google.android.gms.location.LocationServices.FusedLocationApi;
+>>>>>>> c770957a1722e1d340291b7e113f85762251fc3d
 import static com.indexyear.jd.dispatch.R.id.spinner;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
@@ -157,6 +162,17 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+<<<<<<< HEAD
+=======
+        //Firebase Reference
+        locations = FirebaseDatabase.getInstance().getReference("Locations");
+
+        // Obtain Auth instance for logging and database access
+        mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
+        mDatabase = FirebaseDatabase.getInstance().getReference("team_orange_20666/");
+
+>>>>>>> c770957a1722e1d340291b7e113f85762251fc3d
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -247,6 +263,9 @@ public class MainActivity extends AppCompatActivity
                 CreateAddressDialog();
             }
         });
+
+
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -340,6 +359,26 @@ public class MainActivity extends AppCompatActivity
                 });
         alertDialog.show();
 
+    }
+
+    public void setCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mLastLocation = FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (mLastLocation != null) {
+            //Update to Firebase
+            locations.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .setValue(new Tracking(FirebaseAuth.getInstance().getCurrentUser().getEmail(),
+                            FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                            String.valueOf(mLastLocation.getLatitude()),
+                            String.valueOf(mLastLocation.getLongitude())));
+
+        } else {
+            //Toast.makeText(this, "Couldn't get location.", Toast.LENGTH_SHORT).show();
+            Log.d("TEST", " Couldn't load location");
+        }
     }
 
     @Override
@@ -483,6 +522,7 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+<<<<<<< HEAD
 
     private String getAuthUserID(){
         FirebaseUser user = mAuth.getCurrentUser();
@@ -492,6 +532,8 @@ public class MainActivity extends AppCompatActivity
         return null;
     }
 
+=======
+>>>>>>> c770957a1722e1d340291b7e113f85762251fc3d
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
