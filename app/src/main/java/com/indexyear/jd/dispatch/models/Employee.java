@@ -5,10 +5,6 @@ import com.indexyear.jd.dispatch.activities.MainActivity;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by karibullard on 10/23/17.
- */
-
 public class Employee {
     public String firstName;
     public String lastName;
@@ -17,6 +13,8 @@ public class Employee {
     public MCT currentMCT;
     public UserRole currentRole;
     public MainActivity.UserStatus currentStatus;
+    public float latitude;
+    public float longitude;
 
     public Employee(){
 
@@ -35,6 +33,22 @@ public class Employee {
         this.phone = phone;
     }
 
+    public float getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
+
+    public float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
+    }
+
     public String getUserID() {
         return userID;
     }
@@ -43,9 +57,7 @@ public class Employee {
         this.userID = userID;
     }
 
-    public enum UserRole {
-        DISPATCHER, MCTMEMBER
-    }
+    public enum UserRole { DISPATCHER, MCTMEMBER }
 
     public String getFirstName() {
         return firstName;
@@ -102,6 +114,11 @@ public class Employee {
         employeeValues.put("lastName", lastName);
         employeeValues.put("uid", userID);
         employeeValues.put("phone", phone);
+        employeeValues.put("currentRole", currentRole);
+        employeeValues.put("currentMCT", currentMCT);
+        employeeValues.put("currentStatus", currentStatus);
+        employeeValues.put("latitude", latitude);
+        employeeValues.put("longitude", longitude);
 
         return employeeValues;
     }
