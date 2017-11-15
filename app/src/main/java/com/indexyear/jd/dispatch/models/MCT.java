@@ -12,16 +12,31 @@ import java.util.Map;
 
 public class MCT {
 
-    public String getTeamID() {
-        return teamID;
-    }
-
-    public void setTeamID(String teamID) {
-        this.teamID = teamID;
-    }
-
     public String teamID;
     public String teamName;
+    public List<Employee> teamMembers;
+    public float latitude;
+    public float longitude;
+
+    public MCT(){
+
+    }
+
+    public float getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
+
+    public float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
+    }
 
     public String getTeamName() {
         return teamName;
@@ -39,21 +54,26 @@ public class MCT {
         this.teamMembers = teamMembers;
     }
 
-    public List<Employee> teamMembers;
+    public String getTeamID() {
+        return teamID;
+    }
 
-    public MCT(){
-
+    public void setTeamID(String teamID) {
+        this.teamID = teamID;
     }
 
     public MCT(String teamName){
         this.teamName = teamName;
     }
 
+
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("teamMembers", teamMembers);
         result.put("teamName", teamName);
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
 
         return result;
     }

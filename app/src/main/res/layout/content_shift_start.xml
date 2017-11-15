@@ -9,12 +9,15 @@
     tools:showIn="@layout/activity_shift_start">
 
     <LinearLayout
-        android:layout_width="367dp"
-        android:layout_height="377dp"
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
-        tools:layout_editor_absoluteX="8dp">
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent">
 
         <TextView
             android:id="@+id/role_label"
@@ -52,7 +55,6 @@
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginStart="40dp"
-            android:entries="@array/mct_spinner_options"
             android:visibility="invisible"
             app:layout_constraintStart_toStartOf="parent"
             tools:layout_editor_absoluteY="613dp" />
@@ -76,7 +78,6 @@
             android:layout_height="40dp"
             android:layout_marginBottom="12dp"
             android:layout_marginStart="40dp"
-            android:entries="@array/status_spinner_options"
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/team_label"
             app:layout_constraintStart_toStartOf="parent" />

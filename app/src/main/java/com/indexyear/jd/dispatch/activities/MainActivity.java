@@ -55,26 +55,26 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageCrisis;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
+import com.indexyear.jd.dispatch.models.Employee;
 import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
@@ -107,15 +107,14 @@ public class MainActivity extends AppCompatActivity
     final FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref;
     private String userID;
-    private UserStatus currentStatus;
 
     //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
     private String crisisAddress;
 
     //LatLng for testing purposes
-    private LatLng crisisPinStart = new LatLng(47, -122);
-    private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
+    //private LatLng crisisPinStart = new LatLng(47, -122);
+    //private LatLngBounds.Builder latLngBounds = new LatLngBounds.Builder();
 
     //For location
     final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
@@ -168,7 +167,7 @@ public class MainActivity extends AppCompatActivity
         // Obtain Auth instance for logging and database access
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
-        mDatabase = FirebaseDatabase.getInstance().getReference("team_orange_20666/");
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -191,10 +190,6 @@ public class MainActivity extends AppCompatActivity
 //            mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
 //        }
 
-        // Obtain Auth instance for logging and database access
-        mAuth = FirebaseAuth.getInstance();
-        userID = mAuth.getCurrentUser().getUid();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
         lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // End Init
 
@@ -399,21 +394,39 @@ public class MainActivity extends AppCompatActivity
         statusSpinner = (Spinner) MenuItemCompat.getActionView(item);
 
         // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(adapter);
 
-        statusSpinner.setSelection(0);
-        ManageUsers newUser = new ManageUsers();
-        newUser.setUserStatus(userID, "active");
+        mDatabase.child("employees").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Employee employee = dataSnapshot.getValue(Employee.class);
+                Log.d(TAG, employee.currentStatus.toString());
+                if (!employee.currentStatus.equals(null)) {
+                    int spinnerPosition = adapter.getPosition(getSpinnerValueAsString(employee.currentStatus));
+                    statusSpinner.setSelection(spinnerPosition);
+                } else {
+                    statusSpinner.setSelection(0);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+//        ManageUsers newUser = new ManageUsers();
+//        newUser.setUserStatus(userID, "active");
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
                 ManageUsers user = new ManageUsers();
-                user.setUserStatus(userID, text);
+                user.setUserStatus(userID, getSpinnerValueAsEnum(text));
             }
 
             @Override
@@ -457,6 +470,20 @@ public class MainActivity extends AppCompatActivity
                 return Dispatched;
             default:
                 return NotSet;
+        }
+    }
+
+    private String getSpinnerValueAsString(Enum value) {
+        if (value.equals(UserStatus.Active)) {
+            return "Active";
+        } else if (value.equals(UserStatus.OffDuty)) {
+            return "Off-Duty";
+        } else if (value.equals(UserStatus.OnBreak)) {
+            return "On-Break";
+        } else if (value.equals(UserStatus.Dispatched)) {
+            return "Dispatched";
+        } else {
+            return "Not-Set";
         }
     }
 
@@ -636,21 +663,21 @@ public class MainActivity extends AppCompatActivity
 
     public void PlacePinAndPositionCamera(LatLng addressPosition) {
 
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(addressPosition);
-        mMap.addMarker(markerOptions
-                .title("Crisis Location").icon(BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+//        MarkerOptions markerOptions = new MarkerOptions();
+//        markerOptions.position(addressPosition);
+//        mMap.addMarker(markerOptions
+//                .title("Crisis Location").icon(BitmapDescriptorFactory
+//                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+//        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
 
-        latLngBounds.include(addressPosition);
+        //latLngBounds.include(addressPosition);
 
-        LatLngBounds bounds = latLngBounds.build();
+        //LatLngBounds bounds = latLngBounds.build();
 
-        int padding = 150; // offset from edges of the map in pixels
-        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-
-        mMap.animateCamera(cu);
+//        int padding = 150; // offset from edges of the map in pixels
+//        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+//
+//        mMap.animateCamera(cu);
     }
 
     public void PositionCameraOverUserLocation(LatLng addressPosition) {
