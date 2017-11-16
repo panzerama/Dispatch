@@ -1,0 +1,83 @@
+{
+    "teams" : {
+        "MCT1" : {
+            "latitude" : 47.6969,
+            "longitude" : -122.3562,
+            "teamID" : "00000001",
+            "teamName" : "MCT 1",
+            "teamMembers" : [
+                "48dTxvDQcsX76jJ614Mayg75wpF2",
+                "HXXaWhs3T2bJR7TJgHC7ssce6Ml1"
+                ]
+          },
+        "MCT2" : {
+            "latitude" : 47.6969,
+            "longitude" : -122.3562,
+            "teamID" : "00000001",
+            "teamName" : "MCT 1",
+            "teamMembers" : [
+                "48dTxvDQcsX76jJ614Mayg75wpF2",
+                "HXXaWhs3T2bJR7TJgHC7ssce6Ml1"
+                ]
+          },
+        "MCT3" : {
+            "latitude" : 47.6969,
+            "longitude" : -122.3562,
+            "teamID" : "00000001",
+            "teamName" : "MCT 1",
+            "teamMembers" : [
+                "48dTxvDQcsX76jJ614Mayg75wpF2",
+                "HXXaWhs3T2bJR7TJgHC7ssce6Ml1"
+                ]
+          }
+    },
+    "employees" : {
+        "48dTxvDQcsX76jJ614Mayg75wpF2" : {
+          "currentRole" : "MCTMEMBER",
+          "currentStatus" : "Active",
+          "currentTeam" : "MCT 1",
+          "firstName" : "OtherExample",
+          "lastName" : "User",
+          "latitude" : 47.65289374,
+          "longitude" : -122.34702412,
+          "phone" : "123-456-7890",
+          "uid" : "48dTxvDQcsX76jJ614Mayg75wpF2"
+        },
+        "HXXaWhs3T2bJR7TJgHC7ssce6Ml1" : {
+          "currentRole" : "MCTMEMBER",
+          "currentStatus" : "Active",
+          "currentTeam" : "MCT 1",
+          "firstName" : "OtherExample",
+          "lastName" : "User",
+          "latitude" : 47.67582362,
+          "longitude" : -122.37515218,
+          "phone" : "123-456-7890",
+          "uid" : "HXXaWhs3T2bJR7TJgHC7ssce6Ml1"
+        },
+        "RAgF0EeR2tMYrFODdMUXuJfQq7u2" : {
+          "currentRole" : "MCTMEMBER",
+          "currentStatus" : "Active",
+          "currentTeam" : "MCT 2",
+          "firstName" : "OtherExample",
+          "lastName" : "User",
+          "latitude" : 47,
+          "longitude" : -122,
+          "phone" : "123-456-7890",
+          "uid" : "RAgF0EeR2tMYrFODdMUXuJfQq7u2"
+        }
+    },
+    "crisises" : {
+        "00000000001" : {
+            "crisisId" : "00000000001",
+            "crisisAddress" : "123 Main Street 98110"
+        },
+        "00000023104" : {
+            "crisisId" : "00000023104",
+            "crisisAddress" : "256 Main Street 98113"
+        },
+        "00000023231" : {
+            "crisisId" : "00000023231",
+            "crisisAddress" : "9600 College Way 98104"
+        }
+    }
+}
