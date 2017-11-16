@@ -49,13 +49,6 @@
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/title_activity_main">
-
-            <!-- <intent-filter> -->
-            <!-- <action android:name="android.intent.action.MAIN" /> -->
-
-
-            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-            <!-- </intent-filter> -->
         </activity>
         <activity
             android:name=".activities.MessengerActivity"
@@ -97,7 +90,11 @@
         <activity
             android:name=".activities.DispatchTeamActivity"
             android:label="@string/title_activity_shift_start"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".activities.MainActivity" />
+        </activity>
 
         <service
             android:name=".services.CrisisIntentService"

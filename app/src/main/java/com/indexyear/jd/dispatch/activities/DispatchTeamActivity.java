@@ -54,7 +54,26 @@ public class DispatchTeamActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String address = intent.getExtras().getString("crisisAddress");
 
+
         createTeamList();
+    }
+
+    //TO-DO Create a Firebase Query to sort teams by travel time and add those to list adapter
+    private void createTeamList() {
+
+        listOfTeams = (ListView)findViewById(R.id.mct_dispatch_list);
+
+        //Query orderByTravelTime = db.child("teams").orderByChild(<Node with travel time>);
+        adapter = new FirebaseListAdapter<MCT>(this, MCT.class,
+                R.layout.message_list_item, FirebaseDatabase.getInstance().getReference().child("teams")) {
+            @Override
+            protected void populateView(View v, MCT model, int position) {
+                TextView teamName = (TextView)v.findViewById(R.id.title_mct_name);
+                teamName.setText(model.getTeamName());
+            }
+        };
+
+        listOfTeams.setAdapter(adapter);
 
         listOfTeams.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -66,30 +85,6 @@ public class DispatchTeamActivity extends AppCompatActivity {
                 triggerNotification();
             }
         });
-
-    }
-
-    //TO-DO Create a Firebase Query to sort teams by travel time and add those to list adapter
-    private void createTeamList() {
-
-        listOfTeams = (ListView)findViewById(R.id.mct_dispatch_list);
-
-        //Query orderByTravelTime = db.child("teams").orderByChild(<Node with travel time>);
-        adapter = new FirebaseListAdapter<MCT>(
-                this,
-                MCT.class,
-                R.layout.message_list_item,
-                FirebaseDatabase.getInstance().getReference().child("teams")) {//replace this line with order by query when ready
-            @Override
-            protected void populateView(View v, MCT model, int position) {
-                TextView teamName = (TextView)v.findViewById(R.id.title_mct_name);
-                teamName.setText(model.getTeamName());
-                //add other properties that should be visible here
-                //possibly create new layout based on what we want to see
-            }
-        };
-
-        listOfTeams.setAdapter(adapter);
     }
 
     private void createConfirmDispatchDialog(){
