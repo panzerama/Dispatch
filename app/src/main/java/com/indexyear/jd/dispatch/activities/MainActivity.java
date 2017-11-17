@@ -94,7 +94,7 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBre
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         NavigationView.OnNavigationItemSelectedListener,
-        ActivityCompat.OnRequestPermissionsResultCallback,
+        //ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity
                 checkLocationPermissions();
             } else {
                 Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (location == null){ location = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(47.7394422); location.setLongitude(-122.345282);}
                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
             }
         }
@@ -242,7 +243,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CODE_ASK_PERMISSIONS:
@@ -274,7 +275,7 @@ public class MainActivity extends AppCompatActivity
             default:
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
-    }
+    }*/
 
 
     public void listenForCrisis() {
