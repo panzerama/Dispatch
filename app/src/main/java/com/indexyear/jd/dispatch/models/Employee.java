@@ -6,22 +6,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Employee {
+
     public String firstName;
     public String lastName;
-    public String userID;
     public String phone;
-    public MCT currentMCT;
+    public String currentTeam;
+    public String userID;
     public UserRole currentRole;
     public MainActivity.UserStatus currentStatus;
     public float latitude;
     public float longitude;
+
+    public enum UserRole { Dispatcher, MCTMEMBER }
 
     public Employee(){
 
     }
 
     public Employee(String userID, String firstName, String lastName, String phone){
-        this.userID = userID;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
@@ -33,22 +35,6 @@ public class Employee {
         this.phone = phone;
     }
 
-    public float getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(float latitude) {
-        this.latitude = latitude;
-    }
-
-    public float getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(float longitude) {
-        this.longitude = longitude;
-    }
-
     public String getUserID() {
         return userID;
     }
@@ -56,8 +42,6 @@ public class Employee {
     public void setUserID(String userID) {
         this.userID = userID;
     }
-
-    public enum UserRole { Dispatcher, MCTMEMBER }
 
     public String getFirstName() {
         return firstName;
@@ -83,12 +67,12 @@ public class Employee {
         this.phone = phone;
     }
 
-    public MCT getCurrentMCT() {
-        return currentMCT;
+    public String getCurrentTeam() {
+        return currentTeam;
     }
 
-    public void setCurrentMCT(MCT currentMCT) {
-        this.currentMCT = currentMCT;
+    public void setCurrentTeam(String currentTeam) {
+        this.currentTeam = currentTeam;
     }
 
     public UserRole getCurrentRole() {
@@ -107,20 +91,20 @@ public class Employee {
         this.currentStatus = currentStatus;
     }
 
-    public Map<String, Object> toMap() {
-        Map<String, Object> employeeValues = new HashMap<>();
+    public float getLatitude() {
+        return latitude;
+    }
 
-        employeeValues.put("firstName", firstName);
-        employeeValues.put("lastName", lastName);
-        employeeValues.put("uid", userID);
-        employeeValues.put("phone", phone);
-        employeeValues.put("currentRole", currentRole);
-        employeeValues.put("currentMCT", currentMCT);
-        employeeValues.put("currentStatus", currentStatus);
-        employeeValues.put("latitude", latitude);
-        employeeValues.put("longitude", longitude);
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
 
-        return employeeValues;
+    public float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
     }
 
     public void updateEmployee(){
@@ -130,4 +114,22 @@ public class Employee {
     public void createEmployee(){
 
     }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> employeeValues = new HashMap<>();
+
+        employeeValues.put("firstName", firstName);
+        employeeValues.put("lastName", lastName);
+        employeeValues.put("phone", phone);
+        employeeValues.put("currentMCT", currentTeam);
+        employeeValues.put("currentRole", currentRole);
+        employeeValues.put("currentStatus", currentStatus);
+        employeeValues.put("latitude", latitude);
+        employeeValues.put("longitude", longitude);
+        employeeValues.put("userID", userID);
+
+        return employeeValues;
+    }
+
+
 }

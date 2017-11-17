@@ -61,6 +61,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //For Testing
         mEmailField.setText("kari@example.org");
         mPasswordField.setText("123456");
+//        mEmailField.setText("kb@email.com");
+//        mPasswordField.setText("123456");
 
         findViewById(R.id.email_sign_in_button).setOnClickListener(this);
         findViewById(R.id.email_sign_out_button).setOnClickListener(this);

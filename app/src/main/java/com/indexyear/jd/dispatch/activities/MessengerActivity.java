@@ -15,11 +15,8 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.ManageUsers;
-import com.indexyear.jd.dispatch.models.Employee;
 import com.indexyear.jd.dispatch.models.MCT;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MessengerActivity extends AppCompatActivity {
@@ -47,16 +44,16 @@ public class MessengerActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        ManageUsers mu = new ManageUsers();
-        List<Employee> employees = new ArrayList<Employee>();
-        Employee employee1 = new Employee("rick", "Rick", "Sanchez", "999-999-9999");
-        Employee employee2 = new Employee("morty", "Morty", "", "999-999-9999");
-        employees.add(employee1);
-        employees.add(employee2);
-
-        mu.AddNewTeam("MCT1", "MCT 1", employees);
-        mu.AddNewTeam("MCT2", "MCT 2", employees);
-        mu.AddNewTeam("MCT3", "MCT 3", employees);
+//        ManageUsers mu = new ManageUsers();
+//        List<Employee> employees = new ArrayList<Employee>();
+//        Employee employee1 = new Employee("rick", "Rick", "Sanchez", "999-999-9999");
+//        Employee employee2 = new Employee("morty", "Morty", "", "999-999-9999");
+//        employees.add(employee1);
+//        employees.add(employee2);
+//
+//        mu.AddNewTeam("MCT1", "MCT 1", employees);
+//        mu.AddNewTeam("MCT2", "MCT 2", employees);
+//        mu.AddNewTeam("MCT3", "MCT 3", employees);
 
         createTeamList();
 
@@ -65,7 +62,7 @@ public class MessengerActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MCT team = (MCT)parent.getItemAtPosition(position);
 
-                String teamID = team.getTeamID();
+                String teamID = team.getTeamName();
 
                 Intent intent = new Intent(MessengerActivity.context, ChatActivity.class);
                 intent.putExtra("selectedMCT", teamID.toString());

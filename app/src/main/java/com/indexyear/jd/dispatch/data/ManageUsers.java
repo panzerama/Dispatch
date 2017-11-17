@@ -34,13 +34,12 @@ public class ManageUsers {
 
     public void AddNewEmployee(Employee employee){
 
-        mDatabase.child("employees").child(employee.userID).setValue(employee);
+        mDatabase.child("employees").push().setValue(employee);
     }
 
     public void AddNewTeam(String teamName, String teamDisplayName, List<Employee> teamMembers){
         MCT team = new MCT();
         team.teamName = teamDisplayName;
-        team.teamID = teamName;
 
         mDatabase.child("teams").child(teamName).setValue(team);
     }
@@ -65,60 +64,30 @@ public class ManageUsers {
         dbRef.child("employees").child(userID).child("currentTeam").setValue(team);
     }
 
-    public void addUserToTeam(final Employee user, final String teamName){
-        final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        Log.d(TAG, teamName);
-        dbRef.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
-                    if(teamSnapshot.getKey().toString().equals((teamName.replaceAll("\\s+","")))){
-                        DatabaseReference ref = teamSnapshot.getRef().child("teamMembers");
-//                        GenericTypeIndicator<List<Employee>> t = new GenericTypeIndicator<List<Employee>>() {};
-//                        List<Employee> memberList = dataSnapshot.child("teamMembers").getValue(t);
-//                        Log.d(TAG, memberList.get(0).firstName);
-                        MCT team = dataSnapshot.getValue(MCT.class);
-                        List<Employee> teamMembers = team.teamMembers;
-                        if(user != null){
-                            teamMembers.add(user);
-                        } else {
-                            Log.d(TAG, "User not found.");
+    public static MCT getTeam(final String teamName){
+        final MCT[] team = {null};
+        try {
+            final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+            dbRef.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
+                        if(teamSnapshot.getKey().toString().equals((teamName.replaceAll("\\s+","")))){
+                            DatabaseReference ref = teamSnapshot.getRef().child("teamMembers");
+                            final MCT team = dataSnapshot.getValue(MCT.class);
                         }
-                        //memberList.add(user);
-                        //ref.setValue(memberList);
-                        Log.d(TAG, "Team Object Retrieved");
                     }
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-
-
-    }
-
-    public void GetEmployeeObject(final String userID){
-
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for(DataSnapshot userSnapshot : dataSnapshot.getChildren()){
-                    if(userSnapshot.getKey().equals(userID)){
-                        Employee employee = userSnapshot.getValue(Employee.class);
-                        setReturnEmployee(employee);
-                    }
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+            });
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+        }
+        return team[0];
     }
 
     public void setReturnEmployee(Employee employee){
