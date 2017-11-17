@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity
                 checkLocationPermissions();
             } else {
                 Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (location == null){ location = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(47.7394422); location.setLongitude(-122.345282);}
                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
             }
         }

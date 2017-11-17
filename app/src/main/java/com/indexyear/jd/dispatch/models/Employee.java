@@ -57,7 +57,7 @@ public class Employee {
         this.userID = userID;
     }
 
-    public enum UserRole { DISPATCHER, MCTMEMBER }
+    public enum UserRole { Dispatcher, MCTMEMBER }
 
     public String getFirstName() {
         return firstName;
