@@ -93,6 +93,9 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                 //do something to raise error
             }
 
+            //putting the Employee(userID, role) as an extra to send with the intent.
+            //TODO include team on the Employee object?
+            ShiftStartHandoff.putExtra("employee", mEmployee);
             startActivity(ShiftStartHandoff);
         }
 
@@ -138,9 +141,13 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mUser.setUserRole(uid, role);
         mUser.setUserTeam(uid, team);
         mUser.setUserStatus(uid, status);
+
+        //this is creating the employee object that the intent is going to pass around, hopefully.
+        mEmployee = new Employee(uid, role);
     }
 
     private void updateEmployeeAsMCT() {
+
         String uid = mAuth.getCurrentUser().getUid();
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("employees").child(uid);
         dbRef.child("currentRole").setValue(MCTMEMBER);
@@ -149,10 +156,16 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         GetEmployeeObject(uid);
         final String[] teamName = {team_spinner.getSelectedItem().toString()};
         boolean success = addUserToTeam(teamName);
+
         if(!success){
             Toast toast = Toast.makeText(this, "Error occurred.", Toast.LENGTH_SHORT);
             toast.show();
         }
+
+        //this is creating the employee object that the intent is going to pass around, hopefully.
+        //role is here because this was not accessing the database for me in testing, --Luke
+        String role = "MCT";
+        mEmployee = new Employee(uid, role);
     }
 
     private void updateEmployeeAsDispatch(String role) {
@@ -160,6 +173,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         String uid = mAuth.getCurrentUser().getUid();
 
         mUser.setUserRole(uid, role);
+        //this is creating the employee object that the intent is going to pass around, hopefully.
+        mEmployee = new Employee(uid, role);
     }
 
     private void createTeamSpinner() {
