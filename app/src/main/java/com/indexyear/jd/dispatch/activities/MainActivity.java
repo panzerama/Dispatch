@@ -62,15 +62,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.CrisisParcel;
 import com.indexyear.jd.dispatch.data.IUserEventListener;
-import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.data.UserManager;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
@@ -83,11 +79,6 @@ import java.util.Locale;
 
 import static com.indexyear.jd.dispatch.R.id.map;
 import static com.indexyear.jd.dispatch.R.id.spinner;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSet;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -104,6 +95,11 @@ public class MainActivity extends AppCompatActivity
     private Spinner statusSpinner;
     final FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref;
+
+
+    // JDP - User info
+    // mUser is regularly updated on database update by the implementation of IUserEventListener
+    // We base our identification of the user on userID, populated by a call to the auth instance.
     private String userID;
     private User mUser;
     private UserManager mUserManager;
@@ -356,7 +352,8 @@ public class MainActivity extends AppCompatActivity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(adapter);
 
-        String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Off Duty";
+        // gets the current status and positions the spinner accordingly
+        String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Offline";
         int spinnerPosition = adapter.getPosition(currentUserStatus);
         statusSpinner.setSelection(spinnerPosition);
 
@@ -367,8 +364,7 @@ public class MainActivity extends AppCompatActivity
 
                 // stopping point 11/18/2017 - trigger the save through manageUsers
 
-                ManageUsers user = new ManageUsers();
-                user.setUserStatus(userID, getSpinnerValueAsEnum(text));
+                mUserManager.setUserStatus(userID, text);
             }
 
             @Override
@@ -394,39 +390,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-    }
-
-    public enum UserStatus {
-        Active, OffDuty, OnBreak, Dispatched, NotSet
-    }
-
-    private UserStatus getSpinnerValueAsEnum(String value) {
-        switch (value) {
-            case "Active":
-                return Active;
-            case "Off-Duty":
-                return OffDuty;
-            case "On-Break":
-                return OnBreak;
-            case "Dispatched":
-                return Dispatched;
-            default:
-                return NotSet;
-        }
-    }
-
-    private String getSpinnerValueAsString(Enum value) {
-        if (value.equals(UserStatus.Active)) {
-            return "Active";
-        } else if (value.equals(UserStatus.OffDuty)) {
-            return "Off-Duty";
-        } else if (value.equals(UserStatus.OnBreak)) {
-            return "On-Break";
-        } else if (value.equals(UserStatus.Dispatched)) {
-            return "Dispatched";
-        } else {
-            return "Not-Set";
-        }
     }
 
     @Override
@@ -670,5 +633,7 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
+
+        mUserManager.addNewListener(mUserEventListener);
     }
 }

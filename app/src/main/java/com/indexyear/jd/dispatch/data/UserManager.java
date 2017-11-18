@@ -8,9 +8,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.indexyear.jd.dispatch.activities.MainActivity;
-import com.indexyear.jd.dispatch.models.User;
 import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,14 +62,9 @@ public class UserManager {
         });
     }
 
-/*    public void AddNewUser(String userID, String firstName, String lastName, String phone){
-        User user = new User();
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setPhone(phone);
-
-        mDatabase.child("employees").child(userID).setValue(user);
-    }*/
+    public void addNewListener(IUserEventListener newListener){
+        mListeners.add(newListener);
+    }
 
     public void AddNewEmployee(User user){
         mDatabase.child("users").child(user.getUserID()).setValue(user);
@@ -86,11 +80,6 @@ public class UserManager {
     public void AddTeamNameNode(String teamName, String teamID){
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
         dbRef.child("employees").child(teamID).setValue(teamName);
-    }
-
-    public void setUserStatus(String userID, MainActivity.UserStatus status){
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").child(userID).child("currentStatus").setValue(status);
     }
 
     public void setUserRole(String userID, String role){
@@ -137,25 +126,14 @@ public class UserManager {
         return this.mUser;
     }
 
-    public String getUserStatus(String userID){
+    public void setUserStatus(String userID, String status){
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+        dbRef.child("employees").child(userID).child("currentStatus").setValue(status);
+    }
 
-        mDatabase.child("employees").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                Log.d(TAG, user.currentStatus.toString());
-                if (!user.currentStatus.equals(null)) {
-                    return user.getCurrentStatus();
-                } else {
-                    statusSpinner.setSelection(0);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+    public void setUserNotificationToken(String userID, String token) {
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+        dbRef.child("employees").child(userID).child("notificationToken").setValue(token);
     }
 
 }

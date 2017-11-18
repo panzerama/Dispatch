@@ -1,13 +1,15 @@
-package com.indexyear.jd.dispatch.models;
+package com.indexyear.jd.dispatch.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class EmployeeParcel implements Parcelable {
+import com.indexyear.jd.dispatch.models.User;
+
+public class UserParcel implements Parcelable {
 
     private User mUser;
 
-    protected EmployeeParcel(Parcel in) {
+    protected UserParcel(Parcel in) {
         String firstName = in.readString();
         String lastName = in.readString();
         String phone = in.readString();
@@ -19,6 +21,10 @@ public class EmployeeParcel implements Parcelable {
         float longitude = in.readFloat();
 
         mUser = new User(firstName, lastName, phone, currentTeam, userID, currentRole, currentStatus, latitude, longitude);
+    }
+
+    public UserParcel(User inUser){
+        mUser = inUser;
     }
 
     @Override
@@ -39,15 +45,15 @@ public class EmployeeParcel implements Parcelable {
         dest.writeFloat(mUser.longitude);
     }
 
-    public static final Creator<EmployeeParcel> CREATOR = new Creator<EmployeeParcel>() {
+    public static final Creator<UserParcel> CREATOR = new Creator<UserParcel>() {
         @Override
-        public EmployeeParcel createFromParcel(Parcel in) {
-            return new EmployeeParcel(in);
+        public UserParcel createFromParcel(Parcel in) {
+            return new UserParcel(in);
         }
 
         @Override
-        public EmployeeParcel[] newArray(int size) {
-            return new EmployeeParcel[size];
+        public UserParcel[] newArray(int size) {
+            return new UserParcel[size];
         }
     };
 }

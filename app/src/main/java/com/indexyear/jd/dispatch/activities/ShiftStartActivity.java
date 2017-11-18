@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -20,20 +19,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.ManageMCT;
-import com.indexyear.jd.dispatch.data.ManageUsers;
-import com.indexyear.jd.dispatch.models.User;
+import com.indexyear.jd.dispatch.data.IUserEventListener;
+import com.indexyear.jd.dispatch.data.MCTManager;
+import com.indexyear.jd.dispatch.data.UserManager;
+import com.indexyear.jd.dispatch.data.UserParcel;
 import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSet;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
-import static com.indexyear.jd.dispatch.models.User.UserRole.MCTMEMBER;
 
 public class ShiftStartActivity extends AppCompatActivity implements View.OnClickListener,
         AdapterView.OnItemSelectedListener {
@@ -44,10 +39,13 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private FirebaseAnalytics mAnalyticsInstance;
     private FirebaseDatabase mDBInstance;
     private DatabaseReference mDB;
-    private ManageUsers mUser;
+
+    private UserManager mUserManager;
     private User mUser;
     public User foundUser;
-    private ManageMCT mMCT;
+    private MCTManager mMCTManager;
+    private IUserEventListener mUserEventListener;
+    private UserParcel mUserParcel;
 
     Spinner role_spinner;
     Spinner team_spinner;
@@ -71,9 +69,11 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         status_spinner = (Spinner) findViewById(R.id.status_spinner);
 
         mAuth = FirebaseAuth.getInstance();
-        mUser = new ManageUsers();
-        mMCT = new ManageMCT();
+        mUserManager = new UserManager();
+        mMCTManager = new MCTManager();
         mDB = FirebaseDatabase.getInstance().getReference("");
+
+        setUserListener();
     }
 
     //when the button is clicked, take values from spinners
@@ -88,9 +88,11 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         if (i == R.id.shift_start_button) { //do I need a test if there's only one button?
             //update employee status
             String role = role_spinner.getSelectedItem().toString();
+            String team = team_spinner.getSelectedItem().toString();
+            String status = status_spinner.getSelectedItem().toString();
 
             if (role.equals("MCT")) { //&& !team.isEmpty() && !status.isEmpty()
-                updateEmployeeAsMCT();
+                updateEmployeeAsMCT(role, team, status);
             } else if (role.equals("Dispatcher")) {
                 updateEmployeeAsDispatch(role);
             } else {
@@ -98,30 +100,14 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
             }
 
             //putting the User(userID, role) as an extra to send with the intent.
-            //TODO include team on the User object?
-            ShiftStartHandoff.putExtra("employee", mUser);
+            mUserParcel = new UserParcel(mUser);
+            ShiftStartHandoff.putExtra("user", mUserParcel);
             startActivity(ShiftStartHandoff);
         }
 
     }
 
-    private MainActivity.UserStatus getSpinnerValueAsEnum(String value) {
-        switch (value) {
-            case "Active":
-                return Active;
-            case "Off-Duty":
-                return OffDuty;
-            case "On-Break":
-                return OnBreak;
-            case "Dispatched":
-                return Dispatched;
-            default:
-                return NotSet;
-        }
-    }
-
-    // jdp this is where I had intended to control which spinners are available, but it isn't
-    // functioning as expected. it won't update a second time
+    // JDP The spinner for team and status must depend on role. My attempt doesn't function properly
     public void onItemSelected(AdapterView adapterView, View view, int pos, long id) {
         if (role_spinner.getSelectedItem().toString().equals("MCT")) {
             // make other spinners visible
@@ -139,17 +125,24 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         // do nothing?
     }
 
-    //update the employee status with relevant values
-    private void updateEmployeeAsMCT(String role, String team, MainActivity.UserStatus status) {
+    //
+    private void updateEmployeeAsMCT(String role, String team, String status) {
         String uid = mAuth.getCurrentUser().getUid();
-        mUser.setUserRole(uid, role);
-        mUser.setUserTeam(uid, team);
-        mUser.setUserStatus(uid, status);
+        mUserManager.setUserRole(uid, role);
+        mUserManager.setUserTeam(uid, team);
+        mUserManager.setUserStatus(uid, status);
+
+        // this is where the token work needs doing
         String token = FirebaseInstanceId.getInstance().getToken();
-        mMCT.addEmployeeAndToken(team, uid, token);
+        mUserManager.setUserNotificationToken(uid, token);
+
+        //
+        mMCTManager.addEmployeeAndToken(team, uid, token);
+
         mUser = new User(uid, role);
     }
 
+/*    previous version - JDP
     private void updateEmployeeAsMCT() {
 
         String uid = mAuth.getCurrentUser().getUid();
@@ -170,19 +163,16 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         //role is here because this was not accessing the database for me in testing, --Luke
         String role = "MCT";
         mUser = new User(uid, role);
-    }
+    }*/
 
     private void updateEmployeeAsDispatch(String role) {
         Log.d(TAG, "updateEmployeeAsDispatch");
         String uid = mAuth.getCurrentUser().getUid();
 
-        mUser.setUserRole(uid, role);
-        //this is creating the employee object that the intent is going to pass around, hopefully.
-        mUser = new User(uid, role);
+        mUserManager.setUserRole(uid, role);
     }
 
     private void createTeamSpinner() {
-
         mDB.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -263,6 +253,31 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
             }
         });
+    }
+
+    private void setUserListener(){
+        mUserEventListener = new IUserEventListener() {
+            @Override
+            public void onUserCreated(User newUser) {
+                if (newUser.getUserID().equals(mUser.getUserID())){
+                    mUser.updateUser(newUser);
+                }
+            }
+
+            @Override
+            public void onUserRemoved(User removedUser) {
+                //do nothing for now
+            }
+
+            @Override
+            public void onUserUpdated(User updatedUser) {
+                if (updatedUser.getUserID().equals(mUser.getUserID())){
+                    mUser.updateUser(updatedUser);
+                }
+            }
+        };
+
+        mUserManager.addNewListener(mUserEventListener);
     }
 
 }
