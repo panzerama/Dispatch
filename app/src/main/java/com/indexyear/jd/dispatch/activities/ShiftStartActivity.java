@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
@@ -22,6 +23,7 @@ import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageMCT;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.models.MCT;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private FirebaseDatabase mDBInstance;
     private DatabaseReference mDB;
     private ManageUsers mUser;
+    private Employee mEmployee;
+    public Employee foundEmployee;
     private ManageMCT mMCT;
 
     Spinner role_spinner;
@@ -83,12 +87,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         if (i == R.id.shift_start_button) { //do I need a test if there's only one button?
             //update employee status
-            //Log.d(TAG, "shift start button");
             String role = role_spinner.getSelectedItem().toString();
-//            String team = team_spinner.getSelectedItem().toString();
-//            MainActivity.UserStatus status = getSpinnerValueAsEnum(status_spinner.getSelectedItem().toString());
-//
-//            Log.d(TAG, "role is " + role + ", team is " + team + ", and status is " + status);
 
             if (role.equals("MCT")) { //&& !team.isEmpty() && !status.isEmpty()
                 updateEmployeeAsMCT();
@@ -98,6 +97,9 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                 //do something to raise error
             }
 
+            //putting the Employee(userID, role) as an extra to send with the intent.
+            //TODO include team on the Employee object?
+            ShiftStartHandoff.putExtra("employee", mEmployee);
             startActivity(ShiftStartHandoff);
         }
 
@@ -140,22 +142,34 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     //update the employee status with relevant values
     private void updateEmployeeAsMCT(String role, String team, MainActivity.UserStatus status) {
         String uid = mAuth.getCurrentUser().getUid();
-        mUser.setUserRole(uid, "MCT");
+        mUser.setUserRole(uid, role);
         mUser.setUserTeam(uid, team);
         mUser.setUserStatus(uid, status);
         String token = FirebaseInstanceId.getInstance().getToken();
         mMCT.addEmployeeAndToken(team, uid, token);
+        mEmployee = new Employee(uid, role);
     }
 
     private void updateEmployeeAsMCT() {
+
         String uid = mAuth.getCurrentUser().getUid();
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("employees").child(uid);
         dbRef.child("currentRole").setValue(MCTMEMBER);
         dbRef.child("currentStatus").setValue(getSpinnerValueAsEnum(status_spinner.getSelectedItem().toString()));
         dbRef.child("currentTeam").setValue(team_spinner.getSelectedItem().toString());
-        mUser.GetEmployeeObject(uid);
-        Employee emp = mUser.getEmployee();
-        mUser.addUserToTeam(emp, team_spinner.getSelectedItem().toString());
+        GetEmployeeObject(uid);
+        final String[] teamName = {team_spinner.getSelectedItem().toString()};
+        boolean success = addUserToTeam(teamName);
+
+        if(!success){
+            Toast toast = Toast.makeText(this, "Error occurred.", Toast.LENGTH_SHORT);
+            toast.show();
+        }
+
+        //this is creating the employee object that the intent is going to pass around, hopefully.
+        //role is here because this was not accessing the database for me in testing, --Luke
+        String role = "MCT";
+        mEmployee = new Employee(uid, role);
     }
 
     private void updateEmployeeAsDispatch(String role) {
@@ -163,6 +177,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         String uid = mAuth.getCurrentUser().getUid();
 
         mUser.setUserRole(uid, role);
+        //this is creating the employee object that the intent is going to pass around, hopefully.
+        mEmployee = new Employee(uid, role);
     }
 
     private void createTeamSpinner() {
@@ -194,6 +210,59 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         status_spinner.setAdapter(adapter);
         status_spinner.setSelection(0);
+    }
+
+    public boolean addUserToTeam(final String[] teamName){
+        final boolean[] operationSuccessful = {false};
+        try {
+            final DatabaseReference dbRef = mDB.child("teams").getRef();
+            dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
+                        if(teamSnapshot.getKey().toString().equals((teamName[0].replaceAll("\\s+","")))){
+                            final MCT team = teamSnapshot.getValue(MCT.class);
+                            List<Employee> teamMembers;
+                            if(team.teamMembers != null){
+                                teamMembers = team.teamMembers;
+                            } else {
+                                teamMembers = new ArrayList<Employee>();
+                            }
+                            if(foundEmployee != null){
+                                teamMembers.add(foundEmployee);
+                                dbRef.child((teamName[0].replaceAll("\\s+",""))).child("teamMembers").setValue(teamMembers);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        } catch (Exception e) {
+            operationSuccessful[0] = false;
+            Log.d(TAG, e.toString());
+        }
+
+        return operationSuccessful[0];
+
+    }
+
+    public void GetEmployeeObject(String uid){
+        FirebaseDatabase.getInstance().getReference("employees").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                foundEmployee = dataSnapshot.getValue(Employee.class);
+                Log.d(TAG, foundEmployee.currentTeam);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }

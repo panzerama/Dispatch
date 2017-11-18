@@ -82,7 +82,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 MCT team = (MCT)parent.getItemAtPosition(position);
 
-                selectedTeam = team.getTeamID();
+                selectedTeam = team.getTeamName();
                 createConfirmDispatchDialog();
                 triggerNotification(inputCrisisObject, selectedTeam);
             }

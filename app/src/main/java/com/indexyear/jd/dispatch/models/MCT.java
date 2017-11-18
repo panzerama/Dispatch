@@ -2,6 +2,7 @@ package com.indexyear.jd.dispatch.models;
 
 import com.google.firebase.database.Exclude;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,30 +13,14 @@ import java.util.Map;
 
 public class MCT {
 
-    public String teamID;
     public String teamName;
     public List<Employee> teamMembers;
     public float latitude;
     public float longitude;
+    public Date travelTime;
 
     public MCT(){
 
-    }
-
-    public float getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(float latitude) {
-        this.latitude = latitude;
-    }
-
-    public float getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(float longitude) {
-        this.longitude = longitude;
     }
 
     public String getTeamName() {
@@ -54,27 +39,39 @@ public class MCT {
         this.teamMembers = teamMembers;
     }
 
-    public String getTeamID() {
-        return teamID;
+    public float getLatitude() {
+        return latitude;
     }
 
-    public void setTeamID(String teamID) {
-        this.teamID = teamID;
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
     }
 
-    public MCT(String teamName){
-        this.teamName = teamName;
+    public float getLongitude() {
+        return longitude;
     }
 
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
+    }
+
+    public Date getTravelTime() {
+        return travelTime;
+    }
+
+    public void setTravelTime(Date travelTime) {
+        this.travelTime = travelTime;
+    }
 
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        result.put("teamID", teamID);
+
         result.put("teamMembers", teamMembers);
         result.put("teamName", teamName);
         result.put("latitude", latitude);
         result.put("longitude", longitude);
+        result.put("travelTime", travelTime);
 
         return result;
     }

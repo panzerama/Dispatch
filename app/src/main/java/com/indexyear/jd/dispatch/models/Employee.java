@@ -1,27 +1,72 @@
 package com.indexyear.jd.dispatch.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.indexyear.jd.dispatch.activities.MainActivity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class Employee {
+public class Employee implements Parcelable {
+
     public String firstName;
     public String lastName;
-    public String userID;
     public String phone;
-    public MCT currentMCT;
-    public UserRole currentRole;
+    public String currentTeam;
+    public String userID;
+    public String currentRole;
     public MainActivity.UserStatus currentStatus;
     public float latitude;
     public float longitude;
+
+    protected Employee(Parcel in) {
+        firstName = in.readString();
+        lastName = in.readString();
+        phone = in.readString();
+        currentTeam = in.readString();
+        userID = in.readString();
+        currentRole = in.readString();
+        latitude = in.readFloat();
+        longitude = in.readFloat();
+    }
+
+    public static final Creator<Employee> CREATOR = new Creator<Employee>() {
+        @Override
+        public Employee createFromParcel(Parcel in) {
+            return new Employee(in);
+        }
+
+        @Override
+        public Employee[] newArray(int size) {
+            return new Employee[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(firstName);
+        dest.writeString(lastName);
+        dest.writeString(phone);
+        dest.writeString(currentTeam);
+        dest.writeString(userID);
+        dest.writeString(currentRole);
+        dest.writeFloat(latitude);
+        dest.writeFloat(longitude);
+    }
+
+    public enum UserRole { Dispatcher, MCTMEMBER }
 
     public Employee(){
 
     }
 
     public Employee(String userID, String firstName, String lastName, String phone){
-        this.userID = userID;
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
@@ -33,20 +78,9 @@ public class Employee {
         this.phone = phone;
     }
 
-    public float getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(float latitude) {
-        this.latitude = latitude;
-    }
-
-    public float getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(float longitude) {
-        this.longitude = longitude;
+    public Employee(String userID, String role) {
+        this.userID = userID;
+        this.currentRole = role;
     }
 
     public String getUserID() {
@@ -56,8 +90,6 @@ public class Employee {
     public void setUserID(String userID) {
         this.userID = userID;
     }
-
-    public enum UserRole { Dispatcher, MCTMEMBER }
 
     public String getFirstName() {
         return firstName;
@@ -83,19 +115,19 @@ public class Employee {
         this.phone = phone;
     }
 
-    public MCT getCurrentMCT() {
-        return currentMCT;
+    public String getCurrentTeam() {
+        return currentTeam;
     }
 
-    public void setCurrentMCT(MCT currentMCT) {
-        this.currentMCT = currentMCT;
+    public void setCurrentTeam(String currentTeam) {
+        this.currentTeam = currentTeam;
     }
 
-    public UserRole getCurrentRole() {
+    public String getCurrentRole() {
         return currentRole;
     }
 
-    public void setCurrentRole(UserRole currentRole) {
+    public void setCurrentRole(String currentRole) {
         this.currentRole = currentRole;
     }
 
@@ -107,20 +139,20 @@ public class Employee {
         this.currentStatus = currentStatus;
     }
 
-    public Map<String, Object> toMap() {
-        Map<String, Object> employeeValues = new HashMap<>();
+    public float getLatitude() {
+        return latitude;
+    }
 
-        employeeValues.put("firstName", firstName);
-        employeeValues.put("lastName", lastName);
-        employeeValues.put("uid", userID);
-        employeeValues.put("phone", phone);
-        employeeValues.put("currentRole", currentRole);
-        employeeValues.put("currentMCT", currentMCT);
-        employeeValues.put("currentStatus", currentStatus);
-        employeeValues.put("latitude", latitude);
-        employeeValues.put("longitude", longitude);
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
 
-        return employeeValues;
+    public float getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
     }
 
     public void updateEmployee(){
@@ -130,4 +162,22 @@ public class Employee {
     public void createEmployee(){
 
     }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> employeeValues = new HashMap<>();
+
+        employeeValues.put("firstName", firstName);
+        employeeValues.put("lastName", lastName);
+        employeeValues.put("phone", phone);
+        employeeValues.put("currentMCT", currentTeam);
+        employeeValues.put("currentRole", currentRole);
+        employeeValues.put("currentStatus", currentStatus);
+        employeeValues.put("latitude", latitude);
+        employeeValues.put("longitude", longitude);
+        employeeValues.put("userID", userID);
+
+        return employeeValues;
+    }
+
+
 }

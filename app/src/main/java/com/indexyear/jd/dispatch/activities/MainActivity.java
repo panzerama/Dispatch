@@ -220,17 +220,27 @@ public class MainActivity extends AppCompatActivity
 
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
-        // TODO: 11/11/17 JD shouldb e removed?
+        // TODO: 11/11/17 JD should be removed?
+        Intent intent = getIntent();
+        Employee employeeFromIntent = intent.getParcelableExtra("employee");
+        String role = employeeFromIntent.getCurrentRole();
 
         // If the current user is dispatch, then this should be create address dialog.
+        if ("Dispatcher".equalsIgnoreCase(role))
+            {
+                    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    CreateAddressDialog();
+                }
+            });
+        }
         // If the current user is MCT, this should offer a message dialog
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                CreateAddressDialog();
-            }
-        });
+        else {
+            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a MCT user.", Toast.LENGTH_LONG);
+            MCTtoast.show();
+        }
 
 
     }
