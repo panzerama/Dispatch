@@ -96,19 +96,6 @@
                 android:value=".activities.MainActivity" />
         </activity>
 
-        <service
-            android:name=".services.CrisisIntentService"
-            android:exported="false" />
-
-        <receiver
-            android:name=".event_handlers.CrisisUpdateReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.indexyear.jd.dispatch.CRISIS_BROADCAST" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name=".activities.CrisisReceived"
             android:label="@string/title_activity_crisis_received"
