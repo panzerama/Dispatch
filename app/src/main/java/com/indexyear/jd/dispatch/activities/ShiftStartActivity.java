@@ -22,7 +22,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.ManageMCT;
 import com.indexyear.jd.dispatch.data.ManageUsers;
-import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.models.User;
 import com.indexyear.jd.dispatch.models.MCT;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispa
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSet;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
 import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
-import static com.indexyear.jd.dispatch.models.Employee.UserRole.MCTMEMBER;
+import static com.indexyear.jd.dispatch.models.User.UserRole.MCTMEMBER;
 
 public class ShiftStartActivity extends AppCompatActivity implements View.OnClickListener,
         AdapterView.OnItemSelectedListener {
@@ -45,8 +45,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private FirebaseDatabase mDBInstance;
     private DatabaseReference mDB;
     private ManageUsers mUser;
-    private Employee mEmployee;
-    public Employee foundEmployee;
+    private User mUser;
+    public User foundUser;
     private ManageMCT mMCT;
 
     Spinner role_spinner;
@@ -97,9 +97,9 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                 //do something to raise error
             }
 
-            //putting the Employee(userID, role) as an extra to send with the intent.
-            //TODO include team on the Employee object?
-            ShiftStartHandoff.putExtra("employee", mEmployee);
+            //putting the User(userID, role) as an extra to send with the intent.
+            //TODO include team on the User object?
+            ShiftStartHandoff.putExtra("employee", mUser);
             startActivity(ShiftStartHandoff);
         }
 
@@ -147,7 +147,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mUser.setUserStatus(uid, status);
         String token = FirebaseInstanceId.getInstance().getToken();
         mMCT.addEmployeeAndToken(team, uid, token);
-        mEmployee = new Employee(uid, role);
+        mUser = new User(uid, role);
     }
 
     private void updateEmployeeAsMCT() {
@@ -169,7 +169,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         //this is creating the employee object that the intent is going to pass around, hopefully.
         //role is here because this was not accessing the database for me in testing, --Luke
         String role = "MCT";
-        mEmployee = new Employee(uid, role);
+        mUser = new User(uid, role);
     }
 
     private void updateEmployeeAsDispatch(String role) {
@@ -178,7 +178,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         mUser.setUserRole(uid, role);
         //this is creating the employee object that the intent is going to pass around, hopefully.
-        mEmployee = new Employee(uid, role);
+        mUser = new User(uid, role);
     }
 
     private void createTeamSpinner() {
@@ -222,14 +222,14 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                     for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
                         if(teamSnapshot.getKey().toString().equals((teamName[0].replaceAll("\\s+","")))){
                             final MCT team = teamSnapshot.getValue(MCT.class);
-                            List<Employee> teamMembers;
+                            List<User> teamMembers;
                             if(team.teamMembers != null){
                                 teamMembers = team.teamMembers;
                             } else {
-                                teamMembers = new ArrayList<Employee>();
+                                teamMembers = new ArrayList<User>();
                             }
-                            if(foundEmployee != null){
-                                teamMembers.add(foundEmployee);
+                            if(foundUser != null){
+                                teamMembers.add(foundUser);
                                 dbRef.child((teamName[0].replaceAll("\\s+",""))).child("teamMembers").setValue(teamMembers);
                             }
                         }
@@ -254,8 +254,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         FirebaseDatabase.getInstance().getReference("employees").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                foundEmployee = dataSnapshot.getValue(Employee.class);
-                Log.d(TAG, foundEmployee.currentTeam);
+                foundUser = dataSnapshot.getValue(User.class);
+                Log.d(TAG, foundUser.currentTeam);
             }
 
             @Override

@@ -25,7 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.models.User;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -235,8 +235,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (!dataSnapshot.hasChild(mAuth.getCurrentUser().getUid())){
 
-                    Employee newEmployee = new Employee(mAuth.getCurrentUser().getUid(), "OtherExample", "User", "123-456-7890");
-                    Map<String, Object> employeeValues = newEmployee.toMap();
+                    User newUser = new User(mAuth.getCurrentUser().getUid(), "OtherExample", "User", "123-456-7890");
+                    Map<String, Object> employeeValues = newUser.toMap();
 
                     Map<String, Object> databaseValue = new HashMap<>();
                     databaseValue.put(mAuth.getCurrentUser().getUid(), employeeValues);

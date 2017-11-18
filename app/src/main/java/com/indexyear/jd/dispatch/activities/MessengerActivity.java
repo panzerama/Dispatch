@@ -45,9 +45,9 @@ public class MessengerActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
 //        ManageUsers mu = new ManageUsers();
-//        List<Employee> employees = new ArrayList<Employee>();
-//        Employee employee1 = new Employee("rick", "Rick", "Sanchez", "999-999-9999");
-//        Employee employee2 = new Employee("morty", "Morty", "", "999-999-9999");
+//        List<User> employees = new ArrayList<User>();
+//        User employee1 = new User("rick", "Rick", "Sanchez", "999-999-9999");
+//        User employee2 = new User("morty", "Morty", "", "999-999-9999");
 //        employees.add(employee1);
 //        employees.add(employee2);
 //

@@ -13,7 +13,7 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.models.User;
 import com.indexyear.jd.dispatch.models.Message;
 
 import static com.indexyear.jd.dispatch.R.id.fab;
@@ -21,8 +21,8 @@ import static com.indexyear.jd.dispatch.R.id.fab;
 public class ChatActivity extends AppCompatActivity {
 
     FloatingActionButton sendMessage;
-    Employee emp1;
-    Employee emp2;
+    User emp1;
+    User emp2;
     private DatabaseReference db;
     private FirebaseListAdapter<Message> adapter;
     private static String selectedMCT;
@@ -75,8 +75,8 @@ public class ChatActivity extends AppCompatActivity {
 //        return team;
 //    }
 //
-//    private Employee getUser(){
-//        return new Employee("rick", "Rick", "Sanchez", "999-999-9999");
+//    private User getUser(){
+//        return new User("rick", "Rick", "Sanchez", "999-999-9999");
 //    }
 //
 //    private void DisplayChatMessages(){

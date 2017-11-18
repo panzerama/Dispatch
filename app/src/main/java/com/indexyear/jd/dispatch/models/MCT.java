@@ -14,7 +14,7 @@ import java.util.Map;
 public class MCT {
 
     public String teamName;
-    public List<Employee> teamMembers;
+    public List<User> teamMembers;
     public float latitude;
     public float longitude;
     public Date travelTime;
@@ -31,11 +31,11 @@ public class MCT {
         this.teamName = teamName;
     }
 
-    public List<Employee> getTeamMembers() {
+    public List<User> getTeamMembers() {
         return teamMembers;
     }
 
-    public void setTeamMembers(List<Employee> teamMembers) {
+    public void setTeamMembers(List<User> teamMembers) {
         this.teamMembers = teamMembers;
     }
 

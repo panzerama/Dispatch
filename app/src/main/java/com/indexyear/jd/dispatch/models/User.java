@@ -1,14 +1,9 @@
 package com.indexyear.jd.dispatch.models;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import com.indexyear.jd.dispatch.activities.MainActivity;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class Employee implements Parcelable {
+public class User {
 
     public String firstName;
     public String lastName;
@@ -16,69 +11,37 @@ public class Employee implements Parcelable {
     public String currentTeam;
     public String userID;
     public String currentRole;
-    public MainActivity.UserStatus currentStatus;
+    public String currentStatus;
     public float latitude;
     public float longitude;
 
-    protected Employee(Parcel in) {
-        firstName = in.readString();
-        lastName = in.readString();
-        phone = in.readString();
-        currentTeam = in.readString();
-        userID = in.readString();
-        currentRole = in.readString();
-        latitude = in.readFloat();
-        longitude = in.readFloat();
+    public User(String firstName, String lastName, String phone, String currentTeam, String userID, String currentRole, String currentStatus, float latitude, float longitude) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.currentTeam = currentTeam;
+        this.userID = userID;
+        this.currentRole = currentRole;
+        this.currentStatus = currentStatus;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
-    public static final Creator<Employee> CREATOR = new Creator<Employee>() {
-        @Override
-        public Employee createFromParcel(Parcel in) {
-            return new Employee(in);
-        }
+    // TODO: 11/17/17 JD clean up the constructors
 
-        @Override
-        public Employee[] newArray(int size) {
-            return new Employee[size];
-        }
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(firstName);
-        dest.writeString(lastName);
-        dest.writeString(phone);
-        dest.writeString(currentTeam);
-        dest.writeString(userID);
-        dest.writeString(currentRole);
-        dest.writeFloat(latitude);
-        dest.writeFloat(longitude);
-    }
-
-    public enum UserRole { Dispatcher, MCTMEMBER }
-
-    public Employee(){
-
-    }
-
-    public Employee(String userID, String firstName, String lastName, String phone){
+    public User(String userID, String firstName, String lastName, String phone){
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
     }
 
-    public Employee(String firstName, String lastName, String phone){
+    public User(String firstName, String lastName, String phone){
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
     }
 
-    public Employee(String userID, String role) {
+    public User(String userID, String role) {
         this.userID = userID;
         this.currentRole = role;
     }
@@ -131,11 +94,11 @@ public class Employee implements Parcelable {
         this.currentRole = currentRole;
     }
 
-    public MainActivity.UserStatus getCurrentStatus() {
+    public String getCurrentStatus() {
         return currentStatus;
     }
 
-    public void setCurrentStatus(MainActivity.UserStatus currentStatus) {
+    public void setCurrentStatus(String currentStatus) {
         this.currentStatus = currentStatus;
     }
 

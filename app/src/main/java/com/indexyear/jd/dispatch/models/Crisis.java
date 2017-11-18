@@ -21,7 +21,7 @@ public class Crisis {
     private String callBackNumber;
     private String dispatchComments;
     private MCT responseTeam;
-    private List<Employee> responseTeamMembers;
+    private List<User> responseTeamMembers;
     */
 
     public static Crisis createFromAddress(String address) {
@@ -162,11 +162,11 @@ public class Crisis {
         this.responseTeam = responseTeam;
     }
 
-    public List<Employee> getResponseTeamMembers() {
+    public List<User> getResponseTeamMembers() {
         return responseTeamMembers;
     }
 
-    public void setResponseTeamMembers(List<Employee> responseTeamMembers) {
+    public void setResponseTeamMembers(List<User> responseTeamMembers) {
         this.responseTeamMembers = responseTeamMembers;
     }
     */

@@ -5,7 +5,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 
 import java.util.ArrayList;
@@ -13,12 +12,12 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
-public class CrisisManager { // TODO: 11/17/17 JD classes should be named after nouns, not verbs
+public class CrisisManager {
+    private static final String TAG = "CrisisManager";
 
     private Crisis mCrisis;
     private DatabaseReference mDatabase; //Firebase reference
     private List<ICrisisEventListener> mListeners;
-    private ValueEventListener mCrisisValueChangeListener;
 
     public CrisisManager(){
         mListeners = new ArrayList<>();

@@ -71,7 +71,7 @@ import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.CrisisParcel;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.models.Crisis;
-import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.models.User;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -206,8 +206,8 @@ public class MainActivity extends AppCompatActivity
 
         // TODO: 11/11/17 JD should be removed?
         Intent intent = getIntent();
-        Employee employeeFromIntent = intent.getParcelableExtra("employee");
-        String role = employeeFromIntent.getCurrentRole();
+        User userFromIntent = intent.getParcelableExtra("employee");
+        String role = userFromIntent.getCurrentRole();
 
         // If the current user is dispatch, then this should be create address dialog.
         if ("Dispatcher".equalsIgnoreCase(role))
@@ -352,10 +352,10 @@ public class MainActivity extends AppCompatActivity
         mDatabase.child("employees").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Employee employee = dataSnapshot.getValue(Employee.class);
-                Log.d(TAG, employee.currentStatus.toString());
-                if (!employee.currentStatus.equals(null)) {
-                    int spinnerPosition = adapter.getPosition(getSpinnerValueAsString(employee.currentStatus));
+                User user = dataSnapshot.getValue(User.class);
+                Log.d(TAG, user.currentStatus.toString());
+                if (!user.currentStatus.equals(null)) {
+                    int spinnerPosition = adapter.getPosition(getSpinnerValueAsString(user.currentStatus));
                     statusSpinner.setSelection(spinnerPosition);
                 } else {
                     statusSpinner.setSelection(0);

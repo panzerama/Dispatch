@@ -2,42 +2,81 @@ package com.indexyear.jd.dispatch.data;
 
 import android.util.Log;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.activities.MainActivity;
-import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.models.User;
 import com.indexyear.jd.dispatch.models.MCT;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class ManageUsers {
+public class UserManager {
 
     private static final String TAG = "ManageUsers";
+
     private DatabaseReference mDatabase;
-    private Employee employee;
+    private User mUser;
+    private List<IUserEventListener> mListeners;
 
-    public ManageUsers(){
+    public UserManager(){
+        mListeners = new ArrayList<>();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase.child("users").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (mListeners.isEmpty()) { return; }
+                for (IUserEventListener mListener: mListeners) {
+                    mListener.onUserCreated(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                if (mListeners.isEmpty()) { return; }
+                for (IUserEventListener mListener: mListeners) {
+                    mListener.onUserUpdated(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                if (mListeners.isEmpty()) { return; }
+                for (IUserEventListener mListener: mListeners) {
+                    mListener.onUserRemoved(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
-    public void AddNewEmployee(String userID, String firstName, String lastName, String phone){
-        Employee employee = new Employee();
-        employee.setFirstName(firstName);
-        employee.setLastName(lastName);
-        employee.setPhone(phone);
+/*    public void AddNewUser(String userID, String firstName, String lastName, String phone){
+        User user = new User();
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setPhone(phone);
 
-        mDatabase.child("employees").child(userID).setValue(employee);
+        mDatabase.child("employees").child(userID).setValue(user);
+    }*/
+
+    public void AddNewEmployee(User user){
+        mDatabase.child("users").child(user.getUserID()).setValue(user);
     }
 
-    public void AddNewEmployee(Employee employee){
-
-        mDatabase.child("employees").push().setValue(employee);
-    }
-
-    public void AddNewTeam(String teamName, String teamDisplayName, List<Employee> teamMembers){
+    public void AddNewTeam(String teamName, String teamDisplayName, List<User> teamMembers){
         MCT team = new MCT();
         team.teamName = teamDisplayName;
 
@@ -90,15 +129,12 @@ public class ManageUsers {
         return team[0];
     }
 
-    public void setReturnEmployee(Employee employee){
-         this.employee = employee;
+    public void setReturnEmployee(User user){
+         this.mUser = user;
     }
 
-    public Employee getEmployee(){
-        return this.employee;
+    public User getUser(){
+        return this.mUser;
     }
-
-    // TODO: 11/11/17 JD team management is still an issue
-
 
 }
