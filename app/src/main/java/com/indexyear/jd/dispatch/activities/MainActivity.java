@@ -69,7 +69,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.CrisisParcel;
+import com.indexyear.jd.dispatch.data.IUserEventListener;
 import com.indexyear.jd.dispatch.data.ManageUsers;
+import com.indexyear.jd.dispatch.data.UserManager;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
 
@@ -103,6 +105,9 @@ public class MainActivity extends AppCompatActivity
     final FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref;
     private String userID;
+    private User mUser;
+    private UserManager mUserManager;
+    private IUserEventListener mUserEventListener;
 
     //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
@@ -160,6 +165,8 @@ public class MainActivity extends AppCompatActivity
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        setUserListener();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -343,38 +350,23 @@ public class MainActivity extends AppCompatActivity
         MenuItem item = menu.findItem(spinner);
         statusSpinner = (Spinner) MenuItemCompat.getActionView(item);
 
-        // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances
+        // TODO: 11/11/17 JD set string constants for all of these
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(adapter);
 
-        mDatabase.child("employees").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                Log.d(TAG, user.currentStatus.toString());
-                if (!user.currentStatus.equals(null)) {
-                    int spinnerPosition = adapter.getPosition(getSpinnerValueAsString(user.currentStatus));
-                    statusSpinner.setSelection(spinnerPosition);
-                } else {
-                    statusSpinner.setSelection(0);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-//        ManageUsers newUser = new ManageUsers();
-//        newUser.setUserStatus(userID, "active");
+        String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Off Duty";
+        int spinnerPosition = adapter.getPosition(currentUserStatus);
+        statusSpinner.setSelection(spinnerPosition);
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
+
+                // stopping point 11/18/2017 - trigger the save through manageUsers
+
                 ManageUsers user = new ManageUsers();
                 user.setUserStatus(userID, getSpinnerValueAsEnum(text));
             }
@@ -655,5 +647,28 @@ public class MainActivity extends AppCompatActivity
     private boolean writeTeamLocationBasedOnUser() {
 
         return false;
+    }
+
+    private void setUserListener(){
+        mUserEventListener = new IUserEventListener() {
+            @Override
+            public void onUserCreated(User newUser) {
+                if (newUser.getUserID().equals(mUser.getUserID())){
+                    mUser.updateUser(newUser);
+                }
+            }
+
+            @Override
+            public void onUserRemoved(User removedUser) {
+                //do nothing for now
+            }
+
+            @Override
+            public void onUserUpdated(User updatedUser) {
+                if (updatedUser.getUserID().equals(mUser.getUserID())){
+                    mUser.updateUser(updatedUser);
+                }
+            }
+        };
     }
 }

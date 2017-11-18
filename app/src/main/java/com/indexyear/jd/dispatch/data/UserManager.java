@@ -137,4 +137,25 @@ public class UserManager {
         return this.mUser;
     }
 
+    public String getUserStatus(String userID){
+
+        mDatabase.child("employees").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                Log.d(TAG, user.currentStatus.toString());
+                if (!user.currentStatus.equals(null)) {
+                    return user.getCurrentStatus();
+                } else {
+                    statusSpinner.setSelection(0);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
 }

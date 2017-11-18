@@ -4,15 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class User {
-
-    public String firstName;
+    
+    public String firstName; // TODO: 11/17/17 JD discard name and phone? 
     public String lastName;
     public String phone;
     public String currentTeam;
     public String userID;
     public String currentRole;
     public String currentStatus;
-    public float latitude;
+    public float latitude; // TODO: 11/17/17 JD change to one Location object? 
     public float longitude;
 
     public User(String firstName, String lastName, String phone, String currentTeam, String userID, String currentRole, String currentStatus, float latitude, float longitude) {
@@ -118,8 +118,20 @@ public class User {
         this.longitude = longitude;
     }
 
-    public void updateEmployee(){
-
+    /***
+     * Turns current user into a shallow copy of another, or updates based on retrieved user object.
+     * @param otherUser
+     */
+    public void updateUser(User otherUser){
+        this.firstName = otherUser.firstName;
+        this.lastName = otherUser.lastName;
+        this.phone = otherUser.phone;
+        this.currentTeam = otherUser.currentTeam;
+        this.userID = otherUser.userID;
+        this.currentRole = otherUser.currentRole;
+        this.currentStatus = otherUser.currentStatus;
+        this.latitude = otherUser.latitude;
+        this.longitude = otherUser.longitude;
     }
 
     public void createEmployee(){
