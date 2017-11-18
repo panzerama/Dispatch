@@ -12,27 +12,55 @@ import android.util.Log;
 import com.google.firebase.messaging.RemoteMessage;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.activities.CrisisReceived;
+import com.indexyear.jd.dispatch.data.CrisisManager;
+import com.indexyear.jd.dispatch.data.CrisisParcel;
+import com.indexyear.jd.dispatch.data.ICrisisEventListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class DescMessagingService extends com.google.firebase.messaging.FirebaseMessagingService {
-    // TODO: 11/17/17 JD refactor crisis objects
+
     private static final String TAG = "DescMessagingService";
+    private ICrisisEventListener mCrisisListener;
+    private CrisisManager mCrisisManager;
+    private String crisisID;
 
     @Override
-    public void onMessageReceived(RemoteMessage remoteMessage) {
+    public void onMessageReceived(final RemoteMessage remoteMessage) {
+        mCrisisListener = new ICrisisEventListener() {
+            @Override
+            public void onCrisisCreated(Crisis newCrisis) {
+                Log.d(TAG, "oncrisiscreated crisis_id " + remoteMessage.getData().get("crisis_id") + " newcrisis crisis_id " + newCrisis.getCrisisID());
+                if (remoteMessage.getData().get("crisis_id").equals(newCrisis.getCrisisID())){
+                    sendNotification(newCrisis);
+                }
+            }
 
-        // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
+            @Override
+            public void onCrisisRemoved(Crisis removedCrisis) {
+
+            }
+
+            @Override
+            public void onCrisisUpdated(Crisis updatedCrisis) {
+                // TODO: 11/17/17 JD is there a case where we would use this?
+            }
+        };
+
+        mCrisisManager = new CrisisManager();
+        mCrisisManager.setCrisisEventListener(mCrisisListener);
+
+        // the data being received should at the very least be the crisisID
         Log.d(TAG, "From: " + remoteMessage.getFrom());
+
         Map<String, String> messageDataMap = new HashMap<>();
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
             Log.d(TAG, "Message data payload: " + remoteMessage.getData());
-
-
 
             for (Map.Entry<String, String> entry : remoteMessage.getData().entrySet()) {
                 String key = entry.getKey();
@@ -40,8 +68,7 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
                 Log.d(TAG, "key: " + key + " value: " + value);
                 messageDataMap.put(key, value);
             }
-
-            sendNotification("Some notification text", messageDataMap);
+            //sendNotification("Some notification text", messageDataMap);
         }
 
         // Check if message contains a notification payload.
@@ -49,46 +76,31 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
-
-        // TODO: 11/11/17 JD message acknowledged?
+        if (messageDataMap.containsKey("crisis_id")){
+            crisisID = messageDataMap.get("crisis_id");
+        } else {
+            throw new IllegalArgumentException("The crisis ID was not passed.");
+        }
     }
 
     /**
-     * Schedule a job using FirebaseJobDispatcher.
-     */
-    private void scheduleJob() {
-        // [START dispatch_job]
-//        FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
-//        Job myJob = dispatcher.newJobBuilder()
-//                .setService(MyJobService.class)
-//                .setTag("my-job-tag")
-//                .build();
-//        dispatcher.schedule(myJob);
-        // [END dispatch_job]
-    }
-
-    /**
-     * Handle time allotted to BroadcastReceivers.
-     */
-    private void handleNow() {
-        Log.d(TAG, "Short lived task is done.");
-    }
-
-    /**
-     * Create and show a simple notification containing the received FCM message.
+     * On the onCrisisCreated event, this will fire a notification.
      *
-     * @param messageBody FCM message body received.
+     * @param incomingCrisis passed in from the data snapshot
+     *
      */
-    public void sendNotification(String messageBody, Map<String, String> messageDataSet) {
+    public void sendNotification(Crisis incomingCrisis) {
         Log.d(TAG, " sendNotification");
         Intent intent = new Intent(this, CrisisReceived.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra("source", "crisis message");
 
-        Crisis receivedCrisis = new Crisis(messageDataSet.get("crisis_address"));
+        // TODO: 11/17/17 JD what I want to do here is to get the crisis by address from the DB
 
-        Log.d(TAG, "message data: " + messageDataSet.get("crisis_address"));
-        intent.putExtra("crisis", receivedCrisis);
+        CrisisParcel crisisParcel = new CrisisParcel(incomingCrisis);
+
+        Log.d(TAG, "message data: " + incomingCrisis.getCrisisAddress());
+
+        intent.putExtra("crisis", crisisParcel);
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
@@ -100,19 +112,22 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
 
-
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_menu_camera)
-                        .setContentTitle("FCM Message")
-                        .setContentText(messageBody)
+                        .setContentTitle("Incoming Crisis!")
+                        .setContentText("A crisis has been added for " + incomingCrisis.getCrisisAddress())
                         .setSound(defaultSoundUri)
                         .setAutoCancel(true)
+                        //.setPriority(NotificationManager.IMPORTANCE_HIGH)
                         .setContentIntent(resultPendingIntent);
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(3739 /* ID of notification */, notificationBuilder.build());
+        // temporary solve for unique notification ID
+        int randomUUID = UUID.randomUUID().hashCode();
+
+        notificationManager.notify(randomUUID, notificationBuilder.build());
     }
 }

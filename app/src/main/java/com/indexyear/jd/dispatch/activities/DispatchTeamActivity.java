@@ -15,25 +15,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.ui.database.FirebaseListAdapter;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.CrisisManager;
+import com.indexyear.jd.dispatch.data.CrisisParcel;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.MCT;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DispatchTeamActivity extends AppCompatActivity {
-    // TODO: 11/17/17 JD refactor crisis model
+
+    private static final String TAG = "DispatchActivity";
 
     private ListView listOfTeams;
     private FirebaseListAdapter<MCT> adapter;
-    private static Context context;
-    private DatabaseReference db;
-    private static final String TAG = "DispatchActivity";
+    private Context context;
     private String selectedTeam;
     private Crisis inputCrisisObject;
+    private CrisisManager mCrisisManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +39,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dispatch_team);
 
         context = getApplicationContext();
-        db = FirebaseDatabase.getInstance().getReference();
+        mCrisisManager = new CrisisManager();
 
         //Create App Bar - Enable Back Notification
         // toolbar_messenger is defined in the activity messenger layout file
@@ -55,17 +53,16 @@ public class DispatchTeamActivity extends AppCompatActivity {
         //and update travel time node on MCT object to reflect
         //those values
         Intent intent = getIntent();
-        inputCrisisObject = intent.getParcelableExtra("crisis");
+        CrisisParcel incomingCrisisParcel = intent.getParcelableExtra("crisis");
+        inputCrisisObject = incomingCrisisParcel.getCrisis();
 
         createTeamList();
     }
 
-    //TO-DO Create a Firebase Query to sort teams by travel time and add those to list adapter
     private void createTeamList() {
 
         listOfTeams = (ListView)findViewById(R.id.mct_dispatch_list);
 
-        //Query orderByTravelTime = db.child("teams").orderByChild(<Node with travel time>);
         adapter = new FirebaseListAdapter<MCT>(this, MCT.class,
                 R.layout.message_list_item, FirebaseDatabase.getInstance().getReference().child("teams")) {
             @Override
@@ -114,13 +111,8 @@ public class DispatchTeamActivity extends AppCompatActivity {
     }
 
     private void triggerNotification(Crisis inputCrisis, String selectedTeam){
-        Map<String, Object> crisisInfo = new HashMap<>();
-
-        String crisisUid = inputCrisis.getCrisisID();
-
         inputCrisis.setTeamName(selectedTeam);
-
-        db.child("crisis/").child(crisisUid).updateChildren(inputCrisis.toMap());
-    } // set this information programmatically
+        mCrisisManager.addCrisisToDatabase(inputCrisis);
+    }
 
 }

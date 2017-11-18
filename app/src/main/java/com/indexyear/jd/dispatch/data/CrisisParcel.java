@@ -9,6 +9,10 @@ public class CrisisParcel implements Parcelable {
 
     private Crisis mCrisis;
 
+    public CrisisParcel(Crisis input){
+        mCrisis = input;
+    }
+
     CrisisParcel(Parcel input) {
         String crisisID = input.readString();
         String crisisAddress = input.readString();

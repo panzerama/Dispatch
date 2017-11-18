@@ -71,6 +71,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.CrisisManager;
+import com.indexyear.jd.dispatch.data.CrisisParcel;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
@@ -200,8 +201,8 @@ public class MainActivity extends AppCompatActivity
 
         if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
             // do a thing to the map
-            Crisis acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
-            GetLatLng(acceptedCrisisEvent.getCrisisAddress());
+            CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+            GetLatLng(acceptedCrisisEvent.getCrisis().getCrisisAddress());
         } else {
             // set it up as you would normally, with the current location of the team
             // being set as map marker
@@ -381,11 +382,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 crisisAddress = input.getText().toString();
-                /*Crisis inputCrisis = new Crisis(crisisAddress);
+                Crisis inputCrisis = Crisis.createFromAddress(crisisAddress);
 
                 Intent i = new Intent(context, DispatchTeamActivity.class);
-                i.putExtra("crisis", inputCrisis);
-                startActivity(i);*/
+                i.putExtra("crisis", new CrisisParcel(inputCrisis));
+                startActivity(i);
             }
         });
 

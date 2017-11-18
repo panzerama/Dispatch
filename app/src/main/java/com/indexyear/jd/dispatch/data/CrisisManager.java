@@ -8,6 +8,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
@@ -20,11 +21,12 @@ public class CrisisManager { // TODO: 11/17/17 JD classes should be named after 
     private ValueEventListener mCrisisValueChangeListener;
 
     public CrisisManager(){
-
+        mListeners = new ArrayList<>();
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mDatabase.child("crisis").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (mListeners.isEmpty()) { return; }
                 for (ICrisisEventListener mListener: mListeners) {
                     mListener.onCrisisCreated(new CrisisFirebaseMapper().fromDataSnapshot(dataSnapshot));
                 }
@@ -32,6 +34,7 @@ public class CrisisManager { // TODO: 11/17/17 JD classes should be named after 
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                if (mListeners.isEmpty()) { return; }
                 for (ICrisisEventListener mListener: mListeners) {
                     mListener.onCrisisUpdated(new CrisisFirebaseMapper().fromDataSnapshot(dataSnapshot));
                 }
@@ -39,6 +42,7 @@ public class CrisisManager { // TODO: 11/17/17 JD classes should be named after 
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
+                if (mListeners.isEmpty()) { return; }
                 for (ICrisisEventListener mListener: mListeners) {
                     mListener.onCrisisRemoved(new CrisisFirebaseMapper().fromDataSnapshot(dataSnapshot));
                 }
@@ -65,6 +69,11 @@ public class CrisisManager { // TODO: 11/17/17 JD classes should be named after 
 
         return newCrisis;
 
+    }
+
+    public void addCrisisToDatabase(Crisis inputCrisis){
+        DatabaseReference newCrisisNode = mDatabase.child("crisis").child(inputCrisis.getCrisisID());
+        newCrisisNode.updateChildren(inputCrisis.toMap());
     }
 
     //GetAddress of crisis based on ID

@@ -1,8 +1,5 @@
 package com.indexyear.jd.dispatch.models;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,7 +24,7 @@ public class Crisis {
     private List<Employee> responseTeamMembers;
     */
 
-    static Crisis createFromAddress(String address) {
+    public static Crisis createFromAddress(String address) {
         return new Crisis(address);
     }
 
@@ -42,6 +39,7 @@ public class Crisis {
         this.crisisAddress = crisisAddress;
         this.crisisID = UUID.randomUUID().toString();
         this.status = "open";
+        this.teamName = "unset";
     }
 
     /*
