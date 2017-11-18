@@ -6,6 +6,8 @@ import android.content.Intent;
 
 public class CrisisUpdateReceiver extends BroadcastReceiver {
 
+    // TODO: 11/17/17 JD can i remove this?
+
     final String TAG = "CrisisUpdateReceiver";
 
     @Override

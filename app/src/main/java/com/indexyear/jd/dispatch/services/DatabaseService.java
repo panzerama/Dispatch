@@ -14,6 +14,8 @@ import com.indexyear.jd.dispatch.models.Database;
 
 public class DatabaseService extends Service {
 
+    // TODO: 11/17/17 JD can i remove this
+
     private final String TEAM_ORANGE= "team-orange-20666/";
 
     private Database crisisDatabase;

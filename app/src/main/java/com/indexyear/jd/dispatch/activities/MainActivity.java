@@ -70,7 +70,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.ManageCrisis;
+import com.indexyear.jd.dispatch.data.CrisisManager;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
@@ -97,6 +97,8 @@ public class MainActivity extends AppCompatActivity
         //ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
+
+    // TODO: 11/17/17 JD Crisis object needs refactoring
 
     private static final String TAG = "MainActivity";
     private String[] menuItems;
@@ -303,11 +305,10 @@ public class MainActivity extends AppCompatActivity
     public void DispatchAlertDialog() {
         //For Testing added by Luke
         Log.d(TAG, "In DispatchAlertDialog");
-        ManageCrisis newCrisis = new ManageCrisis();
-        crisisID = "testCrisis";
+        CrisisManager newCrisis = new CrisisManager();
         crisisAddress = "8507 18TH AVE NW, Seattle, WA 98117";
         //This adds a crisis to the JSON Database
-        newCrisis.CreateNewCrisis(crisisID, crisisAddress);
+        newCrisis.createNewCrisis(crisisAddress);
 
         AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
         alertDialog.setTitle("Crisis Alert");
@@ -370,9 +371,11 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 crisisAddress = input.getText().toString();
+                /*Crisis inputCrisis = new Crisis(crisisAddress);
+
                 Intent i = new Intent(context, DispatchTeamActivity.class);
-                i.putExtra("crisisAddress", crisisAddress);
-                startActivity(i);
+                i.putExtra("crisis", inputCrisis);
+                startActivity(i);*/
             }
         });
 

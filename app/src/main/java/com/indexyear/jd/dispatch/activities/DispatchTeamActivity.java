@@ -18,12 +18,14 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.MCT;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class DispatchTeamActivity extends AppCompatActivity {
+    // TODO: 11/17/17 JD refactor crisis model
 
     private ListView listOfTeams;
     private FirebaseListAdapter<MCT> adapter;
@@ -31,6 +33,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
     private DatabaseReference db;
     private static final String TAG = "DispatchActivity";
     private String selectedTeam;
+    private Crisis inputCrisisObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +55,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
         //and update travel time node on MCT object to reflect
         //those values
         Intent intent = getIntent();
-        String address = intent.getExtras().getString("crisisAddress");
-
+        inputCrisisObject = intent.getParcelableExtra("crisis");
 
         createTeamList();
     }
@@ -82,7 +84,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
 
                 selectedTeam = team.getTeamID();
                 createConfirmDispatchDialog();
-                triggerNotification();
+                triggerNotification(inputCrisisObject, selectedTeam);
             }
         });
     }
@@ -111,13 +113,14 @@ public class DispatchTeamActivity extends AppCompatActivity {
         builder.show();
     }
 
-    private void triggerNotification(){
+    private void triggerNotification(Crisis inputCrisis, String selectedTeam){
         Map<String, Object> crisisInfo = new HashMap<>();
-        crisisInfo.put("crisisID", "000001");
-        crisisInfo.put("crisisAddress", "1210 N 152nd St 98133");
-        crisisInfo.put("team", "MCT1");
 
-        db.child("crisis/").child("000001").updateChildren(crisisInfo);
+        String crisisUid = inputCrisis.getCrisisID();
+
+        inputCrisis.setTeamName(selectedTeam);
+
+        db.child("crisis/").child(crisisUid).updateChildren(inputCrisis.toMap());
     } // set this information programmatically
 
 }

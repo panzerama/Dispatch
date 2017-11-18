@@ -23,7 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 public class CrisisIntentService extends IntentService {
     static final String TAG = "CrisisIntentService";
 
-    // TODO: 11/9/17 JD abstract constants into class?
+    // TODO: 11/9/17 JD refactor the crisis model
     // Core function - connect to database and monitor
     private static final String ACTION_DATABASE_CONNECT = "com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT";
     // will the intent ever be required to update the crisis table? Why not?

@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DescMessagingService extends com.google.firebase.messaging.FirebaseMessagingService {
-
+    // TODO: 11/17/17 JD refactor crisis objects
     private static final String TAG = "DescMessagingService";
 
     @Override
@@ -85,9 +85,9 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.putExtra("source", "crisis message");
 
-        Crisis receivedCrisis = new Crisis(messageDataSet.get("crisis_timestamp"), messageDataSet.get("crisis_address"));
+        Crisis receivedCrisis = new Crisis(messageDataSet.get("crisis_address"));
 
-        Log.d(TAG, "message data: " + messageDataSet.get("crisis_timestamp") +  messageDataSet.get("crisis_address"));
+        Log.d(TAG, "message data: " + messageDataSet.get("crisis_address"));
         intent.putExtra("crisis", receivedCrisis);
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

@@ -17,7 +17,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.ManageMCT;
 import com.indexyear.jd.dispatch.data.ManageUsers;
 import com.indexyear.jd.dispatch.models.Employee;
 
@@ -41,7 +43,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private FirebaseDatabase mDBInstance;
     private DatabaseReference mDB;
     private ManageUsers mUser;
-    private Employee mEmployee;
+    private ManageMCT mMCT;
 
     Spinner role_spinner;
     Spinner team_spinner;
@@ -66,6 +68,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         mAuth = FirebaseAuth.getInstance();
         mUser = new ManageUsers();
+        mMCT = new ManageMCT();
         mDB = FirebaseDatabase.getInstance().getReference("");
     }
 
@@ -137,9 +140,11 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     //update the employee status with relevant values
     private void updateEmployeeAsMCT(String role, String team, MainActivity.UserStatus status) {
         String uid = mAuth.getCurrentUser().getUid();
-        mUser.setUserRole(uid, role);
+        mUser.setUserRole(uid, "MCT");
         mUser.setUserTeam(uid, team);
         mUser.setUserStatus(uid, status);
+        String token = FirebaseInstanceId.getInstance().getToken();
+        mMCT.addEmployeeAndToken(team, uid, token);
     }
 
     private void updateEmployeeAsMCT() {
