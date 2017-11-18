@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -18,7 +17,6 @@ import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -70,13 +68,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.CrisisManager;
 import com.indexyear.jd.dispatch.data.CrisisParcel;
 import com.indexyear.jd.dispatch.data.ManageUsers;
-import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.Employee;
-import com.indexyear.jd.dispatch.services.CrisisIntentService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,8 +93,6 @@ public class MainActivity extends AppCompatActivity
         //ActivityCompat.OnRequestPermissionsResultCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
-
-    // TODO: 11/17/17 JD Crisis object needs refactoring
 
     private static final String TAG = "MainActivity";
     private String[] menuItems;
@@ -143,10 +136,6 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_LOCATION = "location";
     private static Context context;
 
-    CrisisUpdateReceiver mCrisisReceiver = new CrisisUpdateReceiver();
-
-    IntentFilter mCrisisBroadcastIntent =
-            new IntentFilter("com.indexyear.jd.dispatch.services.MainActivity");
     private int MY_LOCATION_REQUEST_CODE;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -215,12 +204,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        // Start CrisisIntentService and register BroadcastReceiver
-        listenForCrisis();
-        setBroadcastReceiver();
-
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
         // TODO: 11/11/17 JD should be removed?
         Intent intent = getIntent();
         Employee employeeFromIntent = intent.getParcelableExtra("employee");
@@ -289,54 +272,6 @@ public class MainActivity extends AppCompatActivity
                 super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }*/
-
-
-    public void listenForCrisis() {
-        Log.d(TAG, " listenForCrisis");
-        // send intent to service
-
-        Intent crisisService = new Intent(this, CrisisIntentService.class);
-
-        String databaseUri = "";
-        String nodePath = "crisis";
-
-        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_URI", databaseUri);
-        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_NODE", nodePath);
-        crisisService.setAction("com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT");
-
-        startService(crisisService);
-    }
-
-    public void setBroadcastReceiver() {
-        Log.d(TAG, " setBroadcastReceiver");
-
-
-    }
-
-    public void DispatchAlertDialog() {
-        //For Testing added by Luke
-        Log.d(TAG, "In DispatchAlertDialog");
-        CrisisManager newCrisis = new CrisisManager();
-        crisisAddress = "8507 18TH AVE NW, Seattle, WA 98117";
-        //This adds a crisis to the JSON Database
-        newCrisis.createNewCrisis(crisisAddress);
-
-        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-        alertDialog.setTitle("Crisis Alert");
-        alertDialog.setMessage("Go to this address? \n " + crisisAddress);
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        //put your call to the Map activity here maybe?
-                        // need the LatLang to give it
-                        GetLatLng(crisisAddress);
-
-                        dialog.dismiss();
-                    }
-                });
-        alertDialog.show();
-
-    }
 
 //    public void setCurrentLocation() {
 //        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&

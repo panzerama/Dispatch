@@ -109,11 +109,6 @@
             </intent-filter>
         </receiver>
 
-        <service
-            android:name=".services.DatabaseService"
-            android:enabled="true"
-            android:exported="true" />
-
         <activity
             android:name=".activities.CrisisReceived"
             android:label="@string/title_activity_crisis_received"
