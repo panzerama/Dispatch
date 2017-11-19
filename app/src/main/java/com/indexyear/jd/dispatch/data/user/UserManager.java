@@ -20,10 +20,13 @@ public class UserManager {
 
     private DatabaseReference mDatabase;
     private User mUser;
+    private List<User> mUserList;
     private List<IUserEventListener> mListeners;
 
     public UserManager(){
         mListeners = new ArrayList<>();
+        mUserList = new ArrayList<>();
+
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mDatabase.child("users").addChildEventListener(new ChildEventListener() {
             @Override
@@ -60,6 +63,23 @@ public class UserManager {
 
             }
         });
+
+        mDatabase.child("users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<User> currentUsers = new ArrayList<>();
+                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    User u = new UserFirebaseMapper().fromDataSnapshot(snap);
+                    currentUsers.add(u);
+                }
+                updateCurrentUsersList(currentUsers);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     public void addNewListener(IUserEventListener newListener){
@@ -72,17 +92,17 @@ public class UserManager {
 
     public void AddTeamNameNode(String teamName, String teamID){
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").child(teamID).setValue(teamName);
+        dbRef.child("users").child(teamID).setValue(teamName);
     }
 
     public void setUserRole(String userID, String role){
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").child(userID).child("currentRole").setValue(role);
+        dbRef.child("users").child(userID).child("currentRole").setValue(role);
     }
 
     public void setUserTeam(String userID, String team){
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").child(userID).child("currentTeam").setValue(team);
+        dbRef.child("users").child(userID).child("currentTeam").setValue(team);
     }
 
     public static Team getTeam(final String teamName){
@@ -115,18 +135,27 @@ public class UserManager {
          this.mUser = user;
     }
 
-    public User getUser(){
-        return this.mUser;
+    public User getUser(String targetUserID){
+        for (User u : mUserList){
+            if (u.getUserID().equals(targetUserID)) {
+                return u;
+            }
+        }
+        return null;
     }
 
     public void setUserStatus(String userID, String status){
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").child(userID).child("currentStatus").setValue(status);
+        dbRef.child("users").child(userID).child("currentStatus").setValue(status);
     }
 
     public void setUserNotificationToken(String userID, String token) {
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("employees").child(userID).child("notificationToken").setValue(token);
+        dbRef.child("users").child(userID).child("notificationToken").setValue(token);
+    }
+
+    private void updateCurrentUsersList(List<User> currentUsers) {
+        mUserList = currentUsers;
     }
 
 }

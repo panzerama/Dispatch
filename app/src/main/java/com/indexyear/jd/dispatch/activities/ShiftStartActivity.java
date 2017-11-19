@@ -85,9 +85,10 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         if (role.equals("MCT")) {
             team = team_spinner.getSelectedItem().toString();
             status = status_spinner.getSelectedItem().toString();
+            Log.d(TAG, " onClick team = " + team + " status = " + status);
             updateEmployeeAsMCT(role, team, status);
         } else if (role.equals("Dispatcher")) {
-            updateEmployeeAsDispatch(role);
+            updateEmployeeAsDispatcher(role);
         }
 
         //putting the User(userID, role) as an extra to send with the intent.
@@ -117,9 +118,18 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     //
     private void updateEmployeeAsMCT(String role, String team, String status) {
         String uid = mAuth.getCurrentUser().getUid();
+        Log.d(TAG, " updateEmployeeAsMCT uid = " + uid);
+        Log.d(TAG, " updateEmployeeAsMCT role = " + role);
+        Log.d(TAG, " updateEmployeeAsMCT team = " + team);
+        Log.d(TAG, " updateEmployeeAsMCT status = " + status);
         mUserManager.setUserRole(uid, role);
+        mUser.setCurrentRole(role);
+
         mUserManager.setUserTeam(uid, team);
+        mUser.setCurrentTeam(team);
+
         mUserManager.setUserStatus(uid, status);
+        mUser.setCurrentStatus(status);
 
         // this is where the token work needs doing
         String token = FirebaseInstanceId.getInstance().getToken();
@@ -129,11 +139,12 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mTeamManager.addEmployeeAndToken(team, uid, token);
     }
 
-    private void updateEmployeeAsDispatch(String role) {
-        Log.d(TAG, "updateEmployeeAsDispatch");
+    private void updateEmployeeAsDispatcher(String role) {
+        Log.d(TAG, "updateEmployeeAsDispatcher");
         String uid = mAuth.getCurrentUser().getUid();
 
         mUserManager.setUserRole(uid, role);
+        mUser.setCurrentRole("Dispatcher");
     }
 
     private void createTeamSpinner() {
@@ -159,7 +170,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mUserEventListener = new IUserEventListener() {
             @Override
             public void onUserCreated(User newUser) {
-                if (mUser == null) { mUser = newUser; }
+                if (mUser == null) { mUser = newUser; Log.d(TAG, " onusercreated fired");}
             }
 
             @Override

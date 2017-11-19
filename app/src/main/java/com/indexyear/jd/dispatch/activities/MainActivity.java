@@ -68,6 +68,7 @@ import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
+import com.indexyear.jd.dispatch.data.user.UserParcel;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
 
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity
     private Spinner statusSpinner;
     final FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref;
+    private FloatingActionButton fab;
 
 
     // JDP - User info
@@ -162,7 +164,14 @@ public class MainActivity extends AppCompatActivity
         userID = mAuth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
+        UserParcel uParcel = getIntent().getParcelableExtra("user");
+        mUser = uParcel.getUser();
+
+        Log.d(TAG, " onCreate mUser userID " + mUser.getUserID());
+        Log.d(TAG, " onCreate mAuth userID " + mAuth.getCurrentUser().getUid());
+
         setUserManagerAndListener();
+        updateWithUserSettings();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -206,29 +215,6 @@ public class MainActivity extends AppCompatActivity
                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
             }
         }
-
-        // TODO: 11/11/17 JD should be removed?
-        Intent intent = getIntent();
-        User userFromIntent = intent.getParcelableExtra("employee");
-        String role = userFromIntent.getCurrentRole();
-
-        // If the current user is dispatch, then this should be create address dialog.
-        if ("Dispatcher".equalsIgnoreCase(role))
-            {
-                    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    CreateAddressDialog();
-                }
-            });
-        }
-        // If the current user is Team, this should offer a message dialog
-        else {
-            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a Team user.", Toast.LENGTH_LONG);
-            MCTtoast.show();
-        }
-
 
     }
 
@@ -615,11 +601,15 @@ public class MainActivity extends AppCompatActivity
     private void setUserManagerAndListener(){
         mUserManager = new UserManager();
 
-        mUserEventListener = new IUserEventListener() {
+        /*mUserEventListener = new IUserEventListener() {
             @Override
             public void onUserCreated(User newUser) {
-                if (newUser.getUserID().equals(mUser.getUserID())){
-                    mUser.updateUser(newUser);
+                String mAuthID = mAuth.getCurrentUser().getUid();
+                String newUserString = newUser.getUserID();
+                if ((mUser != null) && (newUser != null) && (newUserString.equals(mAuthID))){
+                    mUser = newUser;
+                    Log.d(TAG, " onusercreated, mUser assigned, mUser uid " + mUser.getUserID());
+                    updateWithUserSettings();
                 }
             }
 
@@ -630,12 +620,46 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onUserUpdated(User updatedUser) {
-                if (updatedUser.getUserID().equals(mUser.getUserID())){
-                    mUser.updateUser(updatedUser);
+                if (updatedUser.getUserID().equals(mAuth.getCurrentUser().getUid())) {
+                    Log.d(TAG, " onuserupdated fired");
+                    if ((mUser != null) && (updatedUser.getUserID().equals(mAuth.getCurrentUser().getUid()))){
+                        mUser.updateUser(updatedUser);
+                        updateWithUserSettings();
+                    }
                 }
             }
         };
 
-        mUserManager.addNewListener(mUserEventListener);
+        mUserManager.addNewListener(mUserEventListener);*/
+    }
+
+    /**
+     * Setting the FAB use on user update guarantees that we have a user in hand before attempting.
+     */
+        private void updateWithUserSettings() {
+        String currentUserRole = "MCT";
+        if (mUser != null){
+            Log.d(TAG, "Update user with settings " + mUser.getCurrentRole());
+            currentUserRole = mUser.getCurrentRole();
+        } else {
+            Log.d(TAG, "Update user with settings mUser null.");
+        }
+
+        // If the current user is dispatch, then this should be create address dialog.
+        if ("Dispatcher".equalsIgnoreCase(currentUserRole))
+        {
+            fab = (FloatingActionButton) findViewById(R.id.fab);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    CreateAddressDialog();
+                }
+            });
+        }
+        // If the current user is Team, this should offer a message dialog
+        else {
+            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a Team user.", Toast.LENGTH_LONG);
+            MCTtoast.show();
+        }
     }
 }

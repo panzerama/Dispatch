@@ -54,4 +54,8 @@ public class UserParcel implements Parcelable {
             return new UserParcel[size];
         }
     };
+
+    public User getUser() {
+        return mUser;
+    }
 }
