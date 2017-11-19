@@ -14,13 +14,12 @@ class UserFirebaseMapper {
         String longitude = (snapshot.child("longitude").getValue() != null) ? snapshot.child("longitude").getValue().toString() : "72.3588805";
 
         return new User(
-                snapshot.child("firstName").getValue(String.class),
-                snapshot.child("lastName").getValue(String.class),
-                snapshot.child("phone").getValue(String.class),
                 snapshot.child("currentTeam").getValue(String.class),
                 snapshot.child("userID").getValue(String.class),
                 snapshot.child("currentRole").getValue(String.class),
                 snapshot.child("currentStatus").getValue(String.class),
+                snapshot.child("email").getValue(String.class),
+                snapshot.child("token").getValue(String.class),
                 Float.parseFloat(latitude),
                 Float.parseFloat(longitude)
         );

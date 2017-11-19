@@ -85,7 +85,7 @@ public class LoginActivity
                     // Default view.
                     // Pull the buttons, click listeners, and other setup in here.
                 }
-                // ...
+                // TODO: 11/18/17 JD what's the purpose behind the listenere beyond logging?
             }
         };
         mAuth.addAuthStateListener(mAuthListener);
@@ -198,7 +198,7 @@ public class LoginActivity
         mUserEventListener = new IUserEventListener() {
             @Override
             public void onUserCreated(User newUser) {
-                mUser = newUser;
+                if (mUser == null) { mUser = newUser; }
             }
 
             @Override
@@ -208,7 +208,10 @@ public class LoginActivity
 
             @Override
             public void onUserUpdated(User updatedUser) {
-                mUser = updatedUser;
+                if (mUser == null) { mUser = updatedUser; }
+                else if (updatedUser.getUserID().equals(mUser.getUserID())){
+                    mUser.updateUser(updatedUser);
+                }
             }
         };
         mUserManager.addNewListener(mUserEventListener);

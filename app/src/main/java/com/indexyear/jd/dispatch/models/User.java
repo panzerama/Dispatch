@@ -27,6 +27,15 @@ public class User {
         this.longitude = longitude;
     }
 
+    private User(String userID, String email){
+        this("none", userID, "none", "none", email, "none", (float) -7.3430524, (float) 72.3588805);
+    }
+
+    // required for use with DataSnapshot getValue
+    private User(){
+
+    }
+
     public String getEmail() {
         return email;
     }
@@ -43,9 +52,6 @@ public class User {
         this.token = token;
     }
 
-    private User(String userID, String email){
-        this("none", userID, "none", "none", email, "none", (float) -7.3430524, (float) 72.3588805);
-    }
 
     public User(String email){}
 

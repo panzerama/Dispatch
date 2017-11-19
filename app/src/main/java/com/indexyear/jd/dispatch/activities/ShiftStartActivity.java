@@ -12,15 +12,12 @@ import android.widget.Spinner;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.team.TeamManager;
+import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.data.user.UserParcel;
 import com.indexyear.jd.dispatch.models.Team;
@@ -36,13 +33,13 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private static final String TAG = "ShiftStartActivity: ";
 
     private FirebaseAuth mAuth;
-    private FirebaseAnalytics mAnalyticsInstance;
-    private FirebaseDatabase mDBInstance;
+    private FirebaseAnalytics mAnalyticsInstance; // TODO: 11/18/17 JD implement long-term logging
     private DatabaseReference mDB;
 
     private UserManager mUserManager;
     private User mUser;
-    public User foundUser;
+    public User foundUser; // TODO: 11/18/17 JD find where this is used
+    public Team mTeam;
     private TeamManager mTeamManager;
     private IUserEventListener mUserEventListener;
     private UserParcel mUserParcel;
@@ -62,14 +59,10 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         role_spinner = (Spinner) findViewById(R.id.role_spinner);
         role_spinner.setOnItemSelectedListener(this);
-        // jdp not sure how to set default values, may need to define arrayadapter programmatically
-        // instead of in string values resource
-
         team_spinner = (Spinner) findViewById(R.id.team_spinner);
         status_spinner = (Spinner) findViewById(R.id.status_spinner);
 
         mAuth = FirebaseAuth.getInstance();
-        mUserManager = new UserManager();
         mTeamManager = new TeamManager();
         mDB = FirebaseDatabase.getInstance().getReference("");
 
@@ -84,35 +77,28 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         Log.d(TAG, " onclick");
 
         final Intent ShiftStartHandoff = new Intent(this, MainActivity.class);
+        String team = "none";
+        String status = "none";
 
-        if (i == R.id.shift_start_button) { //do I need a test if there's only one button?
-            //update employee status
-            String role = role_spinner.getSelectedItem().toString();
+        String role = role_spinner.getSelectedItem().toString();
 
-            // null condition check needed, if case is dispatch
-
-            String team = team_spinner.getSelectedItem().toString();
-            String status = status_spinner.getSelectedItem().toString();
-
-            if (role.equals("Team")) { //&& !team.isEmpty() && !status.isEmpty()
-                updateEmployeeAsMCT(role, team, status);
-            } else if (role.equals("Dispatcher")) {
-                updateEmployeeAsDispatch(role);
-            } else {
-                //do something to raise error
-            }
-
-            //putting the User(userID, role) as an extra to send with the intent.
-            mUserParcel = new UserParcel(mUser);
-            ShiftStartHandoff.putExtra("user", mUserParcel);
-            startActivity(ShiftStartHandoff);
+        if (role.equals("MCT")) {
+            team = team_spinner.getSelectedItem().toString();
+            status = status_spinner.getSelectedItem().toString();
+            updateEmployeeAsMCT(role, team, status);
+        } else if (role.equals("Dispatcher")) {
+            updateEmployeeAsDispatch(role);
         }
 
+        //putting the User(userID, role) as an extra to send with the intent.
+        mUserParcel = new UserParcel(mUser);
+        ShiftStartHandoff.putExtra("user", mUserParcel);
+        startActivity(ShiftStartHandoff);
     }
 
     // JDP The spinner for team and status must depend on role. My attempt doesn't function properly
     public void onItemSelected(AdapterView adapterView, View view, int pos, long id) {
-        if (role_spinner.getSelectedItem().toString().equals("Team")) {
+        if (role_spinner.getSelectedItem().toString().equals("MCT")) {
             // make other spinners visible
             createTeamSpinner();
             createStatusSpinner();
@@ -141,32 +127,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         //
         mTeamManager.addEmployeeAndToken(team, uid, token);
-
-        mUser = new User(uid, role);
     }
-
-/*    previous version - JDP
-    private void updateEmployeeAsMCT() {
-
-        String uid = mAuth.getCurrentUser().getUid();
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference().child("employees").child(uid);
-        dbRef.child("currentRole").setValue(MCTMEMBER);
-        dbRef.child("currentStatus").setValue(getSpinnerValueAsEnum(status_spinner.getSelectedItem().toString()));
-        dbRef.child("currentTeam").setValue(team_spinner.getSelectedItem().toString());
-        GetEmployeeObject(uid);
-        final String[] teamName = {team_spinner.getSelectedItem().toString()};
-        boolean success = addUserToTeam(teamName);
-
-        if(!success){
-            Toast toast = Toast.makeText(this, "Error occurred.", Toast.LENGTH_SHORT);
-            toast.show();
-        }
-
-        //this is creating the employee object that the intent is going to pass around, hopefully.
-        //role is here because this was not accessing the database for me in testing, --Luke
-        String role = "Team";
-        mUser = new User(uid, role);
-    }*/
 
     private void updateEmployeeAsDispatch(String role) {
         Log.d(TAG, "updateEmployeeAsDispatch");
@@ -176,25 +137,13 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     }
 
     private void createTeamSpinner() {
-        mDB.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                final List<String> teams = new ArrayList<String>();
-
-                for (DataSnapshot teamSnapShot : dataSnapshot.getChildren()) {
-                    String teamName = teamSnapShot.child("teamName").getValue(String.class);
-                    teams.add(teamName);
-                }
-                ArrayAdapter<String> teamsAdapter = new ArrayAdapter<String>(ShiftStartActivity.this, android.R.layout.simple_spinner_item, teams);
-                teamsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                team_spinner.setAdapter(teamsAdapter);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        List<String> teams = new ArrayList<>();
+        for (Team t : mTeamManager.getCurrentTeamsList()) {
+            teams.add(t.getTeamName());
+        }
+        ArrayAdapter<String> teamsAdapter = new ArrayAdapter<String>(ShiftStartActivity.this, android.R.layout.simple_spinner_item, teams);
+        teamsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        team_spinner.setAdapter(teamsAdapter);
     }
 
     private void createStatusSpinner() {
@@ -205,67 +154,12 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         status_spinner.setSelection(0);
     }
 
-    public boolean addUserToTeam(final String[] teamName){
-        final boolean[] operationSuccessful = {false};
-        try {
-            final DatabaseReference dbRef = mDB.child("teams").getRef();
-            dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
-                        if(teamSnapshot.getKey().toString().equals((teamName[0].replaceAll("\\s+","")))){
-                            final Team team = teamSnapshot.getValue(Team.class);
-                            List<User> teamMembers;
-                            if(team.teamMembers != null){
-                                teamMembers = team.teamMembers;
-                            } else {
-                                teamMembers = new ArrayList<User>();
-                            }
-                            if(foundUser != null){
-                                teamMembers.add(foundUser);
-                                dbRef.child((teamName[0].replaceAll("\\s+",""))).child("teamMembers").setValue(teamMembers);
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        } catch (Exception e) {
-            operationSuccessful[0] = false;
-            Log.d(TAG, e.toString());
-        }
-
-        return operationSuccessful[0];
-
-    }
-
-    public void GetEmployeeObject(String uid){
-        FirebaseDatabase.getInstance().getReference("employees").child(uid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                foundUser = dataSnapshot.getValue(User.class);
-                Log.d(TAG, foundUser.currentTeam);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }
-
     private void setUserListener(){
+        mUserManager = new UserManager();
         mUserEventListener = new IUserEventListener() {
             @Override
             public void onUserCreated(User newUser) {
                 if (mUser == null) { mUser = newUser; }
-                else if (newUser.getUserID().equals(mUser.getUserID())){
-                    mUser.updateUser(newUser);
-                }
             }
 
             @Override
