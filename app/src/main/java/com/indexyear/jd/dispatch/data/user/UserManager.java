@@ -1,4 +1,4 @@
-package com.indexyear.jd.dispatch.data;
+package com.indexyear.jd.dispatch.data.user;
 
 import android.util.Log;
 
@@ -8,7 +8,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.models.Team;
 import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class UserManager {
     }
 
     public void AddNewTeam(String teamName, String teamDisplayName, List<User> teamMembers){
-        MCT team = new MCT();
+        Team team = new Team();
         team.teamName = teamDisplayName;
 
         mDatabase.child("teams").child(teamName).setValue(team);
@@ -92,8 +92,8 @@ public class UserManager {
         dbRef.child("employees").child(userID).child("currentTeam").setValue(team);
     }
 
-    public static MCT getTeam(final String teamName){
-        final MCT[] team = {null};
+    public static Team getTeam(final String teamName){
+        final Team[] team = {null};
         try {
             final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
             dbRef.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -102,7 +102,7 @@ public class UserManager {
                     for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
                         if(teamSnapshot.getKey().toString().equals((teamName.replaceAll("\\s+","")))){
                             DatabaseReference ref = teamSnapshot.getRef().child("teamMembers");
-                            final MCT team = dataSnapshot.getValue(MCT.class);
+                            final Team team = dataSnapshot.getValue(Team.class);
                         }
                     }
                 }

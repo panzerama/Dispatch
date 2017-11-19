@@ -20,7 +20,7 @@ public class Crisis {
     private ReferralReason referralReason;
     private String callBackNumber;
     private String dispatchComments;
-    private MCT responseTeam;
+    private Team responseTeam;
     private List<User> responseTeamMembers;
     */
 
@@ -154,11 +154,11 @@ public class Crisis {
         this.dispatchComments = dispatchComments;
     }
 
-    public MCT getResponseTeam() {
+    public Team getResponseTeam() {
         return responseTeam;
     }
 
-    public void setResponseTeam(MCT responseTeam) {
+    public void setResponseTeam(Team responseTeam) {
         this.responseTeam = responseTeam;
     }
 

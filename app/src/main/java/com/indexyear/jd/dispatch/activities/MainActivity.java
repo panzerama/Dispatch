@@ -65,9 +65,9 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.CrisisParcel;
-import com.indexyear.jd.dispatch.data.IUserEventListener;
-import com.indexyear.jd.dispatch.data.UserManager;
+import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
+import com.indexyear.jd.dispatch.data.user.IUserEventListener;
+import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
 
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity
         userID = mAuth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        setUserListener();
+        setUserManagerAndListener();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -223,9 +223,9 @@ public class MainActivity extends AppCompatActivity
                 }
             });
         }
-        // If the current user is MCT, this should offer a message dialog
+        // If the current user is Team, this should offer a message dialog
         else {
-            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a MCT user.", Toast.LENGTH_LONG);
+            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a Team user.", Toast.LENGTH_LONG);
             MCTtoast.show();
         }
 
@@ -612,7 +612,9 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
-    private void setUserListener(){
+    private void setUserManagerAndListener(){
+        mUserManager = new UserManager();
+
         mUserEventListener = new IUserEventListener() {
             @Override
             public void onUserCreated(User newUser) {

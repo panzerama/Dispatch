@@ -70,8 +70,8 @@ public class ChatActivity extends AppCompatActivity {
 //        db.updateChildren(childUpdates);
 //    }
 //
-//    private MCT getTeam(String teamName){
-//        MCT team = ManageUsers.getTeam(teamName);
+//    private Team getTeam(String teamName){
+//        Team team = ManageUsers.getTeam(teamName);
 //        return team;
 //    }
 //

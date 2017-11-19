@@ -8,7 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.models.Team;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import java.util.List;
  * Created by karibullard on 10/29/17.
  */
 
-public class MessageListAdapter extends ArrayAdapter<MCT>{
+public class MessageListAdapter extends ArrayAdapter<Team>{
 
-    public MessageListAdapter (Context context, List<MCT> users) {
+    public MessageListAdapter (Context context, List<Team> users) {
         super(context, 0, users);
     }
 
@@ -26,7 +26,7 @@ public class MessageListAdapter extends ArrayAdapter<MCT>{
     public View getView(int position, View convertView, ViewGroup parent) {
 
         //Create View
-        MCT team = getItem(position);
+        Team team = getItem(position);
         if (convertView == null) { // Check if an existing view is being reused, otherwise inflate the view
             convertView = LayoutInflater.from(getContext()).inflate(R.layout.message_list_item, parent, false);
         }
@@ -40,7 +40,7 @@ public class MessageListAdapter extends ArrayAdapter<MCT>{
             @Override
             public void onClick(View view){
                 int position = (Integer) view.getTag();
-                MCT selectedTeam = getItem(position);
+                Team selectedTeam = getItem(position);
             }
         });
 

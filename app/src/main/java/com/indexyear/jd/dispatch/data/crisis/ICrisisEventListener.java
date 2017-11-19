@@ -1,4 +1,4 @@
-package com.indexyear.jd.dispatch.data;
+package com.indexyear.jd.dispatch.data.crisis;
 
 import com.indexyear.jd.dispatch.models.Crisis;
 

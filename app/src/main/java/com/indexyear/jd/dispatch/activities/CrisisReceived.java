@@ -12,7 +12,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.CrisisParcel;
+import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 
 public class CrisisReceived extends AppCompatActivity implements View.OnClickListener{
 

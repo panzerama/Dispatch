@@ -17,17 +17,17 @@ import android.widget.Toast;
 import com.firebase.ui.database.FirebaseListAdapter;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.CrisisManager;
-import com.indexyear.jd.dispatch.data.CrisisParcel;
+import com.indexyear.jd.dispatch.data.crisis.CrisisManager;
+import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 import com.indexyear.jd.dispatch.models.Crisis;
-import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.models.Team;
 
 public class DispatchTeamActivity extends AppCompatActivity {
 
     private static final String TAG = "DispatchActivity";
 
     private ListView listOfTeams;
-    private FirebaseListAdapter<MCT> adapter;
+    private FirebaseListAdapter<Team> adapter;
     private Context context;
     private String selectedTeam;
     private Crisis inputCrisisObject;
@@ -50,7 +50,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         //TO-DO Use this address to calculate travel times
-        //and update travel time node on MCT object to reflect
+        //and update travel time node on Team object to reflect
         //those values
         Intent intent = getIntent();
         CrisisParcel incomingCrisisParcel = intent.getParcelableExtra("crisis");
@@ -63,10 +63,10 @@ public class DispatchTeamActivity extends AppCompatActivity {
 
         listOfTeams = (ListView)findViewById(R.id.mct_dispatch_list);
 
-        adapter = new FirebaseListAdapter<MCT>(this, MCT.class,
+        adapter = new FirebaseListAdapter<Team>(this, Team.class,
                 R.layout.message_list_item, FirebaseDatabase.getInstance().getReference().child("teams")) {
             @Override
-            protected void populateView(View v, MCT model, int position) {
+            protected void populateView(View v, Team model, int position) {
                 TextView teamName = (TextView)v.findViewById(R.id.title_mct_name);
                 teamName.setText(model.getTeamName());
             }
@@ -77,7 +77,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
         listOfTeams.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MCT team = (MCT)parent.getItemAtPosition(position);
+                Team team = (Team)parent.getItemAtPosition(position);
 
                 selectedTeam = team.getTeamName();
                 createConfirmDispatchDialog();

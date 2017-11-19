@@ -1,4 +1,4 @@
-package com.indexyear.jd.dispatch.data;
+package com.indexyear.jd.dispatch.data.user;
 
 import com.indexyear.jd.dispatch.models.User;
 

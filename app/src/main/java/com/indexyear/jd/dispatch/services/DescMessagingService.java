@@ -12,9 +12,9 @@ import android.util.Log;
 import com.google.firebase.messaging.RemoteMessage;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.activities.CrisisReceived;
-import com.indexyear.jd.dispatch.data.CrisisManager;
-import com.indexyear.jd.dispatch.data.CrisisParcel;
-import com.indexyear.jd.dispatch.data.ICrisisEventListener;
+import com.indexyear.jd.dispatch.data.crisis.CrisisManager;
+import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
+import com.indexyear.jd.dispatch.data.crisis.ICrisisEventListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 
 import java.util.HashMap;

@@ -19,11 +19,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.IUserEventListener;
-import com.indexyear.jd.dispatch.data.MCTManager;
-import com.indexyear.jd.dispatch.data.UserManager;
-import com.indexyear.jd.dispatch.data.UserParcel;
-import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.data.user.IUserEventListener;
+import com.indexyear.jd.dispatch.data.team.TeamManager;
+import com.indexyear.jd.dispatch.data.user.UserManager;
+import com.indexyear.jd.dispatch.data.user.UserParcel;
+import com.indexyear.jd.dispatch.models.Team;
 import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private UserManager mUserManager;
     private User mUser;
     public User foundUser;
-    private MCTManager mMCTManager;
+    private TeamManager mTeamManager;
     private IUserEventListener mUserEventListener;
     private UserParcel mUserParcel;
 
@@ -70,7 +70,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         mAuth = FirebaseAuth.getInstance();
         mUserManager = new UserManager();
-        mMCTManager = new MCTManager();
+        mTeamManager = new TeamManager();
         mDB = FirebaseDatabase.getInstance().getReference("");
 
         setUserListener();
@@ -88,10 +88,13 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         if (i == R.id.shift_start_button) { //do I need a test if there's only one button?
             //update employee status
             String role = role_spinner.getSelectedItem().toString();
+
+            // null condition check needed, if case is dispatch
+
             String team = team_spinner.getSelectedItem().toString();
             String status = status_spinner.getSelectedItem().toString();
 
-            if (role.equals("MCT")) { //&& !team.isEmpty() && !status.isEmpty()
+            if (role.equals("Team")) { //&& !team.isEmpty() && !status.isEmpty()
                 updateEmployeeAsMCT(role, team, status);
             } else if (role.equals("Dispatcher")) {
                 updateEmployeeAsDispatch(role);
@@ -109,7 +112,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
     // JDP The spinner for team and status must depend on role. My attempt doesn't function properly
     public void onItemSelected(AdapterView adapterView, View view, int pos, long id) {
-        if (role_spinner.getSelectedItem().toString().equals("MCT")) {
+        if (role_spinner.getSelectedItem().toString().equals("Team")) {
             // make other spinners visible
             createTeamSpinner();
             createStatusSpinner();
@@ -137,7 +140,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mUserManager.setUserNotificationToken(uid, token);
 
         //
-        mMCTManager.addEmployeeAndToken(team, uid, token);
+        mTeamManager.addEmployeeAndToken(team, uid, token);
 
         mUser = new User(uid, role);
     }
@@ -161,7 +164,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
         //this is creating the employee object that the intent is going to pass around, hopefully.
         //role is here because this was not accessing the database for me in testing, --Luke
-        String role = "MCT";
+        String role = "Team";
         mUser = new User(uid, role);
     }*/
 
@@ -211,7 +214,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
                         if(teamSnapshot.getKey().toString().equals((teamName[0].replaceAll("\\s+","")))){
-                            final MCT team = teamSnapshot.getValue(MCT.class);
+                            final Team team = teamSnapshot.getValue(Team.class);
                             List<User> teamMembers;
                             if(team.teamMembers != null){
                                 teamMembers = team.teamMembers;
@@ -259,7 +262,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mUserEventListener = new IUserEventListener() {
             @Override
             public void onUserCreated(User newUser) {
-                if (newUser.getUserID().equals(mUser.getUserID())){
+                if (mUser == null) { mUser = newUser; }
+                else if (newUser.getUserID().equals(mUser.getUserID())){
                     mUser.updateUser(newUser);
                 }
             }
@@ -271,7 +275,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
             @Override
             public void onUserUpdated(User updatedUser) {
-                if (updatedUser.getUserID().equals(mUser.getUserID())){
+                if (mUser == null) { mUser = updatedUser; }
+                else if (updatedUser.getUserID().equals(mUser.getUserID())){
                     mUser.updateUser(updatedUser);
                 }
             }

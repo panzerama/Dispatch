@@ -1,4 +1,4 @@
-package com.indexyear.jd.dispatch.data;
+package com.indexyear.jd.dispatch.data.crisis;
 
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
