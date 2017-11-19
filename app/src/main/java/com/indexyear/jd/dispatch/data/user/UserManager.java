@@ -66,15 +66,8 @@ public class UserManager {
         mListeners.add(newListener);
     }
 
-    public void AddNewEmployee(User user){
+    public void addOrUpdateNewEmployee(User user){
         mDatabase.child("users").child(user.getUserID()).setValue(user);
-    }
-
-    public void AddNewTeam(String teamName, String teamDisplayName, List<User> teamMembers){
-        Team team = new Team();
-        team.teamName = teamDisplayName;
-
-        mDatabase.child("teams").child(teamName).setValue(team);
     }
 
     public void AddTeamNameNode(String teamName, String teamID){

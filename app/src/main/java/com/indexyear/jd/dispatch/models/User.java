@@ -4,21 +4,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class User {
-    
-    public String firstName; // TODO: 11/17/17 JD discard name and phone? 
-    public String lastName;
-    public String phone;
-    public String currentTeam;
-    public String userID;
-    public String currentRole;
-    public String currentStatus;
-    public float latitude; // TODO: 11/17/17 JD change to one Location object? 
-    public float longitude;
 
-    public User(String firstName, String lastName, String phone, String currentTeam, String userID, String currentRole, String currentStatus, float latitude, float longitude) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
+    private String currentTeam;
+    private String userID;
+    private String currentRole;
+    private String currentStatus;
+    private String email;
+    private String token;
+    private float latitude; // TODO: 11/17/17 JD change to one Location object?
+    private float longitude;
+
+    public static User createFromIDAndEmail(String userID, String email) {
+        return new User(userID, email);
+    }
+
+    public User(String currentTeam, String userID, String currentRole, String currentStatus, String email, String token, float latitude, float longitude) {
         this.currentTeam = currentTeam;
         this.userID = userID;
         this.currentRole = currentRole;
@@ -27,24 +27,27 @@ public class User {
         this.longitude = longitude;
     }
 
-    // TODO: 11/17/17 JD clean up the constructors
-
-    public User(String userID, String firstName, String lastName, String phone){
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
+    public String getEmail() {
+        return email;
     }
 
-    public User(String firstName, String lastName, String phone){
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.phone = phone;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public User(String userID, String role) {
-        this.userID = userID;
-        this.currentRole = role;
+    public String getToken() {
+        return token;
     }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    private User(String userID, String email){
+        this("none", userID, "none", "none", email, "none", (float) -7.3430524, (float) 72.3588805);
+    }
+
+    public User(String email){}
 
     public String getUserID() {
         return userID;
@@ -52,30 +55,6 @@ public class User {
 
     public void setUserID(String userID) {
         this.userID = userID;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
     public String getCurrentTeam() {
@@ -123,9 +102,6 @@ public class User {
      * @param otherUser
      */
     public void updateUser(User otherUser){
-        this.firstName = otherUser.firstName;
-        this.lastName = otherUser.lastName;
-        this.phone = otherUser.phone;
         this.currentTeam = otherUser.currentTeam;
         this.userID = otherUser.userID;
         this.currentRole = otherUser.currentRole;
@@ -141,9 +117,6 @@ public class User {
     public Map<String, Object> toMap() {
         Map<String, Object> employeeValues = new HashMap<>();
 
-        employeeValues.put("firstName", firstName);
-        employeeValues.put("lastName", lastName);
-        employeeValues.put("phone", phone);
         employeeValues.put("currentMCT", currentTeam);
         employeeValues.put("currentRole", currentRole);
         employeeValues.put("currentStatus", currentStatus);
