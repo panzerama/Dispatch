@@ -166,11 +166,6 @@ public class Crisis {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-
-
-
-
-
                     }
                 }, new Response.ErrorListener() {
 
@@ -184,6 +179,7 @@ public class Crisis {
         // Add the request to the RequestQueue.
         mRequestQueue.add(jsObjRequest);
 
+        //TODO: update crisis on Firebase, or is that handled elsewhere?
 
     }
 
