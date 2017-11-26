@@ -17,6 +17,10 @@ public class Team {
     public float latitude;
     public float longitude;
 
+    public Team(){
+
+    }
+
     public Team(String teamName, List<User> teamMembers, float latitude, float longitude){
         this.teamName = teamName;
         this.teamMembers = teamMembers;
