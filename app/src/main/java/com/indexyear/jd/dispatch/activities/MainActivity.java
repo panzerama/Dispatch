@@ -43,17 +43,22 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 import com.indexyear.jd.dispatch.data.user.IUserEventListener;
@@ -132,6 +137,7 @@ public class MainActivity extends AppCompatActivity
     private Location mLastLocation;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
+
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -561,21 +567,22 @@ public class MainActivity extends AppCompatActivity
 
     public void PlacePinAndPositionCamera(LatLng addressPosition) {
 
-//        MarkerOptions markerOptions = new MarkerOptions();
-//        markerOptions.position(addressPosition);
-//        mMap.addMarker(markerOptions
-//                .title("Crisis Location").icon(BitmapDescriptorFactory
-//                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-//        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
-//
-//        latLngBounds.include(addressPosition);
-//
-//        LatLngBounds bounds = latLngBounds.build();
-//
-//        int padding = 150; // offset from edges of the map in pixels
-//        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-//
-//        mMap.animateCamera(cu);
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(addressPosition);
+        mMap.addMarker(markerOptions
+                .title("Crisis Location").icon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+        builder.include(addressPosition);
+
+        LatLngBounds bounds = builder.build();
+
+        int padding = 150; // offset from edges of the map in pixels
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+        mMap.animateCamera(cu);
     }
 
     public void PositionCameraOverUserLocation(LatLng addressPosition) {
