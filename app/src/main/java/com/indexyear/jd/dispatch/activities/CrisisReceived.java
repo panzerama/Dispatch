@@ -12,13 +12,13 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.models.Crisis;
+import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 
 public class CrisisReceived extends AppCompatActivity implements View.OnClickListener{
 
     final String TAG = "CrisisReceived";
     String crisisAddress, crisisId;
-    Crisis crisisWaitingResponse;
+    CrisisParcel crisisWaitingResponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +33,10 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
         TextView crisisAddressTextView = (TextView) findViewById(R.id.crisisAddress);
         TextView crisisTimeTextView = (TextView) findViewById(R.id.crisisTimestamp);
 
-        Log.d(TAG, " received: " + crisisWaitingResponse.getCrisisID() + " " + crisisWaitingResponse.getCrisisAddress());
-        crisisAddressTextView.setText(crisisWaitingResponse.getCrisisAddress());
-        crisisTimeTextView.setText(crisisWaitingResponse.getCrisisID());
+        Log.d(TAG, " received: " + crisisWaitingResponse.getCrisis().getCrisisID() + " " + crisisWaitingResponse.getCrisis().getCrisisAddress());
+
+        crisisAddressTextView.setText(crisisWaitingResponse.getCrisis().getCrisisAddress());
+        crisisTimeTextView.setText(crisisWaitingResponse.getCrisis().getCrisisID());
 
         Button acceptCrisisButton = (Button) findViewById(R.id.acceptDispatchButton);
 
@@ -48,11 +49,6 @@ public class CrisisReceived extends AppCompatActivity implements View.OnClickLis
                         .setAction("Action", null).show();
             }
         });
-
-        //crisisAddress = getIntent().getStringExtra("crisis_address");
-        //crisisId = getIntent().getStringExtra("crisis_id");
-
-
 
         acceptCrisisButton.setOnClickListener(this);
 

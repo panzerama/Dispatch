@@ -2,7 +2,6 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -18,32 +17,37 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.models.Employee;
+import com.indexyear.jd.dispatch.data.user.IUserEventListener;
+import com.indexyear.jd.dispatch.data.user.UserManager;
+import com.indexyear.jd.dispatch.models.User;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+public class LoginActivity
+        extends AppCompatActivity
+        implements View.OnClickListener {
 
     private static final String TAG = "LoginActivity: ";
 
+    // Auth
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
+    // Events and Logging
     private FirebaseAnalytics mAnalyticsInstance;
 
+    // Can this be removed after refactoring with Teams and Users?
     private DatabaseReference mDB;
 
+    // User Management
+    private User mUser;
+    private UserManager mUserManager;
+    private IUserEventListener mUserEventListener;
+
+    // UI Elements
     private EditText mEmailField;
     private EditText mPasswordField;
-
 
 
     @Override
@@ -53,22 +57,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         // TODO: 10/31/17 JD update the ui function, modify layout to conform to material standards, welcome user already logged in
 
-        // Set up the login form.
+        // Login form
         mEmailField = (AutoCompleteTextView) findViewById(R.id.email);
-
         mPasswordField = (EditText) findViewById(R.id.password);
 
         //For Testing
         mEmailField.setText("kari@example.org");
         mPasswordField.setText("123456");
-//        mEmailField.setText("kb@email.com");
-//        mPasswordField.setText("123456");
 
         findViewById(R.id.email_sign_in_button).setOnClickListener(this);
+
+        // TODO: 11/18/17 JD implement logout procedures
         findViewById(R.id.email_sign_out_button).setOnClickListener(this);
 
         mAuth = FirebaseAuth.getInstance();
-
         mAuthListener = new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -83,11 +85,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     // Default view.
                     // Pull the buttons, click listeners, and other setup in here.
                 }
-                // ...
+                // TODO: 11/18/17 JD what's the purpose behind the listenere beyond logging?
             }
         };
-
+        mAuth.addAuthStateListener(mAuthListener);
         mAnalyticsInstance = FirebaseAnalytics.getInstance(this);
+        mUserManager = new UserManager();
+        setUserEventListener();
     }
 
     @Override
@@ -100,32 +104,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        mAuth.addAuthStateListener(mAuthListener);
-        updateUI(currentUser);
-    }
-
-    private void updateUI(FirebaseUser user){
-        //todo jd progressdialog?
-        if (user != null) {
-            //set something in the ui to reflect signed in?
-        } else {
-            //set something in the ui to reflect signed out?
-        }
-    }
-
-    private void signIn(String email, String password) {
+    private void signIn(final String email, String password) {
         Log.d(TAG, "signInOrRegister: " + email);
         if (!validateForm()) {
             return;
         }
 
         final Intent authenticationHandoff = new Intent(this, ShiftStartActivity.class);
-
-        // TODO: 11/11/17 JD implement the showprogress dialog, encapsulate the actual login process
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -134,17 +119,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         if (task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
 
-                            //todo jd Sign in success, update UI with the signed-in user's information
                             String loginSuccess = "User " + user.getUid() + " has signed in.";
                             Bundle params = new Bundle();
                             params.putString("time_stamp", "");
 
                             Log.d(TAG, "signInWithEmail:success");
+
                             Log.d(TAG, "instanceid: " + FirebaseInstanceId.getInstance().getToken());
+
                             mAnalyticsInstance.logEvent(FirebaseAnalytics.Event.LOGIN, params);
                             //get or add employee in database
-                            createEmployee();
-                            updateUI(user);
+                            createEmployee(email);
                             startActivity(authenticationHandoff);
                         } else {
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
@@ -154,19 +139,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                             Toast.makeText(LoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-
-                            updateUI(null);
                         }
-
-                        /* [START_EXCLUDE]
-                        if (!task.isSuccessful()) {
-                            mStatusTextView.setText(R.string.auth_failed);
-                        }
-                        hideProgressDialog();
-                         [END_EXCLUDE] */
                     }
                 });
-        // [END sign_in_with_email]
     }
 
     private void signOut() {
@@ -181,8 +156,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         logParams.putString("time_stamp", " ");
 
         mAnalyticsInstance.logEvent("user_logout", logParams);
-        
-        updateUI(null);
     }
 
     private boolean validateForm() {
@@ -207,17 +180,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         return valid;
     }
 
-    //todo jd is this needed still?
-    private interface ProfileQuery {
-        String[] PROJECTION = {
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
-        };
-
-        int ADDRESS = 0;
-        int IS_PRIMARY = 1;
-    }
-
     @Override
     public void onStop() {
         super.onStop();
@@ -226,33 +188,32 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    private void createEmployee(){
-        //get database reference
-        mDB = FirebaseDatabase.getInstance().getReference("employees/");
-
-        mDB.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.hasChild(mAuth.getCurrentUser().getUid())){
-
-                    Employee newEmployee = new Employee(mAuth.getCurrentUser().getUid(), "OtherExample", "User", "123-456-7890");
-                    Map<String, Object> employeeValues = newEmployee.toMap();
-
-                    Map<String, Object> databaseValue = new HashMap<>();
-                    databaseValue.put(mAuth.getCurrentUser().getUid(), employeeValues);
-
-                    mDB.updateChildren(databaseValue);
-                } else {
-                    Log.d(TAG, " employee found in database, do something here?");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
+    private void createEmployee(String email){
+        User newUser = User.createFromIDAndEmail(mAuth.getUid(), email);
+        newUser.setToken(FirebaseInstanceId.getInstance().getToken());
+        mUserManager.addOrUpdateNewEmployee(newUser);
     }
 
+    public void setUserEventListener(){
+        mUserEventListener = new IUserEventListener() {
+            @Override
+            public void onUserCreated(User newUser) {
+                if (mUser == null) { mUser = newUser; }
+            }
+
+            @Override
+            public void onUserRemoved(User removedUser) {
+                //do nothing
+            }
+
+            @Override
+            public void onUserUpdated(User updatedUser) {
+                if (mUser == null) { mUser = updatedUser; }
+                else if (updatedUser.getUserID().equals(mUser.getUserID())){
+                    mUser.updateUser(updatedUser);
+                }
+            }
+        };
+        mUserManager.addNewListener(mUserEventListener);
+    }
 }

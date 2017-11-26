@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -18,7 +17,6 @@ import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -64,18 +62,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.ManageCrisis;
-import com.indexyear.jd.dispatch.data.ManageUsers;
-import com.indexyear.jd.dispatch.event_handlers.CrisisUpdateReceiver;
+import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
+import com.indexyear.jd.dispatch.data.user.IUserEventListener;
+import com.indexyear.jd.dispatch.data.user.UserManager;
+import com.indexyear.jd.dispatch.data.user.UserParcel;
 import com.indexyear.jd.dispatch.models.Crisis;
-import com.indexyear.jd.dispatch.models.Employee;
-import com.indexyear.jd.dispatch.services.CrisisIntentService;
+import com.indexyear.jd.dispatch.models.User;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -85,11 +80,6 @@ import java.util.Locale;
 
 import static com.indexyear.jd.dispatch.R.id.map;
 import static com.indexyear.jd.dispatch.R.id.spinner;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Active;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.Dispatched;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.NotSet;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OffDuty;
-import static com.indexyear.jd.dispatch.activities.MainActivity.UserStatus.OnBreak;
 
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -106,7 +96,16 @@ public class MainActivity extends AppCompatActivity
     private Spinner statusSpinner;
     final FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref;
+    private FloatingActionButton fab;
+
+
+    // JDP - User info
+    // mUser is regularly updated on database update by the implementation of IUserEventListener
+    // We base our identification of the user on userID, populated by a call to the auth instance.
     private String userID;
+    private User mUser;
+    private UserManager mUserManager;
+    private IUserEventListener mUserEventListener;
 
     //Strings for crisis is for testing purposes entered by LJS 10/29/17
     private String crisisID;
@@ -140,10 +139,6 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_LOCATION = "location";
     private static Context context;
 
-    CrisisUpdateReceiver mCrisisReceiver = new CrisisUpdateReceiver();
-
-    IntentFilter mCrisisBroadcastIntent =
-            new IntentFilter("com.indexyear.jd.dispatch.services.MainActivity");
     private int MY_LOCATION_REQUEST_CODE;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
@@ -168,6 +163,15 @@ public class MainActivity extends AppCompatActivity
         mAuth = FirebaseAuth.getInstance();
         userID = mAuth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        UserParcel uParcel = getIntent().getParcelableExtra("user");
+        mUser = uParcel.getUser();
+
+        Log.d(TAG, " onCreate mUser userID " + mUser.getUserID());
+        Log.d(TAG, " onCreate mAuth userID " + mAuth.getCurrentUser().getUid());
+
+        setUserManagerAndListener();
+        updateWithUserSettings();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -198,8 +202,8 @@ public class MainActivity extends AppCompatActivity
 
         if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
             // do a thing to the map
-            Crisis acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
-            GetLatLng(acceptedCrisisEvent.getCrisisAddress());
+            CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+            GetLatLng(acceptedCrisisEvent.getCrisis().getCrisisAddress());
         } else {
             // set it up as you would normally, with the current location of the team
             // being set as map marker
@@ -211,35 +215,6 @@ public class MainActivity extends AppCompatActivity
                 userLocation = new LatLng(location.getLatitude(), location.getLongitude());
             }
         }
-
-        // Start CrisisIntentService and register BroadcastReceiver
-        listenForCrisis();
-        setBroadcastReceiver();
-
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mCrisisReceiver, mCrisisBroadcastIntent);
-        // TODO: 11/11/17 JD should be removed?
-        Intent intent = getIntent();
-        Employee employeeFromIntent = intent.getParcelableExtra("employee");
-        String role = employeeFromIntent.getCurrentRole();
-
-        // If the current user is dispatch, then this should be create address dialog.
-        if ("Dispatcher".equalsIgnoreCase(role))
-            {
-                    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    CreateAddressDialog();
-                }
-            });
-        }
-        // If the current user is MCT, this should offer a message dialog
-        else {
-            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a MCT user.", Toast.LENGTH_LONG);
-            MCTtoast.show();
-        }
-
 
     }
 
@@ -287,55 +262,6 @@ public class MainActivity extends AppCompatActivity
         }
     }*/
 
-
-    public void listenForCrisis() {
-        Log.d(TAG, " listenForCrisis");
-        // send intent to service
-
-        Intent crisisService = new Intent(this, CrisisIntentService.class);
-
-        String databaseUri = "";
-        String nodePath = "crisis";
-
-        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_URI", databaseUri);
-        crisisService.putExtra("com.indexyear.jd.dispatch.services.extra.DATABASE_NODE", nodePath);
-        crisisService.setAction("com.indexyear.jd.dispatch.services.action.DATABASE_CONNECT");
-
-        startService(crisisService);
-    }
-
-    public void setBroadcastReceiver() {
-        Log.d(TAG, " setBroadcastReceiver");
-
-
-    }
-
-    public void DispatchAlertDialog() {
-        //For Testing added by Luke
-        Log.d(TAG, "In DispatchAlertDialog");
-        ManageCrisis newCrisis = new ManageCrisis();
-        crisisID = "testCrisis";
-        crisisAddress = "8507 18TH AVE NW, Seattle, WA 98117";
-        //This adds a crisis to the JSON Database
-        newCrisis.CreateNewCrisis(crisisID, crisisAddress);
-
-        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-        alertDialog.setTitle("Crisis Alert");
-        alertDialog.setMessage("Go to this address? \n " + crisisAddress);
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        //put your call to the Map activity here maybe?
-                        // need the LatLang to give it
-                        GetLatLng(crisisAddress);
-
-                        dialog.dismiss();
-                    }
-                });
-        alertDialog.show();
-
-    }
-
 //    public void setCurrentLocation() {
 //        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
 //                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -380,8 +306,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 crisisAddress = input.getText().toString();
+                Crisis inputCrisis = Crisis.createFromAddress(crisisAddress);
+
                 Intent i = new Intent(context, DispatchTeamActivity.class);
-                i.putExtra("crisisAddress", crisisAddress);
+                i.putExtra("crisis", new CrisisParcel(inputCrisis));
                 startActivity(i);
             }
         });
@@ -404,40 +332,25 @@ public class MainActivity extends AppCompatActivity
         MenuItem item = menu.findItem(spinner);
         statusSpinner = (Spinner) MenuItemCompat.getActionView(item);
 
-        // TODO: 11/11/17 JD make universal enum or string values for all status spinner instances
+        // TODO: 11/11/17 JD set string constants for all of these
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.support_simple_spinner_dropdown_item, getResources().getStringArray(R.array.status_spinner_items));
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(adapter);
 
-        mDatabase.child("employees").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Employee employee = dataSnapshot.getValue(Employee.class);
-                Log.d(TAG, employee.currentStatus.toString());
-                if (!employee.currentStatus.equals(null)) {
-                    int spinnerPosition = adapter.getPosition(getSpinnerValueAsString(employee.currentStatus));
-                    statusSpinner.setSelection(spinnerPosition);
-                } else {
-                    statusSpinner.setSelection(0);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-//        ManageUsers newUser = new ManageUsers();
-//        newUser.setUserStatus(userID, "active");
+        // gets the current status and positions the spinner accordingly
+        String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Offline";
+        int spinnerPosition = adapter.getPosition(currentUserStatus);
+        statusSpinner.setSelection(spinnerPosition);
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
-                ManageUsers user = new ManageUsers();
-                user.setUserStatus(userID, getSpinnerValueAsEnum(text));
+
+                // stopping point 11/18/2017 - trigger the save through manageUsers
+
+                mUserManager.setUserStatus(userID, text);
             }
 
             @Override
@@ -463,39 +376,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
-    }
-
-    public enum UserStatus {
-        Active, OffDuty, OnBreak, Dispatched, NotSet
-    }
-
-    private UserStatus getSpinnerValueAsEnum(String value) {
-        switch (value) {
-            case "Active":
-                return Active;
-            case "Off-Duty":
-                return OffDuty;
-            case "On-Break":
-                return OnBreak;
-            case "Dispatched":
-                return Dispatched;
-            default:
-                return NotSet;
-        }
-    }
-
-    private String getSpinnerValueAsString(Enum value) {
-        if (value.equals(UserStatus.Active)) {
-            return "Active";
-        } else if (value.equals(UserStatus.OffDuty)) {
-            return "Off-Duty";
-        } else if (value.equals(UserStatus.OnBreak)) {
-            return "On-Break";
-        } else if (value.equals(UserStatus.Dispatched)) {
-            return "Dispatched";
-        } else {
-            return "Not-Set";
-        }
     }
 
     @Override
@@ -716,5 +596,70 @@ public class MainActivity extends AppCompatActivity
     private boolean writeTeamLocationBasedOnUser() {
 
         return false;
+    }
+
+    private void setUserManagerAndListener(){
+        mUserManager = new UserManager();
+
+        /*mUserEventListener = new IUserEventListener() {
+            @Override
+            public void onUserCreated(User newUser) {
+                String mAuthID = mAuth.getCurrentUser().getUid();
+                String newUserString = newUser.getUserID();
+                if ((mUser != null) && (newUser != null) && (newUserString.equals(mAuthID))){
+                    mUser = newUser;
+                    Log.d(TAG, " onusercreated, mUser assigned, mUser uid " + mUser.getUserID());
+                    updateWithUserSettings();
+                }
+            }
+
+            @Override
+            public void onUserRemoved(User removedUser) {
+                //do nothing for now
+            }
+
+            @Override
+            public void onUserUpdated(User updatedUser) {
+                if (updatedUser.getUserID().equals(mAuth.getCurrentUser().getUid())) {
+                    Log.d(TAG, " onuserupdated fired");
+                    if ((mUser != null) && (updatedUser.getUserID().equals(mAuth.getCurrentUser().getUid()))){
+                        mUser.updateUser(updatedUser);
+                        updateWithUserSettings();
+                    }
+                }
+            }
+        };
+
+        mUserManager.addNewListener(mUserEventListener);*/
+    }
+
+    /**
+     * Setting the FAB use on user update guarantees that we have a user in hand before attempting.
+     */
+        private void updateWithUserSettings() {
+        String currentUserRole = "MCT";
+        if (mUser != null){
+            Log.d(TAG, "Update user with settings " + mUser.getCurrentRole());
+            currentUserRole = mUser.getCurrentRole();
+        } else {
+            Log.d(TAG, "Update user with settings mUser null.");
+        }
+
+        // If the current user is dispatch, then this should be create address dialog.
+        if ("Dispatcher".equalsIgnoreCase(currentUserRole))
+        {
+            fab = (FloatingActionButton) findViewById(R.id.fab);
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    CreateAddressDialog();
+                }
+            });
+        }
+        // If the current user is Team, this should offer a message dialog
+        else {
+            Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a Team user.", Toast.LENGTH_LONG);
+            MCTtoast.show();
+        }
     }
 }

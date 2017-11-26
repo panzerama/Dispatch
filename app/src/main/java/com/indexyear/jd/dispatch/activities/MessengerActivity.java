@@ -15,7 +15,7 @@ import com.firebase.ui.database.FirebaseListAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.models.MCT;
+import com.indexyear.jd.dispatch.models.Team;
 
 import java.util.List;
 
@@ -23,10 +23,10 @@ public class MessengerActivity extends AppCompatActivity {
 
     private static final String TAG=MainActivity.class.getSimpleName();
     private static Context context;
-    public static List<MCT> mctList;
+    public static List<Team> mctList;
     private DatabaseReference db;
     private ListView mListView;
-    private FirebaseListAdapter<MCT> adapter;
+    private FirebaseListAdapter<Team> adapter;
     private ListView listOfTeams;
 
     @Override
@@ -45,22 +45,22 @@ public class MessengerActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
 //        ManageUsers mu = new ManageUsers();
-//        List<Employee> employees = new ArrayList<Employee>();
-//        Employee employee1 = new Employee("rick", "Rick", "Sanchez", "999-999-9999");
-//        Employee employee2 = new Employee("morty", "Morty", "", "999-999-9999");
+//        List<User> employees = new ArrayList<User>();
+//        User employee1 = new User("rick", "Rick", "Sanchez", "999-999-9999");
+//        User employee2 = new User("morty", "Morty", "", "999-999-9999");
 //        employees.add(employee1);
 //        employees.add(employee2);
 //
-//        mu.AddNewTeam("MCT1", "MCT 1", employees);
-//        mu.AddNewTeam("MCT2", "MCT 2", employees);
-//        mu.AddNewTeam("MCT3", "MCT 3", employees);
+//        mu.AddNewTeam("MCT1", "Team 1", employees);
+//        mu.AddNewTeam("MCT2", "Team 2", employees);
+//        mu.AddNewTeam("MCT3", "Team 3", employees);
 
         createTeamList();
 
         listOfTeams.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MCT team = (MCT)parent.getItemAtPosition(position);
+                Team team = (Team)parent.getItemAtPosition(position);
 
                 String teamID = team.getTeamName();
 
@@ -75,10 +75,10 @@ public class MessengerActivity extends AppCompatActivity {
 
         listOfTeams = (ListView)findViewById(R.id.mct_list);
 
-        adapter = new FirebaseListAdapter<MCT>(this, MCT.class,
+        adapter = new FirebaseListAdapter<Team>(this, Team.class,
                 R.layout.message_list_item, FirebaseDatabase.getInstance().getReference().child("teams")) {
             @Override
-            protected void populateView(View v, MCT model, int position) {
+            protected void populateView(View v, Team model, int position) {
                 TextView teamName = (TextView)v.findViewById(R.id.title_mct_name);
                 teamName.setText(model.getTeamName());
             }

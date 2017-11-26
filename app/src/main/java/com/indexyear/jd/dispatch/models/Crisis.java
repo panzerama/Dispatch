@@ -1,12 +1,15 @@
 package com.indexyear.jd.dispatch.models;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
-public class Crisis implements Parcelable{
+public class Crisis {
 
     private String crisisID;
     private String crisisAddress;
+    private String teamName;
+    private String status;
 
     /*
     private Date crisisDate;
@@ -17,19 +20,26 @@ public class Crisis implements Parcelable{
     private ReferralReason referralReason;
     private String callBackNumber;
     private String dispatchComments;
-    private MCT responseTeam;
-    private List<Employee> responseTeamMembers;
+    private Team responseTeam;
+    private List<User> responseTeamMembers;
     */
 
-    public Crisis(String crisisID, String crisisAddress){
-        this.crisisID = crisisID;
-        this.crisisAddress = crisisAddress;
+    public static Crisis createFromAddress(String address) {
+        return new Crisis(address);
     }
 
-    // jdp - requires that the fields be read in the same order that they are serialized elsewhere
-    public Crisis(Parcel input){
-        crisisID = input.readString();
-        crisisAddress = input.readString();
+    public Crisis(String crisisID, String crisisAddress, String teamName, String status) {
+        this.crisisID = crisisID;
+        this.crisisAddress = crisisAddress;
+        this.teamName = teamName;
+        this.status = status;
+    }
+
+    private Crisis(String crisisAddress){
+        this.crisisAddress = crisisAddress;
+        this.crisisID = UUID.randomUUID().toString();
+        this.status = "open";
+        this.teamName = "unset";
     }
 
     /*
@@ -54,21 +64,32 @@ public class Crisis implements Parcelable{
         this.crisisAddress = crisisAddress;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(crisisID);
-        dest.writeString(crisisAddress);
+    public String getTeamName() {
+        return teamName;
     }
 
-    public static final Parcelable.Creator<Crisis> CREATOR = new Parcelable.Creator<Crisis>(){
-        public Crisis createFromParcel(Parcel in) {
-            return new Crisis(in);
-        }
+    public void setTeamName(String teamName) {
+        this.teamName = teamName;
+    }
 
-        public Crisis[] newArray(int size) {
-            return new Crisis[size];
-        }
-    };
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Map toMap(){
+        Map<String, String> outputMap = new HashMap<String, String>();
+
+        outputMap.put("crisisID", crisisID);
+        outputMap.put("crisisAddress", crisisAddress);
+        outputMap.put("teamName", teamName);
+        outputMap.put("status", status);
+
+        return outputMap;
+    }
 
     /*
     public Date getCrisisDate() {
@@ -133,24 +154,20 @@ public class Crisis implements Parcelable{
         this.dispatchComments = dispatchComments;
     }
 
-    public MCT getResponseTeam() {
+    public Team getResponseTeam() {
         return responseTeam;
     }
 
-    public void setResponseTeam(MCT responseTeam) {
+    public void setResponseTeam(Team responseTeam) {
         this.responseTeam = responseTeam;
     }
 
-    public List<Employee> getResponseTeamMembers() {
+    public List<User> getResponseTeamMembers() {
         return responseTeamMembers;
     }
 
-    public void setResponseTeamMembers(List<Employee> responseTeamMembers) {
+    public void setResponseTeamMembers(List<User> responseTeamMembers) {
         this.responseTeamMembers = responseTeamMembers;
     }
     */
-
-    public int describeContents(){
-        return 0;
-    }
 }

@@ -2,7 +2,6 @@ package com.indexyear.jd.dispatch.models;
 
 import com.google.firebase.database.Exclude;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,16 +10,22 @@ import java.util.Map;
  * Created by karibullard on 10/23/17.
  */
 
-public class MCT {
+public class Team {
 
     public String teamName;
-    public List<Employee> teamMembers;
+    public List<User> teamMembers;
     public float latitude;
     public float longitude;
-    public Date travelTime;
 
-    public MCT(){
+    public Team(){
 
+    }
+
+    public Team(String teamName, List<User> teamMembers, float latitude, float longitude){
+        this.teamName = teamName;
+        this.teamMembers = teamMembers;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public String getTeamName() {
@@ -31,11 +36,11 @@ public class MCT {
         this.teamName = teamName;
     }
 
-    public List<Employee> getTeamMembers() {
+    public List<User> getTeamMembers() {
         return teamMembers;
     }
 
-    public void setTeamMembers(List<Employee> teamMembers) {
+    public void setTeamMembers(List<User> teamMembers) {
         this.teamMembers = teamMembers;
     }
 
@@ -55,14 +60,6 @@ public class MCT {
         this.longitude = longitude;
     }
 
-    public Date getTravelTime() {
-        return travelTime;
-    }
-
-    public void setTravelTime(Date travelTime) {
-        this.travelTime = travelTime;
-    }
-
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
@@ -71,7 +68,6 @@ public class MCT {
         result.put("teamName", teamName);
         result.put("latitude", latitude);
         result.put("longitude", longitude);
-        result.put("travelTime", travelTime);
 
         return result;
     }

@@ -50,21 +50,21 @@ public class Message {
         this.text = text;
     }
 
-    public MCT getUserTeam() {
+    public Team getUserTeam() {
         return userTeam;
     }
 
-    public void setUserTeam(MCT userTeam) {
+    public void setUserTeam(Team userTeam) {
         this.userTeam = userTeam;
     }
 
-    public MCT userTeam;
+    public Team userTeam;
 
     public Message(){
 
     }
 
-    public Message(String messageText, String messageSender, MCT userTeam) {
+    public Message(String messageText, String messageSender, Team userTeam) {
         this.text = messageText;
         this.userID = messageSender;
         this.userTeam = userTeam;
