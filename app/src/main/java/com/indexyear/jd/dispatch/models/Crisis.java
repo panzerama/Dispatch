@@ -10,6 +10,8 @@ public class Crisis {
     private String crisisAddress;
     private String teamName;
     private String status;
+    private double latitude;
+    private double longitude;
 
     /*
     private Date crisisDate;
@@ -80,6 +82,14 @@ public class Crisis {
         this.status = status;
     }
 
+    public double getLatitude() { return latitude; }
+
+    public void setLatitude(double latitude) { this.latitude = latitude; }
+
+    public double getLongitude() { return longitude; }
+
+    public void setLongitude(double longitude) { this.longitude = longitude; }
+
     public Map toMap(){
         Map<String, String> outputMap = new HashMap<String, String>();
 
@@ -87,7 +97,8 @@ public class Crisis {
         outputMap.put("crisisAddress", crisisAddress);
         outputMap.put("teamName", teamName);
         outputMap.put("status", status);
-
+        outputMap.put("latitude", "" + latitude);
+        outputMap.put("longitude", "" + longitude);
         return outputMap;
     }
 

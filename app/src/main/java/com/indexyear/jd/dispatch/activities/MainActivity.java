@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity
         if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
             // do a thing to the map
             CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
-            GetLatLng(acceptedCrisisEvent.getCrisis().getCrisisAddress());
+            GetLatLng(acceptedCrisisEvent.getCrisis());
         } else {
             // set it up as you would normally, with the current location of the team
             // being set as map marker
@@ -485,7 +485,9 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void GetLatLng(String crisisAddress) {
+    public void GetLatLng(final Crisis mCrisis) {
+
+        String crisisAddress = mCrisis.getCrisisAddress();
 
         crisisAddress = ConvertAddressToJSON(crisisAddress);
 
@@ -517,15 +519,21 @@ public class MainActivity extends AppCompatActivity
                         double lat = -122;
                         double lng = 47;
 
-
                         try {
-                            lat = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-                            lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
+                            lat = response.getJSONArray("results").getJSONObject(0)
+                                    .getJSONObject("geometry").getJSONObject("location")
+                                    .getDouble("lat");
+                            lng = response.getJSONArray("results").getJSONObject(0)
+                                    .getJSONObject("geometry").getJSONObject("location")
+                                    .getDouble("lng");
+                            mCrisis.setLatitude(lat);
+                            mCrisis.setLongitude(lng);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
 
                         addressPosition = new LatLng(lat, lng);
+
                         PlacePinAndPositionCamera(addressPosition);
 
                     }
