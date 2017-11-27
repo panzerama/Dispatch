@@ -36,16 +36,6 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.android.volley.Cache;
-import com.android.volley.Network;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.BasicNetwork;
-import com.android.volley.toolbox.DiskBasedCache;
-import com.android.volley.toolbox.HurlStack;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -53,27 +43,30 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
+import com.indexyear.jd.dispatch.data.crisis.ICrisisEventListener;
 import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.data.user.UserParcel;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.List;
 import java.util.Locale;
@@ -146,6 +139,7 @@ public class MainActivity extends AppCompatActivity
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
 
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -201,9 +195,40 @@ public class MainActivity extends AppCompatActivity
         String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
 
         if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
-            // do a thing to the map
+
+            ICrisisEventListener getLatLngListener = new ICrisisEventListener() {
+                @Override
+                public void onCrisisCreated(Crisis newCrisis) {
+                    //nothing
+                }
+
+                @Override
+                public void onCrisisRemoved(Crisis removedCrisis) {
+                    //nothing
+                }
+
+                @Override
+                public void onCrisisUpdated(Crisis updatedCrisis) {
+                    //nothing
+                }
+
+                @Override
+                public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                    //set the LatLng of the Crisis
+                    LatLng addressPosition;
+                    addressPosition = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
+
+                    //Use the new LatLng to place a pin on the map.
+                    PlacePinAndPositionCamera(addressPosition);
+                }
+            };
+
+            //if we have a Crisis with the intent get the Crisis Object
             CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
-            GetLatLng(acceptedCrisisEvent.getCrisis().getCrisisAddress());
+            Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
+
+            //pass itself to it's own helper methods to get the lat and lng state assigned
+            intentCrisis.GetLatLng(intentCrisis, getLatLngListener);
         } else {
             // set it up as you would normally, with the current location of the team
             // being set as map marker
@@ -485,90 +510,99 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public void GetLatLng(String crisisAddress) {
+//    public void GetLatLng(final Crisis mCrisis) {
+//
+//        String crisisAddress = mCrisis.getCrisisAddress();
+//
+//        crisisAddress = ConvertAddressToJSON(crisisAddress);
+//
+//        RequestQueue mRequestQueue;
+//
+//        // Instantiate the cache
+//        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+//
+//        // Set up the network to use HttpURLConnection as the HTTP client.
+//        Network network = new BasicNetwork(new HurlStack());
+//
+//        // Instantiate the RequestQueue with the cache and network.
+//        mRequestQueue = new RequestQueue(cache, network);
+//
+//        // Start the queue
+//        mRequestQueue.start();
+//        Log.d(TAG, getResources().getString(R.string.google_geocoding_key));
+//        Log.d(TAG, crisisAddress);
+//        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
+//                "&key=" + getResources().getString(R.string.google_geocoding_key);
+//
+//        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+//                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
+//
+//                    @Override
+//                    public void onResponse(JSONObject response) {
+//                        Log.d(TAG, "Response: " + response.toString());
+//                        LatLng addressPosition;
+//                        double lat = -122;
+//                        double lng = 47;
+//
+//                        try {
+//                            lat = response.getJSONArray("results").getJSONObject(0)
+//                                    .getJSONObject("geometry").getJSONObject("location")
+//                                    .getDouble("lat");
+//                            lng = response.getJSONArray("results").getJSONObject(0)
+//                                    .getJSONObject("geometry").getJSONObject("location")
+//                                    .getDouble("lng");
+//                            mCrisis.setLatitude(lat);
+//                            mCrisis.setLongitude(lng);
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//
+//                        addressPosition = new LatLng(lat, lng);
+//
+//                        PlacePinAndPositionCamera(addressPosition);
+//
+//                    }
+//                }, new Response.ErrorListener() {
+//
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                        // TODO Auto-generated method stub
+//
+//                    }
+//                });
+//
+//        // Add the request to the RequestQueue.
+//        mRequestQueue.add(jsObjRequest);
+//
+//
+//    }
 
-        crisisAddress = ConvertAddressToJSON(crisisAddress);
-
-        RequestQueue mRequestQueue;
-
-        // Instantiate the cache
-        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
-
-        // Set up the network to use HttpURLConnection as the HTTP client.
-        Network network = new BasicNetwork(new HurlStack());
-
-        // Instantiate the RequestQueue with the cache and network.
-        mRequestQueue = new RequestQueue(cache, network);
-
-        // Start the queue
-        mRequestQueue.start();
-        Log.d(TAG, getResources().getString(R.string.google_geocoding_key));
-        Log.d(TAG, crisisAddress);
-        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
-                "&key=" + getResources().getString(R.string.google_geocoding_key);
-
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d(TAG, "Response: " + response.toString());
-                        LatLng addressPosition;
-                        double lat = -122;
-                        double lng = 47;
-
-
-                        try {
-                            lat = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lat");
-                            lng = response.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location").getDouble("lng");
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                        addressPosition = new LatLng(lat, lng);
-                        PlacePinAndPositionCamera(addressPosition);
-
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // TODO Auto-generated method stub
-
-                    }
-                });
-
-        // Add the request to the RequestQueue.
-        mRequestQueue.add(jsObjRequest);
-
-
-    }
-
-    //Making the address given parsable by HTTP
-    public String ConvertAddressToJSON(String address) {
-
-        address.replace(' ', '+');
-
-        return address;
-    }
+//    //Making the address given parsable by HTTP
+//    public String ConvertAddressToJSON(String address) {
+//
+//        address.replace(' ', '+');
+//
+//        return address;
+//    }
 
     public void PlacePinAndPositionCamera(LatLng addressPosition) {
 
-//        MarkerOptions markerOptions = new MarkerOptions();
-//        markerOptions.position(addressPosition);
-//        mMap.addMarker(markerOptions
-//                .title("Crisis Location").icon(BitmapDescriptorFactory
-//                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-//        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(addressPosition);
+        mMap.addMarker(markerOptions
+                .title("Crisis Location").icon(BitmapDescriptorFactory
+                        .defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(addressPosition, 12));
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
-        //latLngBounds.include(addressPosition);
+        builder.include(addressPosition);
 
-        //LatLngBounds bounds = latLngBounds.build();
+        LatLngBounds bounds = builder.build();
 
-//        int padding = 150; // offset from edges of the map in pixels
-//        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-//
-//        mMap.animateCamera(cu);
+        int padding = 150; // offset from edges of the map in pixels
+        CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+
+        mMap.animateCamera(cu);
     }
 
     public void PositionCameraOverUserLocation(LatLng addressPosition) {
@@ -661,5 +695,9 @@ public class MainActivity extends AppCompatActivity
             Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a Team user.", Toast.LENGTH_LONG);
             MCTtoast.show();
         }
+    }
+
+    private void setCrisisLatLngListener(){
+
     }
 }
