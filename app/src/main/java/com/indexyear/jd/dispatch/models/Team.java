@@ -13,6 +13,7 @@ import java.util.Map;
 public class Team {
 
     public String teamName;
+    public String teamID;
     public List<User> teamMembers;
     public float latitude;
     public float longitude;
@@ -21,11 +22,19 @@ public class Team {
 
     }
 
-    public Team(String teamName, List<User> teamMembers, float latitude, float longitude){
+    public Team(String teamName, String teamID, List<User> teamMembers, float latitude, float longitude){
         this.teamName = teamName;
         this.teamMembers = teamMembers;
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public String getTeamID() {
+        return teamID;
+    }
+
+    public void setTeamID(String teamID) {
+        this.teamID = teamID;
     }
 
     public String getTeamName() {
@@ -65,6 +74,7 @@ public class Team {
         HashMap<String, Object> result = new HashMap<>();
 
         result.put("teamMembers", teamMembers);
+        result.put("teamID", teamID);
         result.put("teamName", teamName);
         result.put("latitude", latitude);
         result.put("longitude", longitude);

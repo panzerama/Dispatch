@@ -38,8 +38,6 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
     private UserManager mUserManager;
     private User mUser;
-    public User foundUser; // TODO: 11/18/17 JD find where this is used
-    public Team mTeam;
     private TeamManager mTeamManager;
     private IUserEventListener mUserEventListener;
     private UserParcel mUserParcel;
@@ -115,18 +113,18 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         // do nothing?
     }
 
-    //
-    private void updateEmployeeAsMCT(String role, String team, String status) {
+    // TODO: 11/26/17 JD need to update the team ID, not the team name 
+    private void updateEmployeeAsMCT(String role, String teamName, String status) {
         String uid = mAuth.getCurrentUser().getUid();
         Log.d(TAG, " updateEmployeeAsMCT uid = " + uid);
         Log.d(TAG, " updateEmployeeAsMCT role = " + role);
-        Log.d(TAG, " updateEmployeeAsMCT team = " + team);
+        Log.d(TAG, " updateEmployeeAsMCT team = " + teamName);
         Log.d(TAG, " updateEmployeeAsMCT status = " + status);
         mUserManager.setUserRole(uid, role);
         mUser.setCurrentRole(role);
 
-        mUserManager.setUserTeam(uid, team);
-        mUser.setCurrentTeam(team);
+        mUserManager.setUserTeam(uid, teamName);
+        mUser.setCurrentTeam(teamName);
 
         mUserManager.setUserStatus(uid, status);
         mUser.setCurrentStatus(status);
@@ -134,9 +132,14 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         // this is where the token work needs doing
         String token = FirebaseInstanceId.getInstance().getToken();
         mUserManager.setUserNotificationToken(uid, token);
+        mUser.setToken(token);
 
-        //
-        mTeamManager.addEmployeeAndToken(team, uid, token);
+        // instead of passing teamName, I need to pass team...
+        for (Team t : mTeamManager.getCurrentTeamsList()){
+            if (t.getTeamName().equals(teamName)){
+                mTeamManager.addEmployeeAndToken(t, mUser);
+            }
+        }
     }
 
     private void updateEmployeeAsDispatcher(String role) {
@@ -149,7 +152,9 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
 
     private void createTeamSpinner() {
         List<String> teams = new ArrayList<>();
+        
         for (Team t : mTeamManager.getCurrentTeamsList()) {
+            Log.d(TAG, t.getTeamName());
             teams.add(t.getTeamName());
         }
         ArrayAdapter<String> teamsAdapter = new ArrayAdapter<String>(ShiftStartActivity.this, android.R.layout.simple_spinner_item, teams);
@@ -165,6 +170,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         status_spinner.setSelection(0);
     }
 
+    // TODO: 11/26/17 JD is this strictly necessary here? 
     private void setUserListener(){
         mUserManager = new UserManager();
         mUserEventListener = new IUserEventListener() {

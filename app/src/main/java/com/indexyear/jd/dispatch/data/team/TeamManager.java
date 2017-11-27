@@ -8,6 +8,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.indexyear.jd.dispatch.data.user.TeamFirebaseMapper;
 import com.indexyear.jd.dispatch.models.Team;
+import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,8 +86,8 @@ public class TeamManager {
 
     public void addNewListener(ITeamEventListener newListener) { mListeners.add(newListener); }
 
-    public void addEmployeeAndToken(String teamName, String employeeID, String token) {
-        mDatabase.child("teams").child(teamName).child("teamMembers").child(employeeID).setValue(token);
+    public void addEmployeeAndToken(Team team, User updateUser) {
+        mDatabase.child("teams").child(team.getTeamID()).child("teamMembers").child(updateUser.getUserID()).updateChildren(updateUser.toMap());
     }
 
     public List<Team> getCurrentTeamsList() {
