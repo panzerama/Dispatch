@@ -10,4 +10,5 @@ public interface ICrisisEventListener {
     void onCrisisCreated(Crisis newCrisis);
     void onCrisisRemoved(Crisis removedCrisis);
     void onCrisisUpdated(Crisis updatedCrisis);
+    void onCrisisGetLatLng(Crisis locationUpdatedCrisis);
 }

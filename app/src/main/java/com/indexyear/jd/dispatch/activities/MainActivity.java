@@ -61,6 +61,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
+import com.indexyear.jd.dispatch.data.crisis.ICrisisEventListener;
 import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.data.user.UserParcel;
@@ -195,20 +196,39 @@ public class MainActivity extends AppCompatActivity
 
         if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
 
+            ICrisisEventListener getLatLngListener = new ICrisisEventListener() {
+                @Override
+                public void onCrisisCreated(Crisis newCrisis) {
+                    //nothing
+                }
+
+                @Override
+                public void onCrisisRemoved(Crisis removedCrisis) {
+                    //nothing
+                }
+
+                @Override
+                public void onCrisisUpdated(Crisis updatedCrisis) {
+                    //nothing
+                }
+
+                @Override
+                public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                    //set the LatLng of the Crisis
+                    LatLng addressPosition;
+                    addressPosition = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
+
+                    //Use the new LatLng to place a pin on the map.
+                    PlacePinAndPositionCamera(addressPosition);
+                }
+            };
+
             //if we have a Crisis with the intent get the Crisis Object
             CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
             Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
 
             //pass itself to it's own helper methods to get the lat and lng state assigned
-            intentCrisis.GetLatLng(intentCrisis);
-
-            //set the LatLng of the Crisis
-            LatLng addressPosition;
-            addressPosition = new LatLng(intentCrisis.getLatitude(), intentCrisis.getLongitude());
-
-            //Use the new LatLng to place a pin on the map.
-            PlacePinAndPositionCamera(addressPosition);
-
+            intentCrisis.GetLatLng(intentCrisis, getLatLngListener);
         } else {
             // set it up as you would normally, with the current location of the team
             // being set as map marker
@@ -675,5 +695,9 @@ public class MainActivity extends AppCompatActivity
             Toast MCTtoast = Toast.makeText(this, "This is not dispatch just a Team user.", Toast.LENGTH_LONG);
             MCTtoast.show();
         }
+    }
+
+    private void setCrisisLatLngListener(){
+
     }
 }

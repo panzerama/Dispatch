@@ -11,6 +11,7 @@ import com.android.volley.toolbox.DiskBasedCache;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.crisis.ICrisisEventListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,6 +30,8 @@ public class Crisis {
     private String status;
     private double latitude;
     private double longitude;
+
+    private ICrisisEventListener getLatLngListener;
 
     /*
     private Date crisisDate;
@@ -119,7 +122,7 @@ public class Crisis {
         return outputMap;
     }
 
-    public void GetLatLng(final Crisis mCrisis) {
+    public void GetLatLng(final Crisis mCrisis, final ICrisisEventListener crisisEventListener) {
 
         String crisisAddress = mCrisis.getCrisisAddress();
         String googleKey = "" + R.string.google_geocoding_key;
@@ -127,7 +130,6 @@ public class Crisis {
         crisisAddress = ConvertAddressToJSON(crisisAddress);
 
         RequestQueue mRequestQueue;
-
 
         // Instantiate the cache
         Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
@@ -150,7 +152,7 @@ public class Crisis {
 
                     @Override
                     public void onResponse(JSONObject response) {
-
+                        Crisis successfulCrisis = mCrisis;
                         double lat = -122;
                         double lng = 47;
 
@@ -161,8 +163,10 @@ public class Crisis {
                             lng = response.getJSONArray("results").getJSONObject(0)
                                     .getJSONObject("geometry").getJSONObject("location")
                                     .getDouble("lng");
-                            mCrisis.setLatitude(lat);
-                            mCrisis.setLongitude(lng);
+                            successfulCrisis.setLatitude(lat);
+                            successfulCrisis.setLongitude(lng);
+                            // crisisEventListener observes the success of json request
+                            crisisEventListener.onCrisisGetLatLng(successfulCrisis);
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -192,83 +196,5 @@ public class Crisis {
         return address;
     }
 
-    /*
-    public Date getCrisisDate() {
-        return crisisDate;
-    }
 
-    public void setCrisisDate(Date crisisDate) {
-        this.crisisDate = crisisDate;
-    }
-
-    public Calendar getTimeCallReceived() {
-        return timeCallReceived;
-    }
-
-    public void setTimeCallReceived(Calendar timeCallReceived) {
-        this.timeCallReceived = timeCallReceived;
-    }
-
-    public Calendar getTimeArrived() { return timeArrived; }
-
-    public void setTimeArrived(Calendar timeArrived) {
-        this.timeArrived = timeArrived;
-    }
-
-    public Boolean getPoliceOnScene() {
-        return policeOnScene;
-    }
-
-    public void setPoliceOnScene(Boolean policeOnScene) {
-        this.policeOnScene = policeOnScene;
-    }
-
-    public ReferringAgency getReferringAgency() {
-        return referringAgency;
-    }
-
-    public void setReferringAgency(ReferringAgency referringAgency) {
-        this.referringAgency = referringAgency;
-    }
-
-    public ReferralReason getReferralReason() {
-        return referralReason;
-    }
-
-    public void setReferralReason(ReferralReason referralReason) {
-        this.referralReason = referralReason;
-    }
-
-    public String getCallBackNumber() {
-        return callBackNumber;
-    }
-
-    public void setCallBackNumber(String callBackNumber) {
-        this.callBackNumber = callBackNumber;
-    }
-
-    public String getDispatchComments() {
-        return dispatchComments;
-    }
-
-    public void setDispatchComments(String dispatchComments) {
-        this.dispatchComments = dispatchComments;
-    }
-
-    public Team getResponseTeam() {
-        return responseTeam;
-    }
-
-    public void setResponseTeam(Team responseTeam) {
-        this.responseTeam = responseTeam;
-    }
-
-    public List<User> getResponseTeamMembers() {
-        return responseTeamMembers;
-    }
-
-    public void setResponseTeamMembers(List<User> responseTeamMembers) {
-        this.responseTeamMembers = responseTeamMembers;
-    }
-    */
 }
