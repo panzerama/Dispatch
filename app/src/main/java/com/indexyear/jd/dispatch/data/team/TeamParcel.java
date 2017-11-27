@@ -27,17 +27,19 @@ public class TeamParcel implements Parcelable {
 
     protected TeamParcel(Parcel in) {
         String teamName = in.readString();
+        String teamID = in.readString();
         List<User> teamMembers = new ArrayList<>();
         in.readList(teamMembers, List.class.getClassLoader());
         float latitude = in.readFloat();
         float longitude = in.readFloat();
 
-        mTeam = new Team(teamName, teamMembers, latitude, longitude);
+        mTeam = new Team(teamName, teamID, teamMembers, latitude, longitude);
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mTeam.teamName);
+        dest.writeString(mTeam.teamID);
         dest.writeList(mTeam.teamMembers);
         dest.writeFloat(mTeam.latitude);
         dest.writeFloat(mTeam.longitude);
