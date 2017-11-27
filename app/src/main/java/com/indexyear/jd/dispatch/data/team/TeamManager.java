@@ -1,5 +1,7 @@
 package com.indexyear.jd.dispatch.data.team;
 
+import android.util.Log;
+
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,6 +37,8 @@ public class TeamManager {
                 List<Team> currentTeams = new ArrayList<>();
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
                     Team t = new TeamFirebaseMapper().fromDataSnapshot(snap);
+                    Log.d("TeamManager", "OnDataChange - team id from snapshot = " + snap.child("teamID").getValue(String.class));
+                    Log.d("TeamManager", "OnDataChange - team name = " + t.getTeamName());
                     currentTeams.add(t);
                 }
                 updateCurrentTeamsList(currentTeams);
@@ -87,6 +91,7 @@ public class TeamManager {
     public void addNewListener(ITeamEventListener newListener) { mListeners.add(newListener); }
 
     public void addEmployeeAndToken(Team team, User updateUser) {
+        Log.d("TeamManager", "add user " + updateUser.getUserID() + " and " + team.getTeamID());
         mDatabase.child("teams").child(team.getTeamID()).child("teamMembers").child(updateUser.getUserID()).updateChildren(updateUser.toMap());
     }
 

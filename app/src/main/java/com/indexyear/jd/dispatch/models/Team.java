@@ -24,6 +24,7 @@ public class Team {
 
     public Team(String teamName, String teamID, List<User> teamMembers, float latitude, float longitude){
         this.teamName = teamName;
+        this.teamID = teamID;
         this.teamMembers = teamMembers;
         this.latitude = latitude;
         this.longitude = longitude;

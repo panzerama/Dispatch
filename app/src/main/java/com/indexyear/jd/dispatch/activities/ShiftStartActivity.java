@@ -116,9 +116,10 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     // TODO: 11/26/17 JD need to update the team ID, not the team name 
     private void updateEmployeeAsMCT(String role, String teamName, String status) {
         String uid = mAuth.getCurrentUser().getUid();
+        mUser.setUserID(uid);
         Log.d(TAG, " updateEmployeeAsMCT uid = " + uid);
         Log.d(TAG, " updateEmployeeAsMCT role = " + role);
-        Log.d(TAG, " updateEmployeeAsMCT team = " + teamName);
+        Log.d(TAG, " updateemployeeasmct team = " + teamName);
         Log.d(TAG, " updateEmployeeAsMCT status = " + status);
         mUserManager.setUserRole(uid, role);
         mUser.setCurrentRole(role);
@@ -137,6 +138,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         // instead of passing teamName, I need to pass team...
         for (Team t : mTeamManager.getCurrentTeamsList()){
             if (t.getTeamName().equals(teamName)){
+                Log.d(TAG, t.getTeamID() + "is being registered");
                 mTeamManager.addEmployeeAndToken(t, mUser);
             }
         }
