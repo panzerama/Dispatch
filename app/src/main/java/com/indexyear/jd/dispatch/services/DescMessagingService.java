@@ -48,6 +48,13 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
             public void onCrisisUpdated(Crisis updatedCrisis) {
                 // TODO: 11/17/17 JD is there a case where we would use this?
             }
+
+            @Override
+            public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                // nothing needed
+            }
+
+
         };
 
         mCrisisManager = new CrisisManager();
