@@ -135,13 +135,23 @@ public class UserManager {
          this.mUser = user;
     }
 
-    public User getUser(String targetUserID){
-        for (User u : mUserList){
-            if (u.getUserID().equals(targetUserID)) {
-                return u;
+    public void getUser(String userID){
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+        dbRef.child("users").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mUser = dataSnapshot.getValue(User.class);
             }
-        }
-        return null;
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public User getCurrentUser(){
+        return mUser;
     }
 
     public void setUserStatus(String userID, String status){

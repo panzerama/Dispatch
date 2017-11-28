@@ -1,9 +1,12 @@
 package com.indexyear.jd.dispatch.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class User {
+public class User implements Parcelable{
 
     private String currentTeam;
     private String userID;
@@ -11,8 +14,15 @@ public class User {
     private String currentStatus;
     private String email;
     private String token;
-    private float latitude; // TODO: 11/17/17 JD change to one Location object?
+    private float latitude;
     private float longitude;
+
+
+    // required for use with DataSnapshot getValue
+    // must be public to work with DataSnapshot getValue
+    public User(){
+
+    }
 
     public static User createFromIDAndEmail(String userID, String email) {
         return new User(userID, email);
@@ -28,39 +38,22 @@ public class User {
     }
 
     private User(String userID, String email){
-        this("none", userID, "none", "none", email, "none", (float) -7.3430524, (float) 72.3588805);
+        this("none", userID, "none", "none", email, "none", (float)0, (float)0);
     }
 
-    // required for use with DataSnapshot getValue
-    private User(){
-
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-
-    public User(String email){}
-
-    public String getUserID() {
-        return userID;
-    }
-
-    public void setUserID(String userID) {
-        this.userID = userID;
+    /***
+     * Turns current user into a shallow copy of another, or updates based on retrieved user object.
+     * @param otherUser
+     */
+    public void updateUser(User otherUser){
+        this.currentTeam = otherUser.currentTeam;
+        this.userID = otherUser.userID;
+        this.currentRole = otherUser.currentRole;
+        this.currentStatus = otherUser.currentStatus;
+        this.email = otherUser.email;
+        this.token = otherUser.token;
+        this.latitude = otherUser.latitude;
+        this.longitude = otherUser.longitude;
     }
 
     public String getCurrentTeam() {
@@ -69,6 +62,14 @@ public class User {
 
     public void setCurrentTeam(String currentTeam) {
         this.currentTeam = currentTeam;
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
     public String getCurrentRole() {
@@ -87,6 +88,22 @@ public class User {
         this.currentStatus = currentStatus;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     public float getLatitude() {
         return latitude;
     }
@@ -103,35 +120,80 @@ public class User {
         this.longitude = longitude;
     }
 
-    /***
-     * Turns current user into a shallow copy of another, or updates based on retrieved user object.
-     * @param otherUser
+    /**
+     * Parcelable Implementation
      */
-    public void updateUser(User otherUser){
-        this.currentTeam = otherUser.currentTeam;
-        this.userID = otherUser.userID;
-        this.currentRole = otherUser.currentRole;
-        this.currentStatus = otherUser.currentStatus;
-        this.latitude = otherUser.latitude;
-        this.longitude = otherUser.longitude;
-    }
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
 
-    public void createEmployee(){
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
+    protected User(Parcel in) {
+        currentTeam = in.readString();
+        userID = in.readString();
+        currentRole = in.readString();
+        currentStatus = in.readString();
+        email = in.readString();
+        token = in.readString();
+        latitude = in.readFloat();
+        longitude = in.readFloat();
     }
 
     public Map<String, Object> toMap() {
         Map<String, Object> employeeValues = new HashMap<>();
 
         employeeValues.put("currentMCT", currentTeam);
+        employeeValues.put("userID", userID);
         employeeValues.put("currentRole", currentRole);
         employeeValues.put("currentStatus", currentStatus);
+        employeeValues.put("email", email);
+        employeeValues.put("token", token);
         employeeValues.put("latitude", latitude);
         employeeValues.put("longitude", longitude);
-        employeeValues.put("userID", userID);
 
         return employeeValues;
     }
 
 
+    /**
+     * Describe the kinds of special objects contained in this Parcelable
+     * instance's marshaled representation. For example, if the object will
+     * include a file descriptor in the output of {@link #writeToParcel(Parcel, int)},
+     * the return value of this method must include the
+     * {@link #CONTENTS_FILE_DESCRIPTOR} bit.
+     *
+     * @return a bitmask indicating the set of special object types marshaled
+     * by this Parcelable object instance.
+     * @see #CONTENTS_FILE_DESCRIPTOR
+     */
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    /**
+     * Flatten this object in to a Parcel.
+     *
+     * @param dest  The Parcel in which the object should be written.
+     * @param flags Additional flags about how the object should be written.
+     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
+     */
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(currentTeam);
+        dest.writeString(userID);
+        dest.writeString(currentRole);
+        dest.writeString(currentStatus);
+        dest.writeString(email);
+        dest.writeString(token);
+        dest.writeFloat(latitude);
+        dest.writeFloat(longitude);
+    }
 }
