@@ -1,6 +1,7 @@
 package com.indexyear.jd.dispatch.activities;
 
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -10,7 +11,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -33,7 +36,6 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private static final String TAG = "ShiftStartActivity: ";
 
     private FirebaseAuth mAuth;
-    private FirebaseAnalytics mAnalyticsInstance; // TODO: 11/18/17 JD implement long-term logging
     private DatabaseReference mDB;
 
     private UserManager mUserManager;
@@ -45,6 +47,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     Spinner role_spinner;
     Spinner team_spinner;
     Spinner status_spinner;
+
+    private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +69,7 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mDB = FirebaseDatabase.getInstance().getReference("");
 
         setUserListener();
-    }
+}
 
     //when the button is clicked, take values from spinners
     @Override
@@ -87,6 +91,25 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
             updateEmployeeAsMCT(role, team, status);
         } else if (role.equals("Dispatcher")) {
             updateEmployeeAsDispatcher(role);
+        }
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        try {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                Log.d(TAG, "fire on success listener, location not null");
+                                updateUserLocation(location);
+                            } else {
+                                // mock location? Raise a dialog or something else...
+                            }
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.d(TAG, "Security exception caught: " + e.getMessage());
         }
 
         //putting the User(userID, role) as an extra to send with the intent.
@@ -198,4 +221,13 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mUserManager.addNewListener(mUserEventListener);
     }
 
+    private void updateUserLocation (Location location){
+        Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
+        mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
+        mUser.setLatitude((float) location.getLatitude());
+        mUser.setLatitude((float) location.getLongitude());
+    }
+
 }
+
+

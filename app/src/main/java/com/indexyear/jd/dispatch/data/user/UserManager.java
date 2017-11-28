@@ -1,5 +1,6 @@
 package com.indexyear.jd.dispatch.data.user;
 
+import android.location.Location;
 import android.util.Log;
 
 import com.google.firebase.database.ChildEventListener;
@@ -156,6 +157,16 @@ public class UserManager {
 
     private void updateCurrentUsersList(List<User> currentUsers) {
         mUserList = currentUsers;
+    }
+
+    public void setUserLocation(String userID, Location location){
+        try {
+            mDatabase.child("users").child(userID).child("latitude").setValue(location.getLatitude());
+            mDatabase.child("users").child(userID).child("longitude").setValue(location.getLongitude());
+        } catch (Exception e) {
+            Log.d("UserManager", "Error setting longitude and latitude");
+        }
+
     }
 
 }
