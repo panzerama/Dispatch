@@ -2,6 +2,7 @@ package com.indexyear.jd.dispatch.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -12,7 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 
-import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -32,12 +33,9 @@ public class ShiftStartActivity extends AppCompatActivity {
     private static final String TAG = "ShiftStartActivity: ";
 
     private FirebaseAuth mAuth;
-    private FirebaseAnalytics mAnalyticsInstance; // TODO: 11/18/17 JD implement long-term logging
     private DatabaseReference mDB;
 
     private UserManager mUserManager;
-    public User foundUser; // TODO: 11/18/17 JD find where this is used
-    public Team mTeam;
     private TeamManager mTeamManager;
     public User mUser;
     public String selectedTeam;
@@ -51,7 +49,7 @@ public class ShiftStartActivity extends AppCompatActivity {
     ArrayList<String> teamNames;
     ArrayList<String> teamIDS;
     Context context;
-
+    private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +79,7 @@ public class ShiftStartActivity extends AppCompatActivity {
         mUserManager.getUser(mAuth.getCurrentUser().getUid());
     }
 
-    private void createRoleSpinner(){
+    private void createRoleSpinner() {
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.role_spinner_options, android.R.layout.simple_spinner_item);
@@ -110,7 +108,7 @@ public class ShiftStartActivity extends AppCompatActivity {
         });
     }
 
-    private void createStartShiftButton(){
+    private void createStartShiftButton() {
         Button startShift = (Button) findViewById(R.id.shift_start_button);
         startShift.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -122,15 +120,19 @@ public class ShiftStartActivity extends AppCompatActivity {
 
                 String role = role_spinner.getSelectedItem().toString();
 
-                if (role.equals("MCT")) {
+                if (role.equals("MCT"))
+                {
                     status = status_spinner.getSelectedItem().toString();
                     updateEmployeeAsMCT(role, selectedTeam, status);
-                } else if (role.equals("Dispatcher")) {
+                } else if (role.equals("Dispatcher"))
+
+                {
                     updateEmployeeAsDispatcher(role);
                 }
 
                 //putting the User(userID, role) as an extra to send with the intent.
                 shiftStartHandoff.putExtra("user", mUser);
+
                 startActivity(shiftStartHandoff);
             }
         });
@@ -159,7 +161,7 @@ public class ShiftStartActivity extends AppCompatActivity {
     private void createTeamSpinner() {
 
 
-        for(int i = 0; i < theTeams.size(); i++){
+        for (int i = 0; i < theTeams.size(); i++) {
             teamNames.add(theTeams.get(i).getTeamName().toString());
             teamIDS.add(theTeams.get(i).getTeamID().toString());
         }
@@ -192,4 +194,13 @@ public class ShiftStartActivity extends AppCompatActivity {
         status_spinner.setSelection(0);
     }
 
+    private void updateUserLocation(Location location) {
+        Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
+        mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
+        mUser.setLatitude((float) location.getLatitude());
+        mUser.setLatitude((float) location.getLongitude());
+    }
+
 }
+
+
