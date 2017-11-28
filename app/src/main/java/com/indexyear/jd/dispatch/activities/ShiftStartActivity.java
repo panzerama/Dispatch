@@ -69,25 +69,6 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
         mDB = FirebaseDatabase.getInstance().getReference("");
 
         setUserListener();
-
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-        try {
-            mFusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            // Got last known location. In some rare situations this can be null.
-                            if (location != null) {
-                                Log.d(TAG, "fire on success listener, location not null");
-                                updateUserLocation(location);
-                            } else {
-                                // mock location? Raise a dialog or something else...
-                            }
-                        }
-                    });
-        } catch (SecurityException e) {
-            Log.d(TAG, "Security exception caught: " + e.getMessage());
-        }
 }
 
     //when the button is clicked, take values from spinners
@@ -110,6 +91,25 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
             updateEmployeeAsMCT(role, team, status);
         } else if (role.equals("Dispatcher")) {
             updateEmployeeAsDispatcher(role);
+        }
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        try {
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                Log.d(TAG, "fire on success listener, location not null");
+                                updateUserLocation(location);
+                            } else {
+                                // mock location? Raise a dialog or something else...
+                            }
+                        }
+                    });
+        } catch (SecurityException e) {
+            Log.d(TAG, "Security exception caught: " + e.getMessage());
         }
 
         //putting the User(userID, role) as an extra to send with the intent.
@@ -224,6 +224,8 @@ public class ShiftStartActivity extends AppCompatActivity implements View.OnClic
     private void updateUserLocation (Location location){
         Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
         mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
+        mUser.setLatitude((float) location.getLatitude());
+        mUser.setLatitude((float) location.getLongitude());
     }
 
 }
