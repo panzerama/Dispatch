@@ -6,5 +6,4 @@ public interface IUserEventListener {
     void onUserCreated(User newUser);
     void onUserRemoved(User removedUser);
     void onUserUpdated(User updatedUser);
-    void onUserRetrieved(User retrievedUser);
 }

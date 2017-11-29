@@ -147,7 +147,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         mUserManager = new UserManager();
-        mUser = getIntent().getParcelableExtra("user");
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -204,7 +203,7 @@ public class MainActivity extends AppCompatActivity
             //pass itself to it's own helper methods to get the lat and lng state assigned
             intentCrisis.GetLatLng(intentCrisis, getLatLngListener);
         } else {
-
+            mUser = getIntent().getParcelableExtra("user");
         }
     }
 
