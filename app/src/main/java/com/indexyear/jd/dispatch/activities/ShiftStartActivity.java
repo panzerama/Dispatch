@@ -20,6 +20,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.team.TeamManager;
+import com.indexyear.jd.dispatch.data.user.IGetUserListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.Team;
 import com.indexyear.jd.dispatch.models.User;
@@ -65,18 +66,29 @@ public class ShiftStartActivity extends AppCompatActivity {
         teamNames = new ArrayList<>();
 
         mDB = FirebaseDatabase.getInstance().getReference("");
-
-        createStartShiftButton();
+        teamIDS = new ArrayList<>();
 
         role_spinner = (Spinner) findViewById(R.id.role_spinner);
         createRoleSpinner();
         team_spinner = (Spinner) findViewById(R.id.team_spinner);
         status_spinner = (Spinner) findViewById(R.id.status_spinner);
 
-        teamIDS = new ArrayList<>();
-
+        // 11/28/17 JD: jdp this makes sure that we have the user set before we proceed
         mUserManager = new UserManager();
-        mUserManager.getUser(mAuth.getCurrentUser().getUid());
+        mUserManager.getUser(mAuth.getCurrentUser().getUid(), new IGetUserListener() {
+            @Override
+            public void onGetSingleUser(User retrievedUser) {
+                mUser = retrievedUser;
+                // 11/28/17 JD: then instantiate the UI so that we can't move forward until a user value is found
+                createStartShiftButton();
+            }
+
+            @Override
+            public void onFailedSingleUser() {
+                // 11/28/17 JD: do something to avoid catastrophic failure
+
+            }
+        });
     }
 
     private void createRoleSpinner() {
@@ -199,6 +211,10 @@ public class ShiftStartActivity extends AppCompatActivity {
         mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
         mUser.setLatitude((float) location.getLatitude());
         mUser.setLatitude((float) location.getLongitude());
+    }
+
+    private void setMUserValue(User retrievedUser) {
+        mUser = retrievedUser;
     }
 
 }

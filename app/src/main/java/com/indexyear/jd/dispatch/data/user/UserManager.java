@@ -23,6 +23,7 @@ public class UserManager {
     private User mUser;
     private List<User> mUserList;
     private List<IUserEventListener> mListeners;
+    private IGetUserListener mGetUserListener;
 
     public UserManager(){
         mListeners = new ArrayList<>();
@@ -136,17 +137,19 @@ public class UserManager {
          this.mUser = user;
     }
 
-    public void getUser(String userID){
+    public void getUser(String userID, IGetUserListener userListener){
+        mGetUserListener = userListener;
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
         dbRef.child("users").child(userID).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mUser = dataSnapshot.getValue(User.class);
+                mGetUserListener.onGetSingleUser(mUser);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                mGetUserListener.onFailedSingleUser();
             }
         });
     }

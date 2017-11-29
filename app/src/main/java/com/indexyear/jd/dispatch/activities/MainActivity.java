@@ -122,14 +122,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                CreateAddressDialog();
-            }
-        });
-
         //TODO Resolve Crash Issue
         //Changing visibility of item is causing crash
         //So was previous method
@@ -156,6 +148,15 @@ public class MainActivity extends AppCompatActivity
 
         mUserManager = new UserManager();
         mUser = getIntent().getParcelableExtra("user");
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
+            }
+        });
+        
         determineIntent();
         context = getApplicationContext();
 
@@ -340,6 +341,7 @@ public class MainActivity extends AppCompatActivity
                 crisisAddress = input.getText().toString();
                 Crisis inputCrisis = Crisis.createFromAddress(crisisAddress);
 
+                // TODO: 11/28/17 JD Trick here is to pass the crisis only after we have the location 
                 Intent i = new Intent(context, DispatchTeamActivity.class);
                 i.putExtra("crisis", new CrisisParcel(inputCrisis));
                 startActivity(i);
