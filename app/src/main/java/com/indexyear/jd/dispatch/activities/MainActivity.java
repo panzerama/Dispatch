@@ -329,13 +329,15 @@ public class MainActivity extends AppCompatActivity
                 IGetLatLngListener latLngListener = new IGetLatLngListener() {
                     @Override
                     public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
-                        Crisis inputCrisis = Crisis.createFromAddress(crisisAddress);
                         // 11/29/17 JD: only create and pass address when lat and long are found and
                         // this is triggered.
+
+                        CrisisManager successfulLatLngCrisisManager = new CrisisManager();
+                        successfulLatLngCrisisManager.addCrisisToDatabase(locationUpdatedCrisis);
+
                         Intent i = new Intent(context, DispatchTeamActivity.class);
-                        i.putExtra("crisis", new CrisisParcel(inputCrisis));
+                        i.putExtra("crisis", new CrisisParcel(locationUpdatedCrisis));
                         startActivity(i);
-                        // 11/29/17 JD: raise a toast?
                     }
                 };
 
