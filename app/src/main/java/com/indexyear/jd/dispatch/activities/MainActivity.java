@@ -53,8 +53,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.crisis.CrisisManager;
 import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
-import com.indexyear.jd.dispatch.data.crisis.ICrisisEventListener;
+import com.indexyear.jd.dispatch.data.crisis.IGetLatLngListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
@@ -169,22 +170,7 @@ public class MainActivity extends AppCompatActivity
 
         if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
 
-            ICrisisEventListener getLatLngListener = new ICrisisEventListener() {
-                @Override
-                public void onCrisisCreated(Crisis newCrisis) {
-                    //nothing
-                }
-
-                @Override
-                public void onCrisisRemoved(Crisis removedCrisis) {
-                    //nothing
-                }
-
-                @Override
-                public void onCrisisUpdated(Crisis updatedCrisis) {
-                    //nothing
-                }
-
+            IGetLatLngListener getLatLngListener = new IGetLatLngListener() {
                 @Override
                 public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
                     //set the LatLng of the Crisis
@@ -198,10 +184,11 @@ public class MainActivity extends AppCompatActivity
 
             //if we have a Crisis with the intent get the Crisis Object
             CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+            CrisisManager acceptedCrisisManager = new CrisisManager();
             Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
 
             //pass itself to it's own helper methods to get the lat and lng state assigned
-            intentCrisis.GetLatLng(intentCrisis, getLatLngListener);
+            acceptedCrisisManager.GetLatLng(intentCrisis.getCrisisAddress(), getLatLngListener);
         } else {
             mUser = getIntent().getParcelableExtra("user");
         }
@@ -327,23 +314,33 @@ public class MainActivity extends AppCompatActivity
 
     private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Incident Address : ");
+        builder.setTitle(R.string.crisis_dialog_title)
+               .setMessage(R.string.crisis_dialog_message);
 
         //address input
         final AppCompatEditText input = new AppCompatEditText(this);
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(input);
 
-        builder.setPositiveButton("Calculate Travel Times", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(R.string.crisis_dialog_positive, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 crisisAddress = input.getText().toString();
-                Crisis inputCrisis = Crisis.createFromAddress(crisisAddress);
+                IGetLatLngListener latLngListener = new IGetLatLngListener() {
+                    @Override
+                    public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                        Crisis inputCrisis = Crisis.createFromAddress(crisisAddress);
+                        // 11/29/17 JD: only create and pass address when lat and long are found and
+                        // this is triggered.
+                        Intent i = new Intent(context, DispatchTeamActivity.class);
+                        i.putExtra("crisis", new CrisisParcel(inputCrisis));
+                        startActivity(i);
+                        // 11/29/17 JD: raise a toast?
+                    }
+                };
 
-                // TODO: 11/28/17 JD Trick here is to pass the crisis only after we have the location 
-                Intent i = new Intent(context, DispatchTeamActivity.class);
-                i.putExtra("crisis", new CrisisParcel(inputCrisis));
-                startActivity(i);
+                CrisisManager inputCrisisManager = new CrisisManager();
+                inputCrisisManager.GetLatLng(crisisAddress, latLngListener);
             }
         });
 
@@ -370,8 +367,8 @@ public class MainActivity extends AppCompatActivity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         statusSpinner.setAdapter(adapter);
 
-//         gets the current status and positions the spinner accordingly
-        //String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Offline";
+        // gets the current status and positions the spinner accordingly
+        // String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Offline";
         int spinnerPosition = adapter.getPosition(mUser.getCurrentStatus());
         statusSpinner.setSelection(spinnerPosition);
 

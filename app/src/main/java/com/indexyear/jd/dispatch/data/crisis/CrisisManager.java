@@ -1,16 +1,32 @@
 package com.indexyear.jd.dispatch.data.crisis;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.models.Crisis;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
+
+import static com.facebook.FacebookSdk.getCacheDir;
 
 public class CrisisManager {
     private static final String TAG = "CrisisManager";
@@ -18,6 +34,7 @@ public class CrisisManager {
     private Crisis mCrisis;
     private DatabaseReference mDatabase; //Firebase reference
     private List<ICrisisEventListener> mListeners;
+    private IGetLatLngListener getLatLngListener;
 
     public CrisisManager(){
         mListeners = new ArrayList<>();
@@ -102,6 +119,81 @@ public class CrisisManager {
         mListeners.add(crisisEventListener);
     }
 
+    public void GetLatLng(String crisisAddress, IGetLatLngListener incomingLatLngListener) {
+
+        // 11/29/17 JD: register the observer
+        getLatLngListener = incomingLatLngListener;
+
+        String googleKey = "" + R.string.google_geocoding_key;
+
+        crisisAddress = ConvertAddressToJSON(crisisAddress);
+
+        RequestQueue mRequestQueue;
+
+        // Instantiate the cache
+        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        Network network = new BasicNetwork(new HurlStack());
+
+        // Instantiate the RequestQueue with the cache and network.
+        mRequestQueue = new RequestQueue(cache, network);
+
+        // Start the queue
+        mRequestQueue.start();
+
+
+        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
+                "&key=" + googleKey;
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Crisis successfulCrisis = mCrisis;
+                        double lat = -122;
+                        double lng = 47;
+
+                        try {
+                            lat = response.getJSONArray("results").getJSONObject(0)
+                                    .getJSONObject("geometry").getJSONObject("location")
+                                    .getDouble("lat");
+                            lng = response.getJSONArray("results").getJSONObject(0)
+                                    .getJSONObject("geometry").getJSONObject("location")
+                                    .getDouble("lng");
+                            successfulCrisis.setLatitude(lat);
+                            successfulCrisis.setLongitude(lng);
+                            // crisisEventListener observes the success of json request
+                            getLatLngListener.onCrisisGetLatLng(successfulCrisis);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        mRequestQueue.add(jsObjRequest);
+
+        //TODO: update crisis on Firebase, or is that handled elsewhere?
+
+    }
+
+    //Helper Method to GetLatLng
+    //Making the address given parsable by HTTP
+    private String ConvertAddressToJSON(String address) {
+
+        address.replace(' ', '+');
+
+        return address;
+    }
 
 
 }

@@ -81,4 +81,10 @@
     <string name="crisis_timestamp">CrisisTime</string>
     <string name="accept_dispatch_button">Accept</string>
 
+    <!--jdp - Crisis notification dialog-->
+    <string name="crisis_dialog_title">Send a crisis notification:</string>
+    <string name="crisis_dialog_message">What is the address of the crisis?</string>
+    <string name="crisis_dialog_positive">Send notification</string>
+    <string name="crisis_dialog_negative">Cancel notification</string>
+
 </resources>
