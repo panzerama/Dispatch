@@ -88,8 +88,11 @@ public class CrisisManager {
     }
 
     public void addCrisisToDatabase(Crisis inputCrisis){
-        DatabaseReference newCrisisNode = mDatabase.child("crisis").child(inputCrisis.getCrisisID());
-        newCrisisNode.updateChildren(inputCrisis.toMap());
+        DatabaseReference crisisNode = mDatabase.child("crisis");
+        DatabaseReference newCrisisNode = crisisNode.push();
+        inputCrisis.setCrisisID(newCrisisNode.getKey());
+
+        newCrisisNode.child(newCrisisNode.getKey()).updateChildren(inputCrisis.toMap());
     }
 
     //GetAddress of crisis based on ID
