@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity
             Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
 
             //pass itself to it's own helper methods to get the lat and lng state assigned
-            acceptedCrisisManager.GetLatLng(context, intentCrisis.getCrisisAddress(), getLatLngListener);
+            acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
         } else {
             mUser = getIntent().getParcelableExtra("user");
         }
@@ -340,9 +340,10 @@ public class MainActivity extends AppCompatActivity
                         startActivity(i);
                     }
                 };
-
+                // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
                 CrisisManager inputCrisisManager = new CrisisManager();
-                inputCrisisManager.GetLatLng(context, crisisAddress, latLngListener);
+                Crisis crisisToLocate = Crisis.createFromAddress(crisisAddress);
+                inputCrisisManager.GetLatLng(context, crisisToLocate, latLngListener);
             }
         });
 

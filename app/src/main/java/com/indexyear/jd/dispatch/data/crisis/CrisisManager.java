@@ -124,14 +124,15 @@ public class CrisisManager {
         mListeners.add(crisisEventListener);
     }
 
-    public void GetLatLng(Context incomingContext, String crisisAddress, IGetLatLngListener incomingLatLngListener) {
+    public void GetLatLng(Context incomingContext, Crisis crisisToLocate, IGetLatLngListener incomingLatLngListener) {
 
         // 11/29/17 JD: register the observer
         getLatLngListener = incomingLatLngListener;
+        mCrisis = crisisToLocate;
 
         String googleKey = incomingContext.getResources().getString(R.string.google_geocoding_key);
 
-        crisisAddress = ConvertAddressToJSON(crisisAddress);
+        String crisisAddress = ConvertAddressToJSON(crisisToLocate.getCrisisAddress());
 
         RequestQueue mRequestQueue;
 
@@ -166,6 +167,7 @@ public class CrisisManager {
                             lat = response.getJSONArray("results").getJSONObject(0)
                                     .getJSONObject("geometry").getJSONObject("location")
                                     .getDouble("lat");
+                            Log.d(TAG, response.getJSONArray("results").toString());
                             lng = response.getJSONArray("results").getJSONObject(0)
                                     .getJSONObject("geometry").getJSONObject("location")
                                     .getDouble("lng");
