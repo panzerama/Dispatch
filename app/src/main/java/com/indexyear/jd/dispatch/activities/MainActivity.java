@@ -351,6 +351,8 @@ public class MainActivity extends AppCompatActivity
                 // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
                 CrisisManager inputCrisisManager = new CrisisManager();
                 Crisis crisisToLocate = Crisis.createFromAddress(crisisAddress);
+                crisisToLocate.setTeamName("unset");
+                crisisToLocate.setStatus("unset");
                 inputCrisisManager.GetLatLng(context, crisisToLocate, latLngListener);
             }
         });
