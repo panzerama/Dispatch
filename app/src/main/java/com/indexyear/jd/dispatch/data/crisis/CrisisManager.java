@@ -176,6 +176,13 @@ public class CrisisManager {
                             // crisisEventListener observes the success of json request
                             // TODO: 12/1/17 JD failure test: what happens if the request is returned without info 
                             getLatLngListener.onCrisisGetLatLng(successfulCrisis);
+
+                            /*
+                            12/2/17 LUKE -- Our hope is that LatLngListener being set to null will cause Java's
+                            built in Garbage collection to take care of it for us.
+                            */
+                            getLatLngListener = null;
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
