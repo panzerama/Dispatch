@@ -149,15 +149,23 @@ public class MainActivity extends AppCompatActivity
 
         mUserManager = new UserManager();
 
+        mUser = getIntent().getParcelableExtra("user");
+
         fab = (FloatingActionButton) findViewById(R.id.fab);
+
+        if(mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
+            fab.setVisibility(View.GONE);
+        }
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
             }
         });
-        
+
         determineIntent();
+
         context = getApplicationContext();
 
         DEFAULT_ZOOM = 13;
