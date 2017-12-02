@@ -94,7 +94,7 @@ public class CrisisManager {
         DatabaseReference newCrisisNode = crisisNode.push();
         inputCrisis.setCrisisID(newCrisisNode.getKey());
 
-        newCrisisNode.child(newCrisisNode.getKey()).updateChildren(inputCrisis.toMap());
+        newCrisisNode.updateChildren(inputCrisis.toMap());
     }
 
     //GetAddress of crisis based on ID
