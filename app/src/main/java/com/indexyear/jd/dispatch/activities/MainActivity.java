@@ -123,13 +123,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //TODO Resolve Crash Issue
-        //Changing visibility of item is causing crash
-        //So was previous method
-        //Commenting out for now until resolved
-        //Determine more stable approach
-        //createAddressInput();
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(map);
         mapFragment.getMapAsync(this);
         getLocationPermission();
@@ -153,7 +146,8 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
+//                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
+                CreateAddressDialog();
             }
         });
         

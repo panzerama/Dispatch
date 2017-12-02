@@ -1,5 +1,8 @@
 package com.indexyear.jd.dispatch.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.database.Exclude;
 
 import java.util.HashMap;
@@ -10,7 +13,7 @@ import java.util.Map;
  * Created by karibullard on 10/23/17.
  */
 
-public class Team {
+public class Team implements Parcelable {
 
     public String teamName;
     public String teamID;
@@ -30,13 +33,25 @@ public class Team {
         this.longitude = longitude;
     }
 
-    public String getTeamID() {
-        return teamID;
+    protected Team(Parcel in) {
+        teamName = in.readString();
+        teamID = in.readString();
+        teamMembers = in.createTypedArrayList(User.CREATOR);
+        latitude = in.readFloat();
+        longitude = in.readFloat();
     }
 
-    public void setTeamID(String teamID) {
-        this.teamID = teamID;
-    }
+    public static final Creator<Team> CREATOR = new Creator<Team>() {
+        @Override
+        public Team createFromParcel(Parcel in) {
+            return new Team(in);
+        }
+
+        @Override
+        public Team[] newArray(int size) {
+            return new Team[size];
+        }
+    };
 
     public String getTeamName() {
         return teamName;
@@ -44,6 +59,14 @@ public class Team {
 
     public void setTeamName(String teamName) {
         this.teamName = teamName;
+    }
+
+    public String getTeamID() {
+        return teamID;
+    }
+
+    public void setTeamID(String teamID) {
+        this.teamID = teamID;
     }
 
     public List<User> getTeamMembers() {
@@ -83,4 +106,19 @@ public class Team {
         return result;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+
+        parcel.writeList(teamMembers);
+        parcel.writeString(teamName);
+        parcel.writeString(teamID);
+        parcel.writeFloat(latitude);
+        parcel.writeFloat(longitude);
+
+    }
 }
