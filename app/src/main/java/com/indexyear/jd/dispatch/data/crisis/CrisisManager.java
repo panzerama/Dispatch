@@ -1,5 +1,8 @@
 package com.indexyear.jd.dispatch.data.crisis;
 
+import android.content.Context;
+import android.util.Log;
+
 import com.android.volley.Cache;
 import com.android.volley.Network;
 import com.android.volley.Request;
@@ -26,7 +29,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
-import static com.facebook.FacebookSdk.getCacheDir;
 
 public class CrisisManager {
     private static final String TAG = "CrisisManager";
@@ -77,7 +79,7 @@ public class CrisisManager {
     }
 
     public Crisis createNewCrisis(String crisisAddress){
-        String newKey = UUID.randomUUID().toString();
+        String newKey = UUID.randomUUID().toString(); // TODO: 11/30/17 JD update to reflect new method of assigning id from push() 
         Crisis newCrisis = new Crisis(newKey, crisisAddress, "Unspecified", "open");
 
         DatabaseReference newCrisisNode = mDatabase.child("crisis").child(newCrisis.getCrisisID());
@@ -122,19 +124,19 @@ public class CrisisManager {
         mListeners.add(crisisEventListener);
     }
 
-    public void GetLatLng(String crisisAddress, IGetLatLngListener incomingLatLngListener) {
+    public void GetLatLng(Context incomingContext, String crisisAddress, IGetLatLngListener incomingLatLngListener) {
 
         // 11/29/17 JD: register the observer
         getLatLngListener = incomingLatLngListener;
 
-        String googleKey = "" + R.string.google_geocoding_key;
+        String googleKey = incomingContext.getResources().getString(R.string.google_geocoding_key);
 
         crisisAddress = ConvertAddressToJSON(crisisAddress);
 
         RequestQueue mRequestQueue;
 
         // Instantiate the cache
-        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+        Cache cache = new DiskBasedCache(incomingContext.getCacheDir(), 1024 * 1024); // 1MB cap
 
         // Set up the network to use HttpURLConnection as the HTTP client.
         Network network = new BasicNetwork(new HurlStack());
@@ -148,6 +150,8 @@ public class CrisisManager {
 
         String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
                 "&key=" + googleKey;
+
+        Log.d(TAG, urlForGoogleMaps);
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
@@ -168,6 +172,7 @@ public class CrisisManager {
                             successfulCrisis.setLatitude(lat);
                             successfulCrisis.setLongitude(lng);
                             // crisisEventListener observes the success of json request
+                            // TODO: 12/1/17 JD failure test: what happens if the request is returned without info 
                             getLatLngListener.onCrisisGetLatLng(successfulCrisis);
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -192,10 +197,7 @@ public class CrisisManager {
     //Helper Method to GetLatLng
     //Making the address given parsable by HTTP
     private String ConvertAddressToJSON(String address) {
-
-        address.replace(' ', '+');
-
-        return address;
+        return address.replace(' ', '+');
     }
 
 

@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity
             Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
 
             //pass itself to it's own helper methods to get the lat and lng state assigned
-            acceptedCrisisManager.GetLatLng(intentCrisis.getCrisisAddress(), getLatLngListener);
+            acceptedCrisisManager.GetLatLng(context, intentCrisis.getCrisisAddress(), getLatLngListener);
         } else {
             mUser = getIntent().getParcelableExtra("user");
         }
@@ -342,7 +342,7 @@ public class MainActivity extends AppCompatActivity
                 };
 
                 CrisisManager inputCrisisManager = new CrisisManager();
-                inputCrisisManager.GetLatLng(crisisAddress, latLngListener);
+                inputCrisisManager.GetLatLng(context, crisisAddress, latLngListener);
             }
         });
 
