@@ -338,9 +338,16 @@ public class MainActivity extends AppCompatActivity
                         CrisisManager successfulLatLngCrisisManager = new CrisisManager();
                         successfulLatLngCrisisManager.addCrisisToDatabase(locationUpdatedCrisis);
 
-                        Intent i = new Intent(context, DispatchTeamActivity.class);
+                        LatLng identifiedLatLng = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
+                        PlacePinAndPositionCamera(identifiedLatLng);
+                        try{
+                            wait(3000);
+                        } catch (Exception e){
+                            Log.d(TAG, "onCrisisGetLatLng: " + e.getMessage());
+                        }
+                        /*Intent i = new Intent(context, DispatchTeamActivity.class);
                         i.putExtra("crisis", new CrisisParcel(locationUpdatedCrisis));
-                        startActivity(i);
+                        startActivity(i);*/
                     }
                 };
                 // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
