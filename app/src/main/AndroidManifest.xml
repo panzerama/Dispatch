@@ -103,7 +103,7 @@
         </activity>
 
         <service
-            android:name=".services.LocationServices"
+            android:name=".services.LocationService"
             android:enabled="true"
             android:exported="true"></service>
     </application>
