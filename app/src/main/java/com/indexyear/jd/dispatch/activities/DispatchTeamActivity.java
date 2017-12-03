@@ -113,7 +113,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
     private void triggerNotification(Crisis inputCrisis, String selectedTeam){
         inputCrisis.setTeamName(selectedTeam);
         inputCrisis.setStatus("open");
-        mCrisisManager.addCrisisToDatabase(inputCrisis);
+        mCrisisManager.updateCrisisInDatabase(inputCrisis);
     }
 
 }
