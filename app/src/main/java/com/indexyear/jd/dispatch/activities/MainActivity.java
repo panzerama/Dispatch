@@ -8,6 +8,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -331,17 +332,18 @@ public class MainActivity extends AppCompatActivity
                 crisisAddress = input.getText().toString();
                 IGetLatLngListener latLngListener = new IGetLatLngListener() {
                     @Override
-                    public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                    public void onCrisisGetLatLng(final Crisis locationUpdatedCrisis) {
 
                         LatLng identifiedLatLng = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
                         PlacePinAndPositionCamera(identifiedLatLng);
-                        try{
-                            wait(3000);
-                        } catch (Exception e){
-                            Log.d(TAG, "onCrisisGetLatLng: " + e.getMessage());
-                        }
 
-                        confirmAddressDialog(locationUpdatedCrisis);
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+                                // Actions to do after 10 seconds
+                                confirmAddressDialog(locationUpdatedCrisis);
+                            }
+                        }, 2000);
                     }
                 };
                 // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
