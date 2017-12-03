@@ -332,11 +332,6 @@ public class MainActivity extends AppCompatActivity
                 IGetLatLngListener latLngListener = new IGetLatLngListener() {
                     @Override
                     public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
-                        // 11/29/17 JD: only create and pass address when lat and long are found and
-                        // this is triggered.
-
-                        CrisisManager successfulLatLngCrisisManager = new CrisisManager();
-                        successfulLatLngCrisisManager.addCrisisToDatabase(locationUpdatedCrisis);
 
                         LatLng identifiedLatLng = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
                         PlacePinAndPositionCamera(identifiedLatLng);
@@ -345,9 +340,8 @@ public class MainActivity extends AppCompatActivity
                         } catch (Exception e){
                             Log.d(TAG, "onCrisisGetLatLng: " + e.getMessage());
                         }
-                        /*Intent i = new Intent(context, DispatchTeamActivity.class);
-                        i.putExtra("crisis", new CrisisParcel(locationUpdatedCrisis));
-                        startActivity(i);*/
+
+                        confirmAddressDialog(locationUpdatedCrisis);
                     }
                 };
                 // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
@@ -488,5 +482,33 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    private void confirmAddressDialog(final Crisis confirmedCrisis) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.confirm_crisis_address_title)
+                .setMessage(R.string.confirm_crisis_address_message);
+
+        builder.setPositiveButton(R.string.crisis_dialog_positive, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            //create new dialog, is this the right place?
+            CrisisManager successfulLatLngCrisisManager = new CrisisManager();
+            successfulLatLngCrisisManager.addCrisisToDatabase(confirmedCrisis);
+            Intent i = new Intent(context, DispatchTeamActivity.class);
+            i.putExtra("crisis", new CrisisParcel(confirmedCrisis));
+            //put extra user
+            startActivity(i);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 }
