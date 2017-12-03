@@ -81,7 +81,6 @@ public class DispatchTeamActivity extends AppCompatActivity {
 
                 selectedTeam = team.getTeamName();
                 createConfirmDispatchDialog();
-                triggerNotification(inputCrisisObject, selectedTeam);
             }
         });
     }
@@ -93,8 +92,7 @@ public class DispatchTeamActivity extends AppCompatActivity {
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                //TO-DO Send message to team notifying them they've been dispatched
-                //Create new dispatch activity node with pertinent details
+                triggerNotification(inputCrisisObject, selectedTeam);
                 Toast.makeText(context, "Dispatched"+ selectedTeam,
                         Toast.LENGTH_LONG).show();
             }
