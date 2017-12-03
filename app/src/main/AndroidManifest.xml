@@ -48,8 +48,7 @@
         </activity>
         <activity
             android:name=".activities.MainActivity"
-            android:label="@string/title_activity_main">
-        </activity>
+            android:label="@string/title_activity_main"></activity>
         <activity
             android:name=".activities.MessengerActivity"
             android:label="@string/title_activity_messenger">
@@ -86,7 +85,6 @@
             android:name=".activities.ShiftStartActivity"
             android:label="@string/title_activity_shift_start"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-
         <activity
             android:name=".activities.DispatchTeamActivity"
             android:label="@string/title_activity_shift_start"
@@ -95,7 +93,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity" />
         </activity>
-
         <activity
             android:name=".activities.CrisisReceived"
             android:label="@string/title_activity_crisis_received"
@@ -104,6 +101,11 @@
                 <action android:name="CRISIS_RECEIVED" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".services.LocationServices"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
