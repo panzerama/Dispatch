@@ -36,9 +36,8 @@ public class TeamManager {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 List<Team> currentTeams = new ArrayList<>();
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    Team t = new TeamFirebaseMapper().fromDataSnapshot(snap);
-                    Log.d("TeamManager", "OnDataChange - team id from snapshot = " + snap.child("teamID").getValue(String.class));
-                    Log.d("TeamManager", "OnDataChange - team name = " + t.getTeamName());
+//                    Team t = new TeamFirebaseMapper().fromDataSnapshot(snap);
+                    Team t = snap.getValue(Team.class);
                     currentTeams.add(t);
                 }
                 updateCurrentTeamsList(currentTeams);
@@ -56,7 +55,8 @@ public class TeamManager {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (ITeamEventListener mListener: mListeners) {
-                    mListener.onTeamCreated(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+//                    mListener.onTeamCreated(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onTeamCreated(dataSnapshot.getValue(Team.class));
                 }
             }
 
@@ -64,7 +64,8 @@ public class TeamManager {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (ITeamEventListener mListener: mListeners) {
-                    mListener.onTeamUpdated(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+//                    mListener.onTeamUpdated(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onTeamUpdated(dataSnapshot.getValue(Team.class));
                 }
             }
 
@@ -73,6 +74,7 @@ public class TeamManager {
                 if (mListeners.isEmpty()) { return; }
                 for (ITeamEventListener mListener: mListeners) {
                     mListener.onTeamRemoved(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onTeamRemoved(dataSnapshot.getValue(Team.class));
                 }
             }
 
@@ -90,10 +92,10 @@ public class TeamManager {
 
     public void addNewListener(ITeamEventListener newListener) { mListeners.add(newListener); }
 
-    public void addEmployeeAndToken(Team team, User updateUser) {
-        Log.d("TeamManager", "add user " + updateUser.getUserID() + " and " + team.getTeamID());
-        mDatabase.child("teams").child(team.getTeamID()).child("teamMembers").child(updateUser.getUserID()).updateChildren(updateUser.toMap());
-    }
+//    public void addEmployeeAndToken(Team team, User updateUser) {
+//        Log.d("TeamManager", "add user " + updateUser.getUserID() + " and " + team.getTeamID());
+//        mDatabase.child("teams").child(team.getTeamID()).child("teamMembers").child(updateUser.getUserID()).updateChildren(updateUser.toMap());
+//    }
 
     public List<Team> getCurrentTeamsList() {
         return mCurrentTeamsList;
