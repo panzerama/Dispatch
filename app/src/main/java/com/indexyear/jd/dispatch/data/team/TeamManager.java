@@ -36,7 +36,8 @@ public class TeamManager {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 List<Team> currentTeams = new ArrayList<>();
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    Team t = new TeamFirebaseMapper().fromDataSnapshot(snap);
+//                    Team t = new TeamFirebaseMapper().fromDataSnapshot(snap);
+                    Team t = snap.getValue(Team.class);
                     Log.d("TeamManager", "OnDataChange - team id from snapshot = " + snap.child("teamID").getValue(String.class));
                     Log.d("TeamManager", "OnDataChange - team name = " + t.getTeamName());
                     currentTeams.add(t);

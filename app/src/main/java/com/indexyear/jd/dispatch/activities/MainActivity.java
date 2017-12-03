@@ -153,8 +153,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-//                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
-                CreateAddressDialog();
+                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
             }
         });
 
@@ -191,8 +190,6 @@ public class MainActivity extends AppCompatActivity
 
             //pass itself to it's own helper methods to get the lat and lng state assigned
             acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
-        } else {
-            mUser = getIntent().getParcelableExtra("user");
         }
     }
 
