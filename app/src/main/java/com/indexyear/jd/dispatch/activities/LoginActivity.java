@@ -91,7 +91,6 @@ public class LoginActivity
         mAuth.addAuthStateListener(mAuthListener);
         mAnalyticsInstance = FirebaseAnalytics.getInstance(this);
         mUserManager = new UserManager();
-        setUserEventListener();
     }
 
     @Override
@@ -189,31 +188,10 @@ public class LoginActivity
     }
 
     private void createEmployee(String email){
-        User newUser = User.createFromIDAndEmail(mAuth.getUid(), email);
-        newUser.setToken(FirebaseInstanceId.getInstance().getToken());
-        mUserManager.addOrUpdateNewEmployee(newUser);
-    }
+//        User newUser = User.createFromIDAndEmail(mAuth.getUid(), email);
+//        newUser.setToken(FirebaseInstanceId.getInstance().getToken());
+//        mUserManager.addOrUpdateNewEmployee(newUser);
+        //TODO KB Don't create new user object instead push changes to the current user object
 
-    public void setUserEventListener(){
-        mUserEventListener = new IUserEventListener() {
-            @Override
-            public void onUserCreated(User newUser) {
-                if (mUser == null) { mUser = newUser; }
-            }
-
-            @Override
-            public void onUserRemoved(User removedUser) {
-                //do nothing
-            }
-
-            @Override
-            public void onUserUpdated(User updatedUser) {
-                if (mUser == null) { mUser = updatedUser; }
-                else if (updatedUser.getUserID().equals(mUser.getUserID())){
-                    mUser.updateUser(updatedUser);
-                }
-            }
-        };
-        mUserManager.addNewListener(mUserEventListener);
     }
 }

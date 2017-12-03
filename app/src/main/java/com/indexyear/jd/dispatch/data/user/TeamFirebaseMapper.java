@@ -23,11 +23,6 @@ public class TeamFirebaseMapper {
         }
 
         return new Team(
-                snapshot.child("teamName").getValue(String.class),
-                snapshot.child("teamID").getValue(String.class),
-                teamMembers,
-                Float.parseFloat(latitude),
-                Float.parseFloat(longitude)
         );
     }
 }

@@ -32,168 +32,121 @@ import com.indexyear.jd.dispatch.models.User;
 
 import android.Manifest;
 
-public class LocationService extends Service implements
-        GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        com.google.android.gms.location.LocationListener {
+public class LocationService extends Service {
 
-    private LocationManager lm;
-    private LocationRequest mLocationRequest;
-    private GoogleApiClient mGoogleApiClient;
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-    private static final String LOGSERVICE = "#######";
-
-    final private int REQUEST_CODE_ASK_PERMISSIONS = 123;
-    private LatLng userLocation;
-
+    private LocationManager mLocationManager = null;
+    private static final int LOCATION_INTERVAL = 1000;
+    private static final float LOCATION_DISTANCE = 10f;
     private FirebaseAuth mAuth;
-    private UserManager mUserManager;
-    private DatabaseReference mDatabase; //Firebase reference
-    private User mUser;
+    private DatabaseReference mDatabase;
 
-    private IUserEventListener mUserEventListener;
+    private class LocationListener implements android.location.LocationListener
+    {
+        Location mLastLocation;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        buildGoogleApiClient();
-        mAuth = FirebaseAuth.getInstance();
+        public LocationListener(String provider)
+        {
+            mLastLocation = new Location(provider);
+            updateUserLocation(mLastLocation);
+        }
 
-        mUserManager = new UserManager();
-        setUserEventListener();
-        mUserManager.getUser(mAuth.getCurrentUser().getUid(), new IGetUserListener() {
-            @Override
-            public void onGetSingleUser(User retrievedUser) {
-                mUser = retrievedUser;
-            }
+        @Override
+        public void onLocationChanged(Location location)
+        {
+            mLastLocation.set(location);
+            updateUserLocation(location);
+        }
 
-            @Override
-            public void onFailedSingleUser() {
-            }
-        });
+        @Override
+        public void onProviderDisabled(String provider)
+        {
+        }
 
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        @Override
+        public void onProviderEnabled(String provider)
+        {
+        }
 
-        Log.i(LOGSERVICE, "onCreate");
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras)
+        {
+        }
     }
 
-    private void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addOnConnectionFailedListener(this)
-                .addConnectionCallbacks(this)
-                .addApi(LocationServices.API)
-                .build();
+    private void updateUserLocation(Location location){
+        String userID = mAuth.getCurrentUser().getUid();
+        if(!userID.isEmpty()){
+            mDatabase.child("users").child(userID).child("latitude").setValue(location.getLatitude());
+            mDatabase.child("users").child(userID).child("longitude").setValue(location.getLongitude());
+        } else {
+            mDatabase.child("users").child(userID).child("latitude").setValue(0);
+            mDatabase.child("users").child(userID).child("longitude").setValue(0);
+        }
+    }
 
+    LocationListener[] mLocationListeners = new LocationListener[] {
+            new LocationListener(LocationManager.GPS_PROVIDER),
+            new LocationListener(LocationManager.NETWORK_PROVIDER)
+    };
+
+    @Override
+    public IBinder onBind(Intent arg0)
+    {
+        return null;
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(LOGSERVICE, "onStartCommand");
-
-        if (!mGoogleApiClient.isConnected())
-            mGoogleApiClient.connect();
+    public int onStartCommand(Intent intent, int flags, int startId)
+    {
+        super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
 
-
-    public LocationService() {
-    }
-
     @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.i(LOGSERVICE, "onConnected" + bundle);
-
-
-
+    public void onCreate()
+    {
+        mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        initializeLocationManager();
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[1]);
+        } catch (java.lang.SecurityException ex) {
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.i(LOGSERVICE, "Permission not granted");
-            return;
-        } else {
-            Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location == null){ location = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(0); location.setLongitude(0);}
-            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+        } catch (IllegalArgumentException ex) {
+
         }
+        try {
+            mLocationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE,
+                    mLocationListeners[0]);
+        } catch (java.lang.SecurityException ex) {
 
-        //Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        //if (mLastLocation != null) {
-        //Log.i(LOGSERVICE, "lat " + mLastLocation.getLatitude());
-        //Log.i(LOGSERVICE, "lng " + mLastLocation.getLongitude());
+        } catch (IllegalArgumentException ex) {
 
-        startLocationUpdates();
-    }
-    private void startLocationUpdates() {
-        initLocationRequest();
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.i(LOGSERVICE, "Permission not granted.");
-            return;
-        } else {
-            LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
-            buildGoogleApiClient();
-
-            if (mUser.getUserID() != null) {
-                mDatabase.child("users").child(mUser.getUserID()).child("latitude").setValue(userLocation.latitude);
-                mDatabase.child("users").child(mUser.getUserID()).child("longitude").setValue(userLocation.longitude);
-            } else {
-                Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
-                        Toast.LENGTH_LONG).show();
-            }
         }
     }
 
-    private void initLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(5000);
-        mLocationRequest.setFastestInterval(2000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-
-    }
-
     @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    public void setUserEventListener(){
-        mUserEventListener = new IUserEventListener() {
-            @Override
-            public void onUserCreated(User newUser) {
-                if (mUser == null) { mUser = newUser; }
-            }
-
-            @Override
-            public void onUserRemoved(User removedUser) {
-                //do nothing
-            }
-
-            @Override
-            public void onUserUpdated(User updatedUser) {
-                if (mUser == null) { mUser = updatedUser; }
-                else if (updatedUser.getUserID().equals(mUser.getUserID())){
-                    mUser.updateUser(updatedUser);
+    public void onDestroy()
+    {
+        super.onDestroy();
+        if (mLocationManager != null) {
+            for (int i = 0; i < mLocationListeners.length; i++) {
+                try {
+                    mLocationManager.removeUpdates(mLocationListeners[i]);
+                } catch (Exception ex) {
                 }
             }
-        };
-        mUserManager.addNewListener(mUserEventListener);
+        }
     }
+
+    private void initializeLocationManager() {
+        if (mLocationManager == null) {
+            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+        }
+    }
+
 }

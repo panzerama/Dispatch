@@ -35,7 +35,8 @@ public class UserManager {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (IUserEventListener mListener: mListeners) {
-                    mListener.onUserCreated(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+//                    mListener.onUserCreated(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onUserCreated(dataSnapshot.getValue(User.class));
                 }
             }
 
@@ -43,7 +44,8 @@ public class UserManager {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (IUserEventListener mListener: mListeners) {
-                    mListener.onUserUpdated(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+//                    mListener.onUserUpdated(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onUserUpdated(((dataSnapshot.getValue(User.class))));
                 }
             }
 
@@ -51,7 +53,8 @@ public class UserManager {
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 if (mListeners.isEmpty()) { return; }
                 for (IUserEventListener mListener: mListeners) {
-                    mListener.onUserRemoved(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+//                    mListener.onUserRemoved(new UserFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onUserRemoved((dataSnapshot.getValue(User.class)));
                 }
             }
 
@@ -71,10 +74,11 @@ public class UserManager {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 List<User> currentUsers = new ArrayList<>();
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    User u = new UserFirebaseMapper().fromDataSnapshot(snap);
+//                    User u = new UserFirebaseMapper().fromDataSnapshot(snap);
+                    User u = snap.getValue(User.class);
                     currentUsers.add(u);
                 }
-                updateCurrentUsersList(currentUsers);
+//                updateCurrentUsersList(currentUsers);
             }
 
             @Override
@@ -107,35 +111,35 @@ public class UserManager {
         dbRef.child("users").child(userID).child("currentTeam").setValue(team);
     }
 
-    public static Team getTeam(final String teamName){
-        final Team[] team = {null};
-        try {
-            final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-            dbRef.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
-                        if(teamSnapshot.getKey().toString().equals((teamName.replaceAll("\\s+","")))){
-                            DatabaseReference ref = teamSnapshot.getRef().child("teamMembers");
-                            final Team team = dataSnapshot.getValue(Team.class);
-                        }
-                    }
-                }
+//    public static Team getTeam(final String teamName){
+//        final Team[] team = {null};
+//        try {
+//            final DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+//            dbRef.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(DataSnapshot dataSnapshot) {
+//                    for(DataSnapshot teamSnapshot : dataSnapshot.getChildren()){
+//                        if(teamSnapshot.getKey().toString().equals((teamName.replaceAll("\\s+","")))){
+//                            DatabaseReference ref = teamSnapshot.getRef().child("teamMembers");
+//                            final Team team = dataSnapshot.getValue(Team.class);
+//                        }
+//                    }
+//                }
+//
+//                @Override
+//                public void onCancelled(DatabaseError databaseError) {
+//
+//                }
+//            });
+//        } catch (Exception e) {
+//            Log.d(TAG, e.toString());
+//        }
+//        return team[0];
+//    }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        } catch (Exception e) {
-            Log.d(TAG, e.toString());
-        }
-        return team[0];
-    }
-
-    public void setReturnEmployee(User user){
-         this.mUser = user;
-    }
+//    public void setReturnEmployee(User user){
+//         this.mUser = user;
+//    }
 
     public void getUser(String userID, IGetUserListener userListener){
         mGetUserListener = userListener;
@@ -163,23 +167,23 @@ public class UserManager {
         dbRef.child("users").child(userID).child("currentStatus").setValue(status);
     }
 
-    public void setUserNotificationToken(String userID, String token) {
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-        dbRef.child("users").child(userID).child("notificationToken").setValue(token);
-    }
+//    public void setUserNotificationToken(String userID, String token) {
+//        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+//        dbRef.child("users").child(userID).child("notificationToken").setValue(token);
+//    }
 
-    private void updateCurrentUsersList(List<User> currentUsers) {
-        mUserList = currentUsers;
-    }
+//    private void updateCurrentUsersList(List<User> currentUsers) {
+//        mUserList = currentUsers;
+//    }
 
-    public void setUserLocation(String userID, Location location){
-        try {
-            mDatabase.child("users").child(userID).child("latitude").setValue(location.getLatitude());
-            mDatabase.child("users").child(userID).child("longitude").setValue(location.getLongitude());
-        } catch (Exception e) {
-            Log.d("UserManager", "Error setting longitude and latitude");
-        }
-
-    }
+//    public void setUserLocation(String userID, Location location){
+//        try {
+//            mDatabase.child("users").child(userID).child("latitude").setValue(location.getLatitude());
+//            mDatabase.child("users").child(userID).child("longitude").setValue(location.getLongitude());
+//        } catch (Exception e) {
+//            Log.d("UserManager", "Error setting longitude and latitude");
+//        }
+//
+//    }
 
 }

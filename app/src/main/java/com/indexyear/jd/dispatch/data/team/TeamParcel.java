@@ -33,14 +33,13 @@ public class TeamParcel implements Parcelable {
         float latitude = in.readFloat();
         float longitude = in.readFloat();
 
-        mTeam = new Team(teamName, teamID, teamMembers, latitude, longitude);
+        mTeam = new Team();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mTeam.teamName);
         dest.writeString(mTeam.teamID);
-        dest.writeList(mTeam.teamMembers);
         dest.writeFloat(mTeam.latitude);
         dest.writeFloat(mTeam.longitude);
     }

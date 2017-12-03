@@ -206,16 +206,16 @@ public class ShiftStartActivity extends AppCompatActivity {
         status_spinner.setSelection(0);
     }
 
-    private void updateUserLocation(Location location) {
-        Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
-        mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
-        mUser.setLatitude((float) location.getLatitude());
-        mUser.setLatitude((float) location.getLongitude());
-    }
+//    private void updateUserLocation(Location location) {
+//        Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
+//        mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
+//        mUser.setLatitude((float) location.getLatitude());
+//        mUser.setLatitude((float) location.getLongitude());
+//    }
 
-    private void setMUserValue(User retrievedUser) {
-        mUser = retrievedUser;
-    }
+//    private void setMUserValue(User retrievedUser) {
+//        mUser = retrievedUser;
+//    }
 
 }
 
