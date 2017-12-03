@@ -87,7 +87,7 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".activities.DispatchTeamActivity"
-            android:label="@string/title_activity_shift_start"
+            android:label="@string/title_dispatch_team"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
