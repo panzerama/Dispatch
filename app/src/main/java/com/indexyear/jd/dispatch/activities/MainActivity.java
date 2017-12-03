@@ -146,14 +146,16 @@ public class MainActivity extends AppCompatActivity
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        if(mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
+        if (mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
             fab.setVisibility(View.GONE);
         }
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
+                if (mUser.getCurrentRole().equals("Dispatcher")) {
+                    CreateAddressDialog();
+                }
             }
         });
 
@@ -314,7 +316,7 @@ public class MainActivity extends AppCompatActivity
     private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.crisis_dialog_title)
-               .setMessage(R.string.crisis_dialog_message);
+                .setMessage(R.string.crisis_dialog_message);
 
         //address input
         final AppCompatEditText input = new AppCompatEditText(this);
@@ -466,7 +468,7 @@ public class MainActivity extends AppCompatActivity
     private void createAddressInput() {
 
         // If the current user is dispatch, then this should be create address dialog.
-        if(mUser.getCurrentRole().equals("MCT")){
+        if (mUser.getCurrentRole().equals("MCT")) {
             fab.setVisibility(View.INVISIBLE);
         } else {
             fab.setVisibility(View.VISIBLE);
