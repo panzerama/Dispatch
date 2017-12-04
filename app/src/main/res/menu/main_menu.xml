@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/spinner"
+        android:theme="@style/AppTheme.Spinner"
         android:title="@string/user_status_spinner"
         app:actionViewClass="android.widget.Spinner"
-        app:showAsAction="always"
-        android:theme="@style/AppTheme.Spinner"/>
+        app:showAsAction="always" />
 </menu>

@@ -11,14 +11,6 @@
     tools:context="com.indexyear.jd.dispatch.activities.LoginActivity">
 
     <!-- Login progress -->
-    <ProgressBar
-        android:id="@+id/login_progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:visibility="gone" />
-
     <ScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
@@ -56,10 +48,13 @@
                     android:hint="@string/prompt_password"
                     android:imeActionId="@+id/login"
                     android:imeActionLabel="@string/action_sign_in_short"
+
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPassword"
                     android:maxLines="1"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
 
             </android.support.design.widget.TextInputLayout>
 
@@ -69,8 +64,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:background="@color/colorPrimaryBondiBlue"
+
                 android:text="@string/action_sign_in"
-                android:textStyle="bold" />
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textWeight="5dp" />
 
             <Button
                 android:id="@+id/email_sign_out_button"
@@ -78,9 +77,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
+                android:background="@color/colorPrimaryBondiBlue"
                 android:text="@string/action_sign_out"
-                android:textStyle="bold" />
+                android:textSize="20sp"
+                android:textStyle="normal|bold"
+                android:textWeight="5dp" />
 
         </LinearLayout>
     </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/login_progress"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone" />
+
 </LinearLayout>

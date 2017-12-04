@@ -52,12 +52,12 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_shift_start">Choose Role and Status</string>
-    <string name="role_label">Choose role</string>
+    <string name="role_label">Choose Role</string>
     <string name="status_label">Set your status</string>
     <string name="team_label">Choose your team</string>
 
     <string-array name="role_spinner_options">
-        <item>Select role...</item>
+        <item>Select Role</item>
         <item>MCT</item>
         <item>Dispatcher</item>
     </string-array>
@@ -79,7 +79,7 @@
     <string name="begin_shift_button_text">Begin Shift</string>
     <string name="title_activity_crisis_received">CrisisReceived</string>
 
-    <string name="crisis_header">New Dispatch Event!</string>
+    <string name="crisis_header">New Dispatch Event</string>
     <string name="crisis_address">CrisisAddress</string>
     <string name="crisis_timestamp">CrisisTime</string>
     <string name="accept_dispatch_button">Accept</string>

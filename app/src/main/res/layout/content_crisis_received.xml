@@ -9,19 +9,25 @@
     tools:showIn="@layout/activity_crisis_received">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_width="368dp"
+        android:layout_height="495dp"
+        android:orientation="vertical"
+        android:padding="10dp"
+        tools:layout_editor_absoluteY="8dp"
+        tools:layout_editor_absoluteX="8dp">
 
         <TextView
             android:id="@+id/crisisHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="20dp"
             android:layout_marginStart="84dp"
             android:layout_marginTop="16dp"
             android:text="@string/crisis_header"
-            android:textSize="30sp"
+            android:textStyle="bold"
+           android:textColor="@color/authui_colorActivated"
+            android:textWeight="10dp"
+            android:textSize="28sp"
             app:layout_constraintBottom_toTopOf="@+id/crisisTimestamp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -31,9 +37,12 @@
             android:id="@+id/crisisTimestamp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginLeft="10dp"
+            android:textColor="@color/authui_colorActivated"
             android:text="@string/crisis_timestamp"
-            android:textSize="30sp"
+            android:textSize="25dp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/crisisAddress"
             tools:layout_editor_absoluteX="134dp" />
 
@@ -41,9 +50,12 @@
             android:id="@+id/crisisAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="36dp"
+            android:layout_marginBottom="30dp"
+            android:layout_marginLeft="10dp"
+            android:textColor="@color/authui_colorActivated"
             android:text="@string/crisis_address"
-            android:textSize="30sp"
+            android:textSize="25sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/acceptDispatchButton"
             tools:layout_editor_absoluteX="113dp" />
 
@@ -51,7 +63,10 @@
             android:id="@+id/acceptDispatchButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/colorPrimaryBondiBlue"
             android:text="@string/accept_dispatch_button"
+            android:textSize="25dp"
+            android:textStyle="bold"
             tools:layout_editor_absoluteX="161dp"
             tools:layout_editor_absoluteY="371dp" />
     </LinearLayout>

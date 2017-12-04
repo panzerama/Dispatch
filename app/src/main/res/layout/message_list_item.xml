@@ -11,8 +11,13 @@
         android:id="@+id/title_mct_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:layout_margin="20dp"
+        android:padding="20dp"
         android:text="Team Name"
+        android:textColor="@color/authui_colorActivated"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textWeight="5dp"
         android:textAppearance="@style/TextAppearance.AppCompat.SearchResult.Title" />
 
 </LinearLayout>

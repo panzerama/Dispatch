@@ -11,21 +11,27 @@
     <LinearLayout
         android:layout_width="368dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginRight="8dp"
+        android:layout_marginRight="10dp"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginLeft="8dp"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:layout_marginLeft="10dp"
+        android:padding="10dp"
         app:layout_constraintLeft_toLeftOf="parent">
 
         <TextView
             android:id="@+id/role_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:text="@string/role_label"
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:entries="@array/role_spinner_options"
             app:layout_constraintBottom_toTopOf="@+id/role_spinner"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.953"
@@ -34,9 +40,12 @@
         <Spinner
             android:id="@+id/role_spinner"
             android:layout_width="match_parent"
-            android:layout_height="47dp"
+            android:layout_height="50dp"
             android:layout_marginStart="40dp"
             android:entries="@array/role_spinner_options"
+
+            android:textColor="@color/authui_colorActivated"
+            android:textSize="25sp"
             app:layout_constraintStart_toStartOf="parent"
             tools:layout_editor_absoluteY="420dp" />
 
@@ -45,7 +54,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
+            android:textColor="@color/authui_colorActivated"
+            android:textAlignment="center"
+            android:textSize="25sp"
             android:text="@string/team_label"
+
+            android:textStyle="bold"
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/team_spinner"
             tools:layout_editor_absoluteX="40dp" />
@@ -63,9 +77,12 @@
             android:id="@+id/status_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:text="@string/status_label"
+            android:textColor="@color/authui_colorActivated"
+           android:textAlignment="center"
+            android:textSize="25sp"
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/status_spinner"
             app:layout_constraintTop_toBottomOf="@+id/role_spinner"
@@ -76,7 +93,7 @@
             android:id="@+id/status_spinner"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="15dp"
             android:layout_marginStart="40dp"
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/team_label"
@@ -86,6 +103,8 @@
             android:id="@+id/shift_start_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@color/colorPrimaryBondiBlue"
             android:text="@string/begin_shift_button_text" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

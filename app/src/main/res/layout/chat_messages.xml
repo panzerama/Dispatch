@@ -7,6 +7,9 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         android:id="@+id/message_user"
+        android:textSize="20sp"
+
+        android:textWeight="5dp"
         android:text="User Name"
         android:textStyle="normal|bold" />
 
@@ -16,6 +19,9 @@
         android:layout_alignBottom="@+id/message_user"
         android:layout_alignParentEnd="true"
         android:text="User Time"
+        android:textSize="20sp"
+        android:textStyle="normal|bold"
+        android:textWeight="5dp"
         android:id="@+id/message_time" />
 
     <TextView
@@ -25,7 +31,9 @@
         android:layout_alignParentStart="true"
         android:layout_marginTop="5dp"
         android:id="@+id/message_text"
-        android:text="message.............."
+        android:textStyle="normal|bold"
+        android:textWeight="5dp"
+        android:text="Message"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="18sp" />
+        android:textSize="20sp" />
 </RelativeLayout>
