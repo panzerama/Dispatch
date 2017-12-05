@@ -56,33 +56,6 @@ public class DispatchTeamActivity extends AppCompatActivity {
         CrisisParcel incomingCrisisParcel = intent.getParcelableExtra("crisis");
         inputCrisisObject = incomingCrisisParcel.getCrisis();
 
-        createTeamList();
-    }
-
-    private void createTeamList() {
-
-        listOfTeams = (ListView)findViewById(R.id.mct_dispatch_list);
-
-        adapter = new FirebaseListAdapter<Team>(this, Team.class,
-                R.layout.message_list_item, FirebaseDatabase.getInstance().getReference().child("teams")) {
-            @Override
-            protected void populateView(View v, Team model, int position) {
-                TextView teamName = (TextView)v.findViewById(R.id.title_mct_name);
-                teamName.setText(model.getTeamName());
-            }
-        };
-
-        listOfTeams.setAdapter(adapter);
-
-        listOfTeams.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Team team = (Team)parent.getItemAtPosition(position);
-
-                selectedTeam = team.getTeamName();
-                createConfirmDispatchDialog();
-            }
-        });
     }
 
     private void createConfirmDispatchDialog(){
