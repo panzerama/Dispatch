@@ -305,9 +305,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         switch (item.getItemId()) {
-            case R.id.nav_message:
-                Intent intent = new Intent(this, MessengerActivity.class);
-                this.startActivity(intent);
+            default:
                 break;
         }
 
