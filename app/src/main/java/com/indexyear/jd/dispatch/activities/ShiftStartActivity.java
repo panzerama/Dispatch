@@ -144,6 +144,7 @@ public class ShiftStartActivity extends AppCompatActivity {
 
                 //putting the User(userID, role) as an extra to send with the intent.
                 shiftStartHandoff.putExtra("user", mUser);
+                shiftStartHandoff.putExtra("intent_purpose", "passing_user");
 
                 startActivity(shiftStartHandoff);
             }

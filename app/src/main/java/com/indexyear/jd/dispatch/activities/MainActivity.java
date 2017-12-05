@@ -32,6 +32,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -142,58 +143,65 @@ public class MainActivity extends AppCompatActivity
         }
 
         mUserManager = new UserManager();
-
-        mUser = getIntent().getParcelableExtra("user");
-
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        if (mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
-            fab.setVisibility(View.GONE);
-        }
-
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mUser.getCurrentRole().equals("Dispatcher")) {
-                    CreateAddressDialog();
-                }
-            }
-        });
-
         determineIntent();
-
+        createAddressDialogButton();
         context = getApplicationContext();
 
         DEFAULT_ZOOM = 13;
-        mDefaultLocation = new LatLng(47.6062, 122.3321);
+        mDefaultLocation = new LatLng(0, 0);
     }
 
-    private void determineIntent() {
+    private void createAddressDialogButton() {
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mUser != null) {
+                    if (mUser.getCurrentRole().equals("Dispatcher")) {
+                        CreateAddressDialog();
+                    }
+                }
+            }
+        });
+        if (mUser != null) {
+            if (mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
+                fab.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private boolean determineIntent() {
         // figure out which way to handle the incoming intent
         String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
 
-        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
+        if (incomingIntentPurpose != null) {
 
-            IGetLatLngListener getLatLngListener = new IGetLatLngListener() {
-                @Override
-                public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
-                    //set the LatLng of the Crisis
-                    LatLng addressPosition;
-                    addressPosition = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
-
-                    //Use the new LatLng to place a pin on the map.
-                    PlacePinAndPositionCamera(addressPosition);
-                }
-            };
-
-            //if we have a Crisis with the intent get the Crisis Object
-            CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
-            CrisisManager acceptedCrisisManager = new CrisisManager();
-            Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
-
-            //pass itself to it's own helper methods to get the lat and lng state assigned
-            acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
+            switch (incomingIntentPurpose) {
+                case "crisis_map_update":
+                    IGetLatLngListener getLatLngListener = new IGetLatLngListener() {
+                        @Override
+                        public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                            //set the LatLng of the Crisis
+                            LatLng addressPosition;
+                            addressPosition = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
+                            //Use the new LatLng to place a pin on the map.
+                            PlacePinAndPositionCamera(addressPosition);
+                        }
+                    };
+                    //if we have a Crisis with the intent get the Crisis Object
+                    CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+                    CrisisManager acceptedCrisisManager = new CrisisManager();
+                    Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
+                    //pass itself to it's own helper methods to get the lat and lng state assigned
+                    acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
+                    break;
+                case "passing_user":
+                    mUser = getIntent().getParcelableExtra("user");
+                    break;
+            }
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -314,6 +322,14 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    @Override
+    public void onBackPressed(){
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
     private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.crisis_dialog_title)
@@ -377,16 +393,19 @@ public class MainActivity extends AppCompatActivity
         statusSpinner.setAdapter(adapter);
 
         // gets the current status and positions the spinner accordingly
-        // String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Offline";
-        int spinnerPosition = adapter.getPosition(mUser.getCurrentStatus());
-        statusSpinner.setSelection(spinnerPosition);
+        if (mUser != null) {
+            int spinnerPosition = adapter.getPosition(mUser.getCurrentStatus());
+            statusSpinner.setSelection(spinnerPosition);
+        }
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
-                mUserManager.setUserStatus(mUser.getUserID(), text);
-                mUser.setCurrentStatus(text);
+                if (mUser != null) {
+                    mUserManager.setUserStatus(mUser.getUserID(), text);
+                    mUser.setCurrentStatus(text);
+                }
             }
 
             @Override
@@ -492,13 +511,15 @@ public class MainActivity extends AppCompatActivity
         builder.setPositiveButton(R.string.crisis_dialog_positive, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-            //create new dialog, is this the right place?
-            CrisisManager successfulLatLngCrisisManager = new CrisisManager();
-            successfulLatLngCrisisManager.addCrisisToDatabase(confirmedCrisis);
-            Intent i = new Intent(context, DispatchTeamActivity.class);
-            i.putExtra("crisis", new CrisisParcel(confirmedCrisis));
-            //put extra user
-            startActivity(i);
+                //create new dialog, is this the right place?
+                CrisisManager successfulLatLngCrisisManager = new CrisisManager();
+                successfulLatLngCrisisManager.addCrisisToDatabase(confirmedCrisis);
+                Intent dispatchActivity = new Intent(context, DispatchTeamActivity.class);
+                dispatchActivity.putExtra("user", mUser);
+                dispatchActivity.putExtra("intent_purpose", "passing_user");
+                dispatchActivity.putExtra("crisis", new CrisisParcel(confirmedCrisis));
+                //put extra user
+                startActivity(dispatchActivity);
             }
         });
 
