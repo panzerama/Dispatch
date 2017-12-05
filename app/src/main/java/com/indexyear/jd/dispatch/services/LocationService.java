@@ -1,5 +1,6 @@
 package com.indexyear.jd.dispatch.services;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -113,15 +114,17 @@ public class LocationService extends Service implements
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        //lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.i(LOGSERVICE, "Permission not granted");
             return;
         } else {
-            Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location == null){ location = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(0); location.setLongitude(0);}
-            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            Location l = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            // Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            // if (l == null){ l = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(122); location.setLongitude(344);}
+            userLocation = new LatLng(l.getLatitude(), l.getLongitude());
         }
 
         //Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -138,7 +141,8 @@ public class LocationService extends Service implements
             Log.i(LOGSERVICE, "Permission not granted.");
             return;
         } else {
-            LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            // LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
             buildGoogleApiClient();
 
             if (mUser.getUserID() != null) {
