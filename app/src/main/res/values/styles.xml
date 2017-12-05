@@ -6,6 +6,14 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary1">#3F51B5</item>
+        <item name="colorPrimaryDark2">#303F9F</item>
+        <item name="colorAccent2">#00838f</item>
+        <item name="colorSecondaryPattensBlue">#D5EEF6</item>
+        <item name="colorPrimaryViridian">#3C8476</item>
+        <item name="colorPrimaryBondiBlue">#006c87</item>
+        <item name="clorPrimaryLightYellow">#e39717</item>
+         <item name="colorPrimaryCmyk">#475564</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -39,11 +47,11 @@
 
     <style name="MyAlertDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
         <!-- Used for the buttons -->
-        <item name="colorAccent">#FFC107</item>
+        <item name="colorAccent">#475564</item>
         <!-- Used for the title and text -->
-        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textColorPrimary">#3F51B5</item>
         <!-- Used for the background -->
-        <item name="android:background">#4CAF50</item>
+        <item name="android:background">#475564</item>
     </style>
 
 </resources>
