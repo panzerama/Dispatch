@@ -59,33 +59,35 @@
             app:layout_constraintStart_toStartOf="parent"
             tools:layout_editor_absoluteY="613dp" />
 
-        <TextView
-            android:id="@+id/status_label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginTop="8dp"
-            android:text="@string/status_label"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/status_spinner"
-            app:layout_constraintTop_toBottomOf="@+id/role_spinner"
-            app:layout_constraintVertical_bias="0.513"
-            tools:layout_editor_absoluteX="35dp" />
+        <!--TODO KB 12/5/17 can be removed-->
+        <!--<TextView-->
+            <!--android:id="@+id/status_label"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginBottom="8dp"-->
+            <!--android:layout_marginTop="8dp"-->
+            <!--android:text="@string/status_label"-->
+            <!--android:visibility="invisible"-->
+            <!--app:layout_constraintBottom_toTopOf="@+id/status_spinner"-->
+            <!--app:layout_constraintTop_toBottomOf="@+id/role_spinner"-->
+            <!--app:layout_constraintVertical_bias="0.513"-->
+            <!--tools:layout_editor_absoluteX="35dp" />-->
 
-        <Spinner
-            android:id="@+id/status_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginBottom="12dp"
-            android:layout_marginStart="40dp"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/team_label"
-            app:layout_constraintStart_toStartOf="parent" />
+        <!--<Spinner-->
+            <!--android:id="@+id/status_spinner"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="40dp"-->
+            <!--android:layout_marginBottom="12dp"-->
+            <!--android:layout_marginStart="40dp"-->
+            <!--android:visibility="invisible"-->
+            <!--app:layout_constraintBottom_toTopOf="@+id/team_label"-->
+            <!--app:layout_constraintStart_toStartOf="parent" />-->
 
         <Button
             android:id="@+id/shift_start_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/begin_shift_button_text" />
+
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
