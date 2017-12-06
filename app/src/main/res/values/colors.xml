@@ -3,4 +3,9 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#00838f</color>
+    <color name="colorSecondaryPattensBlue">#D5EEF6</color>
+    <color name="colorPrimaryViridian">#3C8476</color>
+    <color name="colorPrimaryBondiBlue">#006c87</color>
+    <color name="clorPrimaryLightYellow">#e39717</color>
+    <color name="colorPrimaryCmyk">#475564</color>
 </resources>
