@@ -133,7 +133,7 @@ public class ShiftStartActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 userRole = role_spinner.getSelectedItem().toString();
-                if (userRole.equals("Mobile Crisis Team")) {
+                if (userRole.equalsIgnoreCase("Mobile Crisis Team")) {
                     getTeamObjects();
                     //TODO 12/5/17 KB can be removed
 //                    createStatusSpinner();
@@ -202,7 +202,7 @@ public class ShiftStartActivity extends AppCompatActivity {
         user.setCurrentRole(userRole);
         user.setToken(token);
 
-        if (userRole.equals("Mobile Crisis Team")) {
+        if (userRole.equalsIgnoreCase("Mobile Crisis Team")) {
             userMap.put("currentTeam", selectedTeam);
             user.setCurrentTeam(selectedTeam);
         } else {

@@ -217,23 +217,24 @@ public class DispatchTeamActivity extends AppCompatActivity {
             String status = team.getStatus();
             teamStatus.setText(status);
             teamStatus.setAllCaps(true);
-            travelTime.setText(convertFloatDateToStringDate(team.getTravelTime()));
+            travelTime.setText("Estimated Arrival Time: " + team.getTravelTimeReadable());
 
-            isAvailableColorFormat(status.equals("Active"));
+            isAvailableColorFormat(status.equalsIgnoreCase("Active"));
         }
 
-        private String convertFloatDateToStringDate(float time) {
-            if(time > 60){
-                int hours = (int) time;
-                int minutes = (int) (60 * (time - hours));
-                String newtime = "Estimated Travel Time: " + hours + "h " + minutes + "m";
-                return newtime;
-            } else {
-                int minutes = (int) time;
-                String newtime = "Estimated Travel Time: " + minutes + "m";
-                return newtime;
-            }
-        }
+        //TODO KB 12/5/17 can be removed -- String will come from API response
+//        private String convertFloatDateToStringDate(float time) {
+//            if(time > 60){
+//                int hours = (int) time;
+//                int minutes = (int) (60 * (time - hours));
+//                String newtime = "Estimated Travel Time: " + hours + "h " + minutes + "m";
+//                return newtime;
+//            } else {
+//                int minutes = (int) time;
+//                String newtime = "Estimated Travel Time: " + minutes + "m";
+//                return newtime;
+//            }
+//        }
 
         private void isAvailableColorFormat(boolean isAvailable) {
             if (isAvailable) {
