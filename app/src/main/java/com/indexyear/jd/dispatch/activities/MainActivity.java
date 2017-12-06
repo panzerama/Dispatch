@@ -1,11 +1,9 @@
 package com.indexyear.jd.dispatch.activities;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -188,8 +186,8 @@ public class MainActivity extends AppCompatActivity
         bindLocationService();
 
         //registers receiver?
-        newMessage messageReceiver = new newMessage();
-        registerReceiver(messageReceiver, new IntentFilter(NEW_MESSAGE));
+        //newMessage messageReceiver = new newMessage();
+        //registerReceiver(messageReceiver, new IntentFilter(NEW_MESSAGE));
     }
 
     private void determineIntent() {
@@ -526,6 +524,7 @@ public class MainActivity extends AppCompatActivity
             // TODO: handle exception
         }
     }
+
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mBoundService = ((LocationUpdaterService.MyBinder)service).getService();
@@ -542,7 +541,7 @@ public class MainActivity extends AppCompatActivity
 
 
     //Luke fix this
-    public class newMessage extends BroadcastReceiver
+    /*public class newMessage extends BroadcastReceiver
     {
         @Override
         public void onReceive(Context context, Intent intent)
@@ -553,5 +552,5 @@ public class MainActivity extends AppCompatActivity
                 double newLat = extra.getDouble("lat");
                 double newLng = extra.getDouble("lng");
             }
-        }
+        }*/
 }
