@@ -157,14 +157,14 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 if (mUser != null) {
-                    if (mUser.getCurrentRole().equals("Dispatcher")) {
+                    if (mUser.getCurrentRole().equalsIgnoreCase("Dispatcher")) {
                         CreateAddressDialog();
                     }
                 }
             }
         });
         if (mUser != null) {
-            if (mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
+            if (mUser.getCurrentRole().equalsIgnoreCase("Mobile Crisis Team")) {
                 fab.setVisibility(View.GONE);
             }
         }
@@ -490,7 +490,7 @@ public class MainActivity extends AppCompatActivity
     private void createAddressInput() {
 
         // If the current user is dispatch, then this should be create address dialog.
-        if (mUser.getCurrentRole().equals("MCT")) {
+        if (mUser.getCurrentRole().equals("Mobile Crisis Team")) {
             fab.setVisibility(View.INVISIBLE);
         } else {
             fab.setVisibility(View.VISIBLE);
