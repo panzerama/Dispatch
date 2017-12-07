@@ -18,11 +18,15 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity
         extends AppCompatActivity
@@ -37,13 +41,14 @@ public class LoginActivity
     // Events and Logging
     private FirebaseAnalytics mAnalyticsInstance;
 
+    //TODO 12/5/17 KB everything commented below can be removed
     // Can this be removed after refactoring with Teams and Users?
-    private DatabaseReference mDB;
-
+//    private DatabaseReference mDB;
     // User Management
-    private User mUser;
-    private UserManager mUserManager;
-    private IUserEventListener mUserEventListener;
+//    private UserManager mUserManager;
+//    private User mUser;
+
+//    private IUserEventListener mUserEventListener;
 
     // UI Elements
     private EditText mEmailField;
@@ -61,13 +66,14 @@ public class LoginActivity
         mEmailField = (AutoCompleteTextView) findViewById(R.id.email);
         mPasswordField = (EditText) findViewById(R.id.password);
 
+        //TODO 12/5/17 Remove prior to release
         //For Testing
         mEmailField.setText("kari@example.org");
         mPasswordField.setText("123456");
 
         findViewById(R.id.email_sign_in_button).setOnClickListener(this);
 
-        // TODO: 11/18/17 JD implement logout procedures
+        // TODO: 12/5/17 KB implement logout procedure
         findViewById(R.id.email_sign_out_button).setOnClickListener(this);
 
         mAuth = FirebaseAuth.getInstance();
@@ -90,7 +96,8 @@ public class LoginActivity
         };
         mAuth.addAuthStateListener(mAuthListener);
         mAnalyticsInstance = FirebaseAnalytics.getInstance(this);
-        mUserManager = new UserManager();
+
+//        mUserManager = new UserManager();
     }
 
     @Override
@@ -104,34 +111,21 @@ public class LoginActivity
     }
 
     private void signIn(final String email, String password) {
-        Log.d(TAG, "signInOrRegister: " + email);
+        //TODO KB can be removed
+//        Log.d(TAG, "signInOrRegister: " + email);
+
         if (!validateForm()) {
             return;
         }
-
-        final Intent authenticationHandoff = new Intent(this, ShiftStartActivity.class);
-
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            FirebaseUser user = mAuth.getCurrentUser();
-
-                            String loginSuccess = "User " + user.getUid() + " has signed in.";
-                            Bundle params = new Bundle();
-                            params.putString("time_stamp", "");
-
-                            Log.d(TAG, "signInWithEmail:success");
-
-                            Log.d(TAG, "instanceid: " + FirebaseInstanceId.getInstance().getToken());
-
-                            mAnalyticsInstance.logEvent(FirebaseAnalytics.Event.LOGIN, params);
-                            //get or add employee in database
-                            createEmployee(email);
-                            startActivity(authenticationHandoff);
+                            beginShift();
                         } else {
-                            Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            //TODO 12/5/17 KB can be removed
+                            //Log.w(TAG, "signInWithEmail:failure", task.getException());
                             Bundle params = new Bundle();
                             params.putString("time_stamp", "");
                             mAnalyticsInstance.logEvent("login_failure", params);
@@ -141,6 +135,31 @@ public class LoginActivity
                         }
                     }
                 });
+    }
+
+    /**
+     * Updates user node with appropriate shift-start data
+     */
+    private void beginShift(){
+        Intent authenticationHandoff = new Intent(this, ShiftStartActivity.class);
+
+        //Update user object in database as logged in
+        FirebaseUser user = mAuth.getCurrentUser();
+
+        String loginSuccess = "User " + user.getUid() + " has signed in.";
+        Bundle params = new Bundle();
+        params.putString("time_stamp", "");
+
+        //TODO 12/5/17 KB can be removed
+//                            Log.d(TAG, "signInWithEmail:success");
+//
+//                            Log.d(TAG, "instanceid: " + FirebaseInstanceId.getInstance().getToken());
+
+        mAnalyticsInstance.logEvent(FirebaseAnalytics.Event.LOGIN, params);
+        //TODO 12/5/17 KB can be removed
+        //get or add employee in database
+        //createEmployee(email);
+        startActivity(authenticationHandoff);
     }
 
     private void signOut() {
@@ -187,11 +206,10 @@ public class LoginActivity
         }
     }
 
-    private void createEmployee(String email){
+    //TODO 12/5/17 KB can be removed
+//    private void createEmployee(String email){
 //        User newUser = User.createFromIDAndEmail(mAuth.getUid(), email);
 //        newUser.setToken(FirebaseInstanceId.getInstance().getToken());
 //        mUserManager.addOrUpdateNewEmployee(newUser);
-        //TODO KB Don't create new user object instead push changes to the current user object
-
-    }
+//    }
 }

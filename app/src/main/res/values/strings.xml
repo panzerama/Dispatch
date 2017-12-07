@@ -58,16 +58,17 @@
 
     <string-array name="role_spinner_options">
         <item>Select role...</item>
-        <item>MCT</item>
+        <item>Mobile Crisis Team</item>
         <item>Dispatcher</item>
     </string-array>
 
-    <string-array name="mct_spinner_options">
-        <item>Select team...</item>
-        <item>Blue</item>
-        <item>Orange</item>
-        <item>New Team</item>
-    </string-array>
+    <!--TODO 12/5/17 KB can be removed-->
+    <!--<string-array name="mct_spinner_options">-->
+        <!--<item>Select team...</item>-->
+        <!--<item>Blue</item>-->
+        <!--<item>Orange</item>-->
+        <!--<item>New Team</item>-->
+    <!--</string-array>-->
 
     <string-array name="status_spinner_options">
         <item>Set status...</item>
