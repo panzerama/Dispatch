@@ -2,7 +2,6 @@ package com.indexyear.jd.dispatch.services;
 
 import android.Manifest;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -10,7 +9,6 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -24,7 +22,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.data.user.IGetUserListener;
@@ -229,11 +226,12 @@ public class LocationUpdaterService extends Service implements
         };
         mUserManager.addNewListener(mUserEventListener);
     }
-}
-
+    
     public class MyBinder extends Binder {
         public LocationUpdaterService getService() {
             return LocationUpdaterService.this;
         }
     }
+
 }
+
