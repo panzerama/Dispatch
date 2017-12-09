@@ -30,6 +30,7 @@ import com.indexyear.jd.dispatch.models.Team;
 import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 public class DispatchTeamActivity extends AppCompatActivity {
 
@@ -242,6 +243,10 @@ public class DispatchTeamActivity extends AppCompatActivity {
             } else {
                 travelTime.setTextColor(unavailableColor);
             }
+        }
+
+        private void updateTravelTimeDisplay(Map<String, Integer> travelTimes){
+
         }
     }
 

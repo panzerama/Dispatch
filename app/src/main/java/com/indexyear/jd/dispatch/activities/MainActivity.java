@@ -32,7 +32,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -518,7 +517,9 @@ public class MainActivity extends AppCompatActivity
                 dispatchActivity.putExtra("user", mUser);
                 dispatchActivity.putExtra("intent_purpose", "passing_user");
                 dispatchActivity.putExtra("crisis", new CrisisParcel(confirmedCrisis));
-                //put extra user
+                // calculate travel times
+                // put the extra for travel times?
+                // put extra user
                 startActivity(dispatchActivity);
             }
         });

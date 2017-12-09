@@ -5,4 +5,7 @@
     <string name="google_geocoding_key" templateMergeStrategy="preserve" translatable="false">
         AIzaSyBHcaTpHBIMLOx-z3DW_ap-i41OeP-KcaA
     </string>
+    <string name="google_distance_matrix_key" templateMergeStrategy="preserve" translatable="false">
+        AIzaSyBngOXelbt3nFS_SVAzpjV6MtHwmliyJhA
+    </string>
 </resources>
