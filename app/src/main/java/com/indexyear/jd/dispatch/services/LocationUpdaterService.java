@@ -59,7 +59,14 @@ public class LocationUpdaterService extends Service implements
         Log.i(LOGSERVICE, "In onCreate");
 
         super.onCreate();
-        buildGoogleApiClient();
+
+        //buildGoogleApiClient();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
         mAuth = FirebaseAuth.getInstance();
 
         mUserManager = new UserManager();
@@ -76,15 +83,13 @@ public class LocationUpdaterService extends Service implements
         });
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-
     }
 
     private void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addOnConnectionFailedListener(this)
-                .addConnectionCallbacks(this)
                 .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
 
     }
@@ -161,23 +166,36 @@ public class LocationUpdaterService extends Service implements
         startLocationUpdates();
     }
     private void startLocationUpdates() {
+
+        
+        //set LocationRequest
         initLocationRequest();
 
+        //update the location
+        updateLocationOnFirebase();
+
+
+    }
+
+    private void updateLocationOnFirebase() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.i(LOGSERVICE, "Permission not granted.");
             return;
-        } else {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-            // LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
-            buildGoogleApiClient();
+        }
 
-            if (mUser.getUserID() != null) {
-                mDatabase.child("users").child(mUser.getUserID()).child("latitude").setValue(userLocation.latitude);
-                mDatabase.child("users").child(mUser.getUserID()).child("longitude").setValue(userLocation.longitude);
-            } else {
-                Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
-                        Toast.LENGTH_LONG).show();
-            }
+        //buildGoogleApiClient();
+
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        // LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
+
+
+        if (mUser.getUserID() != null) {
+            mDatabase.child("users").child(mUser.getUserID()).child("latitude").setValue(userLocation.latitude);
+            mDatabase.child("users").child(mUser.getUserID()).child("longitude").setValue(userLocation.longitude);
+        } else {
+            Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
+                    Toast.LENGTH_LONG).show();
         }
     }
 
@@ -201,7 +219,7 @@ public class LocationUpdaterService extends Service implements
 
     @Override
     public void onLocationChanged(Location location) {
-
+        updateLocationOnFirebase();
     }
 
     public void setUserEventListener(){
