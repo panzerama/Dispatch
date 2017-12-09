@@ -32,7 +32,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -428,6 +427,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    //TODO: Luke 12/9/17 - DELETE this method.
+    // I think it's leftover from trying to get Geocoder to work
     // returns a LatLng object from an address given
     public LatLng getLocationFromAddress(Context context, String address) {
         LatLng latLng = null;
@@ -474,6 +475,9 @@ public class MainActivity extends AppCompatActivity
         mMap.animateCamera(cu);
     }
 
+    //TODO: Revise or DELETE this method.
+    //Luke - 12/9/17 - This functionality is handled elsewhere
+    //this is probably left over from originally creating the map.
     public void PositionCameraOverUserLocation(LatLng addressPosition) {
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -487,6 +491,8 @@ public class MainActivity extends AppCompatActivity
     /**
      * Setting the FAB use on user update guarantees that we have a user in hand before attempting.
      */
+    //TODO: Revise or DELETE this method.
+    // Luke - 12/9/17 This functionality is handled in the CreateAddressDialogButton()
     private void createAddressInput() {
 
         // If the current user is dispatch, then this should be create address dialog.
@@ -503,6 +509,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    //Luke - 12/9/17 - This method builds the dialog where the Dispatcher confirms that the address
+    // they supplied is actually in the correct location on the google map.
     private void confirmAddressDialog(final Crisis confirmedCrisis) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.confirm_crisis_address_title)
