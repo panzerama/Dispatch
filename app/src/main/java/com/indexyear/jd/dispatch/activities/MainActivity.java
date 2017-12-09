@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity
      */
         try {
             if (mLocationPermissionGranted) {
-                Intent intent = new Intent(this, LocationServices.class);
+                Intent intent = new Intent(this, LocationUpdaterService.class);
                 startService(intent);
                 Task locationResult = mFusedLocationProviderClient.getLastLocation();
                 locationResult.addOnCompleteListener(this, new OnCompleteListener() {
