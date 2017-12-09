@@ -58,10 +58,11 @@
 
     <string-array name="role_spinner_options">
         <item>Select Role</item>
-        <item>MCT</item>
+        <item>Mobile Crisis Team</item>
         <item>Dispatcher</item>
     </string-array>
 
+    <!-- Maybe this gets commented out -->
     <string-array name="mct_spinner_options">
         <item>Select team</item>
         <item>Blue</item>

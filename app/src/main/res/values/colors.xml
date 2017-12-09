@@ -8,4 +8,6 @@
     <color name="colorPrimaryBondiBlue">#006c87</color>
     <color name="clorPrimaryLightYellow">#e39717</color>
     <color name="colorPrimaryCmyk">#475564</color>
+    <color name="unavailableColor">#C0392B</color>
+    <color name="availableColor">#16A085</color>
 </resources>

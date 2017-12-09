@@ -10,17 +10,17 @@ import java.util.Map;
 
 public class User implements Parcelable{
 
-    public String currentTeam;
-    public String userID;
-    public String currentRole;
-    public String currentStatus;
-    public String email;
-    public String phone;
-    public String token;
-    public float latitude;
-    public float longitude;
-    public String firstName;
-    public String lastName;
+    private String currentTeam;
+    private String userID;
+    private String currentRole;
+    private String currentStatus;
+    private String email;
+    private String phone;
+    private String token;
+    private float latitude;
+    private float longitude;
+    private String firstName;
+    private String lastName;
 
 
     // required for use with DataSnapshot getValue

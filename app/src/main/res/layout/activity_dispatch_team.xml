@@ -20,11 +20,9 @@
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="8dp" />
 
-    <ListView
-        android:id="@+id/mct_dispatch_list"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/team_dispatch_list"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_height="match_parent" />
 
 </LinearLayout>
