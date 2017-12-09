@@ -86,7 +86,7 @@
         </activity>
 
         <service
-            android:name=".services.LocationService"
+            android:name=".services.LocationUpdaterService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

@@ -1,14 +1,14 @@
 package com.indexyear.jd.dispatch.services;
 
+import android.Manifest;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -22,7 +22,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.data.user.IGetUserListener;
@@ -30,9 +29,7 @@ import com.indexyear.jd.dispatch.data.user.IUserEventListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.User;
 
-import android.Manifest;
-
-public class LocationService extends Service implements
+public class LocationUpdaterService extends Service implements
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         com.google.android.gms.location.LocationListener {
@@ -53,8 +50,14 @@ public class LocationService extends Service implements
 
     private IUserEventListener mUserEventListener;
 
+    private IBinder mBinder = new MyBinder();
+
+    public static final String TAG = LocationUpdaterService.class.getSimpleName();
+
     @Override
     public void onCreate() {
+        Log.i(LOGSERVICE, "In onCreate");
+
         super.onCreate();
         buildGoogleApiClient();
         mAuth = FirebaseAuth.getInstance();
@@ -74,7 +77,7 @@ public class LocationService extends Service implements
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        Log.i(LOGSERVICE, "onCreate");
+
     }
 
     private void buildGoogleApiClient() {
@@ -96,14 +99,38 @@ public class LocationService extends Service implements
     }
 
 
-    public LocationService() {
+    public LocationUpdaterService() {
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        Log.d(TAG, "In onBind");
+
+        return mBinder;
     }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.v(TAG, "in onRebind");
+        super.onRebind(intent);
+    }
+
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.v(TAG, "in onUnbind");
+        return true;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.v(TAG, "in onDestroy");
+        //Luke - 12/7/17 -
+        // TODO stop getting locations here
+    }
+
+
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
@@ -113,15 +140,17 @@ public class LocationService extends Service implements
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        //lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.i(LOGSERVICE, "Permission not granted");
             return;
         } else {
-            Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location == null){ location = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(0); location.setLongitude(0);}
-            userLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            Location l = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            // Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            // if (l == null){ l = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(122); location.setLongitude(344);}
+            userLocation = new LatLng(l.getLatitude(), l.getLongitude());
         }
 
         //Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -138,7 +167,8 @@ public class LocationService extends Service implements
             Log.i(LOGSERVICE, "Permission not granted.");
             return;
         } else {
-            LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            // LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
             buildGoogleApiClient();
 
             if (mUser.getUserID() != null) {
@@ -196,4 +226,12 @@ public class LocationService extends Service implements
         };
         mUserManager.addNewListener(mUserEventListener);
     }
+    
+    public class MyBinder extends Binder {
+        public LocationUpdaterService getService() {
+            return LocationUpdaterService.this;
+        }
+    }
+
 }
+

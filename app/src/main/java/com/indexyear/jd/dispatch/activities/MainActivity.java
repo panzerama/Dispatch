@@ -1,13 +1,16 @@
 package com.indexyear.jd.dispatch.activities;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -60,6 +63,7 @@ import com.indexyear.jd.dispatch.data.crisis.IGetLatLngListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.User;
+import com.indexyear.jd.dispatch.services.LocationUpdaterService;
 
 import java.util.List;
 import java.util.Locale;
@@ -107,6 +111,12 @@ public class MainActivity extends AppCompatActivity
     //FOR CRISIS
     private String crisisAddress;
 
+    //Luke - FOR LOCATION
+    boolean isBound = false;
+
+    LocationUpdaterService mBoundService;
+    boolean mServiceBound = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Start Init
@@ -127,6 +137,7 @@ public class MainActivity extends AppCompatActivity
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(map);
         mapFragment.getMapAsync(this);
         getLocationPermission();
+
         // Construct a GeoDataClient.
         mGeoDataClient = Places.getGeoDataClient(this, null);
 
@@ -162,6 +173,20 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+
+        determineIntent();
+
+        context = getApplicationContext();
+
+        DEFAULT_ZOOM = 13;
+        mDefaultLocation = new LatLng(47.6062, 122.3321);
+
+        //starts service?
+        bindLocationService();
+
+        //registers receiver?
+        //newMessage messageReceiver = new newMessage();
+        //registerReceiver(messageReceiver, new IntentFilter(NEW_MESSAGE));
         if (mUser != null) {
             if (mUser.getCurrentRole().equalsIgnoreCase("Mobile Crisis Team")) {
                 fab.setVisibility(View.GONE);
@@ -201,6 +226,14 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         return false;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, LocationUpdaterService.class);
+        startService(intent);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -427,6 +460,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    //TODO: Luke 12/9/17 - DELETE this method.
+    // I think it's leftover from trying to get Geocoder to work
     // returns a LatLng object from an address given
     public LatLng getLocationFromAddress(Context context, String address) {
         LatLng latLng = null;
@@ -473,6 +508,9 @@ public class MainActivity extends AppCompatActivity
         mMap.animateCamera(cu);
     }
 
+    //TODO: Revise or DELETE this method.
+    //Luke - 12/9/17 - This functionality is handled elsewhere
+    //this is probably left over from originally creating the map.
     public void PositionCameraOverUserLocation(LatLng addressPosition) {
 
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -486,6 +524,8 @@ public class MainActivity extends AppCompatActivity
     /**
      * Setting the FAB use on user update guarantees that we have a user in hand before attempting.
      */
+    //TODO: Revise or DELETE this method.
+    // Luke - 12/9/17 This functionality is handled in the CreateAddressDialogButton()
     private void createAddressInput() {
 
         // If the current user is dispatch, then this should be create address dialog.
@@ -502,6 +542,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    //Luke - 12/9/17 - This method builds the dialog where the Dispatcher confirms that the address
+    // they supplied is actually in the correct location on the google map.
     private void confirmAddressDialog(final Crisis confirmedCrisis) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.confirm_crisis_address_title)
@@ -533,4 +575,42 @@ public class MainActivity extends AppCompatActivity
 
         builder.show();
     }
+
+    private void bindLocationService() {
+        try {
+            isBound = getApplicationContext().bindService( new Intent(getApplicationContext(), LocationUpdaterService.class), mConnection, BIND_AUTO_CREATE );
+            bindService(new Intent(this, LocationUpdaterService.class), mConnection, BIND_AUTO_CREATE);
+        } catch (SecurityException e) {
+            // TODO: handle exception
+        }
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mBoundService = ((LocationUpdaterService.MyBinder)service).getService();
+            Log.d(LocationUpdaterService.TAG, "activity bound to service");
+
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+
+            mBoundService = null;
+            Log.d(LocationUpdaterService.TAG, "activity unbound to service");
+        }
+    };
+
+
+    //Luke fix this
+    /*public class newMessage extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent)
+        {
+            String action = intent.getAction();
+            if(action.equalsIgnoreCase(IMService.NEW_MESSAGE)){
+                Bundle extra = intent.getExtras();
+                double newLat = extra.getDouble("lat");
+                double newLng = extra.getDouble("lng");
+            }
+        }*/
 }
