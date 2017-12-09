@@ -38,10 +38,10 @@ public class TeamParcel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(mTeam.teamName);
-        dest.writeString(mTeam.teamID);
-        dest.writeFloat(mTeam.latitude);
-        dest.writeFloat(mTeam.longitude);
+        dest.writeString(mTeam.getTeamName());
+        dest.writeString(mTeam.getTeamID());
+        dest.writeFloat(mTeam.getLatitude());
+        dest.writeFloat(mTeam.getLongitude());
     }
 
     @Override

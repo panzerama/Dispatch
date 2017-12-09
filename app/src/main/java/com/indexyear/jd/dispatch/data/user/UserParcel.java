@@ -20,7 +20,7 @@ public class UserParcel implements Parcelable {
         float longitude = in.readFloat();
 
         mUser = new User();
-        mUser.currentTeam = currentTeam;
+        mUser.setCurrentTeam(currentTeam);
 
     }
 
