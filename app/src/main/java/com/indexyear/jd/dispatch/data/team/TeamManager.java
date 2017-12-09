@@ -1,16 +1,12 @@
 package com.indexyear.jd.dispatch.data.team;
 
-import android.util.Log;
-
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.indexyear.jd.dispatch.data.user.TeamFirebaseMapper;
 import com.indexyear.jd.dispatch.models.Team;
-import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +17,7 @@ import java.util.List;
 
 public class TeamManager {
 
+    // TODO: 12/9/17 JD we can remove ITeamEventListener
     private List<ITeamEventListener> mListeners;
     private List<Team> mCurrentTeamsList;
     private IGetTeamsListener mGetTeamsListener;

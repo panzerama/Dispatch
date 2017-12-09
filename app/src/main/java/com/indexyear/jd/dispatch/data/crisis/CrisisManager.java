@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.team.ITeamTravelTimeListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 
 import org.json.JSONException;
@@ -212,6 +213,10 @@ public class CrisisManager {
     //Making the address given parsable by HTTP
     private String ConvertAddressToJSON(String address) {
         return address.replace(' ', '+');
+    }
+
+    public void getTravelTimesAndWrite(Crisis target, ITeamTravelTimeListener travelTimeListener){
+        //do something
     }
 
 

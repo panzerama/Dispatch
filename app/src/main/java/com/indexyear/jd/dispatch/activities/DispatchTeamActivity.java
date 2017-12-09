@@ -25,6 +25,7 @@ import com.google.firebase.database.Query;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.crisis.CrisisManager;
 import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
+import com.indexyear.jd.dispatch.data.team.ITeamTravelTimeListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.Team;
 import com.indexyear.jd.dispatch.models.User;
@@ -85,7 +86,18 @@ public class DispatchTeamActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        attachRecyclerViewAdapter();
+
+        ITeamTravelTimeListener travelTimeListener = new ITeamTravelTimeListener() {
+            @Override
+            public void onSuccess(Crisis source, Map<String, Integer> travelTimes) {
+                attachRecyclerViewAdapter();
+            }
+
+            @Override
+            public void onFailure() {
+
+            }
+        };
     }
 
     @Override
@@ -245,9 +257,6 @@ public class DispatchTeamActivity extends AppCompatActivity {
             }
         }
 
-        private void updateTravelTimeDisplay(Map<String, Integer> travelTimes){
-
-        }
     }
 
 }
