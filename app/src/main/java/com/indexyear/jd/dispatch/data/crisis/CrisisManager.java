@@ -38,6 +38,7 @@ public class CrisisManager {
     private DatabaseReference mDatabase; //Firebase reference
     private List<ICrisisEventListener> mListeners;
     private IGetLatLngListener getLatLngListener;
+    private ITeamTravelTimeListener getTravelTimeListener;
 
     public CrisisManager(){
         mListeners = new ArrayList<>();
@@ -215,8 +216,84 @@ public class CrisisManager {
         return address.replace(' ', '+');
     }
 
-    public void getTravelTimesAndWrite(Crisis target, ITeamTravelTimeListener travelTimeListener){
-        //do something
+    public void getTravelTimesAndWrite(Context incomingContext, Crisis target, ITeamTravelTimeListener travelTimeListener){
+        // 11/29/17 JD: register the observer
+        getTravelTimeListener = travelTimeListener;
+        mCrisis = target;
+
+        String googleKey = incomingContext.getResources().getString(R.string.google_geocoding_key);
+
+        RequestQueue mRequestQueue;
+
+        // Instantiate the cache
+        Cache cache = new DiskBasedCache(incomingContext.getCacheDir(), 1024 * 1024); // 1MB cap
+
+        // Set up the network to use HttpURLConnection as the HTTP client.
+        Network network = new BasicNetwork(new HurlStack());
+
+        // Instantiate the RequestQueue with the cache and network.
+        mRequestQueue = new RequestQueue(cache, network);
+
+        // Start the queue
+        mRequestQueue.start();
+
+
+        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
+                "&key=" + googleKey;
+
+        Log.d(TAG, urlForGoogleMaps);
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest
+                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Crisis successfulCrisis = mCrisis;
+                        double lat = -122;
+                        double lng = 47;
+
+                        try {
+                            lat = response.getJSONArray("results").getJSONObject(0)
+                                    .getJSONObject("geometry").getJSONObject("location")
+                                    .getDouble("lat");
+                            Log.d(TAG, response.getJSONArray("results").toString());
+                            lng = response.getJSONArray("results").getJSONObject(0)
+                                    .getJSONObject("geometry").getJSONObject("location")
+                                    .getDouble("lng");
+                            successfulCrisis.setLatitude(lat);
+                            successfulCrisis.setLongitude(lng);
+                            // crisisEventListener observes the success of json request
+                            // TODO: 12/1/17 JD failure test: what happens if the request is returned without info
+                            getLatLngListener.onCrisisGetLatLng(successfulCrisis);
+
+                            /*
+                            12/2/17 LUKE -- Our hope is that LatLngListener being set to null will cause Java's
+                            built in Garbage collection to take care of it for us.
+                            */
+                            getLatLngListener = null;
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        mRequestQueue.add(jsObjRequest);
+
+        //TODO: update crisis on Firebase, or is that handled elsewhere?
+
+    }
+
+    private String buildDistanceMatrixAPI(Crisis target){
+
     }
 
 

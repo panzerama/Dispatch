@@ -98,6 +98,8 @@ public class DispatchTeamActivity extends AppCompatActivity {
 
             }
         };
+
+        mCrisisManager.getTravelTimesAndWrite(this, inputCrisisObject, travelTimeListener);
     }
 
     @Override
