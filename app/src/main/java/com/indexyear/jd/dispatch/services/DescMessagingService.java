@@ -61,7 +61,6 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
 
             for (Map.Entry<String, String> entry : remoteMessage.getData().entrySet()) {
                 String key = entry.getKey();
@@ -74,7 +73,6 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
         if (messageDataMap.containsKey("crisis_id")){
