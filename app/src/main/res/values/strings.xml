@@ -2,6 +2,9 @@
     <string name="app_name">Dispatch</string>
     <string name="title_activity_route_map">Route Map</string>
     <string name="title_activity_login">Log In</string>
+    <string name="title_dispatch_team">Choose team</string>
+    <string name="confirm_crisis_address_title">Confirm address</string>
+    <string name="confirm_crisis_address_message">Was the pin you saw in the right place?</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
@@ -54,20 +57,21 @@
     <string name="team_label">Choose your team</string>
 
     <string-array name="role_spinner_options">
-        <item>Select role...</item>
-        <item>MCT</item>
+        <item>Select Role...</item>
+        <item>Mobile Crisis Team</item>
         <item>Dispatcher</item>
     </string-array>
 
-    <string-array name="mct_spinner_options">
-        <item>Select team...</item>
-        <item>Blue</item>
-        <item>Orange</item>
-        <item>New Team</item>
-    </string-array>
+    <!--TODO 12/5/17 KB can be removed-->
+    <!--<string-array name="mct_spinner_options">-->
+        <!--<item>Select team...</item>-->
+        <!--<item>Blue</item>-->
+        <!--<item>Orange</item>-->
+        <!--<item>New Team</item>-->
+    <!--</string-array>-->
 
     <string-array name="status_spinner_options">
-        <item>Set status...</item>
+        <item>Set status</item>
         <item>Active</item>
         <item>Busy</item>
         <item>Other</item>
@@ -76,7 +80,7 @@
     <string name="begin_shift_button_text">Begin Shift</string>
     <string name="title_activity_crisis_received">CrisisReceived</string>
 
-    <string name="crisis_header">New Dispatch Event!</string>
+    <string name="crisis_header">New Dispatch Event</string>
     <string name="crisis_address">CrisisAddress</string>
     <string name="crisis_timestamp">CrisisTime</string>
     <string name="accept_dispatch_button">Accept</string>

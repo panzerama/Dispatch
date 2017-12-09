@@ -19,9 +19,9 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_app_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
@@ -49,16 +49,6 @@
         <activity
             android:name=".activities.MainActivity"
             android:label="@string/title_activity_main"></activity>
-        <activity
-            android:name=".activities.MessengerActivity"
-            android:label="@string/title_activity_messenger">
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MainActivity" />
-        </activity>
-
         <service
             android:name=".services.DescMessagingService"
             android:exported="false">
@@ -74,20 +64,13 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".activities.ChatActivity">
-
-            <!-- Parent activity meta-data to support 4.0 and lower -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".activities.MessengerActivity" />
-        </activity>
         <activity
             android:name=".activities.ShiftStartActivity"
             android:label="@string/title_activity_shift_start"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".activities.DispatchTeamActivity"
-            android:label="@string/title_activity_shift_start"
+            android:label="@string/title_dispatch_team"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.firebase.auth.FirebaseAuth;
@@ -19,6 +20,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.team.IGetTeamsListener;
 import com.indexyear.jd.dispatch.data.team.TeamManager;
 import com.indexyear.jd.dispatch.data.user.IGetUserListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
@@ -26,31 +28,40 @@ import com.indexyear.jd.dispatch.models.Team;
 import com.indexyear.jd.dispatch.models.User;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ShiftStartActivity extends AppCompatActivity {
 
     private static final String TAG = "ShiftStartActivity: ";
+    private Context context;
 
+    //FOR UPDATING USER SHIFT START VALUES
     private FirebaseAuth mAuth;
-    private DatabaseReference mDB;
-
     private UserManager mUserManager;
-    private TeamManager mTeamManager;
-    public User mUser;
-    public String selectedTeam;
+    private User mUser;
+    private String selectedTeam;
+    private String userRole;
+    private String userID;
+    private String token;
 
-    Spinner role_spinner;
+    //FOR TEAM SPINNER
     Spinner team_spinner;
-    Spinner status_spinner;
-
+    private TeamManager mTeamManager;
     List<Team> theTeams;
     ArrayAdapter<String> teamSpinnerAdapter;
     ArrayList<String> teamNames;
     ArrayList<String> teamIDS;
-    Context context;
-    private FusedLocationProviderClient mFusedLocationClient;
+
+    //FOR ROLE SPINNER
+    Spinner role_spinner;
+
+    //TODO 12/5/17 KB can be removed
+//    private FusedLocationProviderClient mFusedLocationClient;
+//    Spinner status_spinner;
+//    private DatabaseReference mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,24 +69,26 @@ public class ShiftStartActivity extends AppCompatActivity {
         setContentView(R.layout.activity_shift_start);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         context = getApplicationContext();
 
-        mAuth = FirebaseAuth.getInstance();
-        mTeamManager = new TeamManager();
-        teamNames = new ArrayList<>();
+        //FOR USER OBJECT
+        getUserObject();
 
-        mDB = FirebaseDatabase.getInstance().getReference("");
-        teamIDS = new ArrayList<>();
-
+        //FOR ROLE SPINNER
         role_spinner = (Spinner) findViewById(R.id.role_spinner);
         createRoleSpinner();
-        team_spinner = (Spinner) findViewById(R.id.team_spinner);
-        status_spinner = (Spinner) findViewById(R.id.status_spinner);
 
-        // 11/28/17 JD: jdp this makes sure that we have the user set before we proceed
+        //TODO KB 12/5/17 can be removed
+        //mDB = FirebaseDatabase.getInstance().getReference();
+//        status_spinner = (Spinner) findViewById(R.id.status_spinner);
+    }
+
+    private void getUserObject(){
+        mAuth = FirebaseAuth.getInstance();
+        userID = mAuth.getCurrentUser().getUid();
+        token = FirebaseInstanceId.getInstance().getToken();
         mUserManager = new UserManager();
-        mUserManager.getUser(mAuth.getCurrentUser().getUid(), new IGetUserListener() {
+        mUserManager.getUser(userID, new IGetUserListener() {
             @Override
             public void onGetSingleUser(User retrievedUser) {
                 mUser = retrievedUser;
@@ -91,6 +104,25 @@ public class ShiftStartActivity extends AppCompatActivity {
         });
     }
 
+    private void getTeamObjects(){
+        mTeamManager = new TeamManager();
+        mTeamManager.getTeams(new IGetTeamsListener() {
+            @Override
+            public void onGetTeams(List<Team> retrievedTeams) {
+                teamNames = new ArrayList<>();
+                teamIDS = new ArrayList<>();
+                team_spinner = (Spinner) findViewById(R.id.team_spinner);
+                theTeams = retrievedTeams;
+                createTeamSpinner();
+            }
+
+            @Override
+            public void onFailedTeams() {
+                Toast.makeText(context, "Unable to retrieve teams.",Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     private void createRoleSpinner() {
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -100,17 +132,18 @@ public class ShiftStartActivity extends AppCompatActivity {
         role_spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (role_spinner.getSelectedItem().toString().equals("MCT")) {
-                    // make other spinners visible
-                    theTeams = mTeamManager.getCurrentTeamsList();
-                    createStatusSpinner();
-                    createTeamSpinner();
-                    team_spinner.setVisibility(View.VISIBLE);
-                    status_spinner.setVisibility(View.VISIBLE);
-                } else if (role_spinner.getSelectedItem().toString().equals("Dispatch")) {
-                    team_spinner.setVisibility(View.INVISIBLE);
-                    status_spinner.setVisibility(View.INVISIBLE);
+                userRole = role_spinner.getSelectedItem().toString();
+                if (userRole.equalsIgnoreCase("Mobile Crisis Team")) {
+                    getTeamObjects();
+                    //TODO 12/5/17 KB can be removed
+//                    createStatusSpinner();
+//                    status_spinner.setVisibility(View.VISIBLE);
                 }
+                //TODO 12/5/17 KB can be removed
+//                else if (userRole.equals("Dispatcher")) {
+                    //team_spinner.setVisibility(View.INVISIBLE);
+//                    status_spinner.setVisibility(View.INVISIBLE);
+//                }
             }
 
             @Override
@@ -126,52 +159,79 @@ public class ShiftStartActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                final Intent shiftStartHandoff = new Intent(context, MainActivity.class);
-                String team = "none";
-                String status = "none";
-
-                String role = role_spinner.getSelectedItem().toString();
-
-                if (role.equals("MCT"))
-                {
-                    status = status_spinner.getSelectedItem().toString();
-                    updateEmployeeAsMCT(role, selectedTeam, status);
-                } else if (role.equals("Dispatcher"))
-
-                {
-                    updateEmployeeAsDispatcher(role);
-                }
-
-                //putting the User(userID, role) as an extra to send with the intent.
+                mUser = setUserShiftStartValues(mUser);
+                Intent shiftStartHandoff = new Intent(context, MainActivity.class);
                 shiftStartHandoff.putExtra("user", mUser);
+                shiftStartHandoff.putExtra("intent_purpose", "passing_user");
 
                 startActivity(shiftStartHandoff);
+                //TODO 12/5/17 KB can be removed
+//                String team = "none";
+//                String status = "none";
+
+//                String role = role_spinner.getSelectedItem().toString();
+//
+//                if (role.equals("MCT"))
+//                {
+//                    status = status_spinner.getSelectedItem().toString();
+//                    updateEmployeeAsMCT(role, selectedTeam, status);
+//                } else if (role.equals("Dispatcher"))
+//
+//                {
+//                    updateEmployeeAsDispatcher(role);
+//                }
+
+                //putting the User(userID, role) as an extra to send with the intent.
+
             }
         });
     }
 
-    private void updateEmployeeAsMCT(String role, String team, String status) {
-        mUser = mUserManager.getCurrentUser();
-        mUser.setCurrentRole(role);
-        mUser.setCurrentTeam(team);
-        mUser.setCurrentStatus(status);
-        String token = FirebaseInstanceId.getInstance().getToken();
-        mUser.setToken(token);
-        mUser.setLatitude(0);
-        mUser.setLongitude(0);
-        mUserManager.addOrUpdateNewEmployee(mUser);
-    }
+    /**
+     * Sets user's role, team, and messaging token
+     * @param user
+     */
+    private User setUserShiftStartValues(User user) {
 
-    private void updateEmployeeAsDispatcher(String role) {
-        Log.d(TAG, "updateEmployeeAsDispatcher");
-        String uid = mAuth.getCurrentUser().getUid();
+        //FOR DB UPDATE
+        Map<String, Object> userMap = user.toMap();
+        userMap.put("currentRole", userRole);
+        userMap.put("token", token);
 
-        mUserManager.setUserRole(uid, role);
-        mUser.setCurrentRole("Dispatcher");
+        //SHALLOW COPY
+        user.setCurrentRole(userRole);
+        user.setToken(token);
+
+        if (userRole.equalsIgnoreCase("Mobile Crisis Team")) {
+            userMap.put("currentTeam", selectedTeam);
+            user.setCurrentTeam(selectedTeam);
+        } else {
+            userMap.put("currentTeam", "DISPATCHER");
+            user.setCurrentTeam("DISPATCHER");
+        }
+
+        mUserManager.updateUser(userMap);
+
+        return user;
     }
+        //TODO 12/5/17 KB can be removed
+//        mUser.setCurrentRole(role);
+//        mUser.setCurrentTeam(team);
+
+//        mUser.setToken(token);
+//        mUser.setLatitude(0);
+//        mUser.setLongitude(0);
+//        mUserManager.addOrUpdateNewEmployee(mUser);
+//    }
+//    private void updateEmployeeAsDispatcher(String role) {
+//        Log.d(TAG, "updateEmployeeAsDispatcher");
+//
+//
+//        mUserManager.setUserRole(uid, role);
+//        mUser.setCurrentRole("Dispatcher");
+//    }
 
     private void createTeamSpinner() {
-
 
         for (int i = 0; i < theTeams.size(); i++) {
             teamNames.add(theTeams.get(i).getTeamName().toString());
@@ -195,27 +255,30 @@ public class ShiftStartActivity extends AppCompatActivity {
             }
         });
 
+        team_spinner.setVisibility(View.VISIBLE);
+
     }
 
-    private void createStatusSpinner() {
+    //TODO 12/5/17 KB can be removed
+//    private void createStatusSpinner() {
+//
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.status_spinner_items));
+//
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        status_spinner.setAdapter(adapter);
+//        status_spinner.setSelection(0);
+//    }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.status_spinner_items));
+//    private void updateUserLocation(Location location) {
+//        Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
+//        mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
+//        mUser.setLatitude((float) location.getLatitude());
+//        mUser.setLatitude((float) location.getLongitude());
+//    }
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        status_spinner.setAdapter(adapter);
-        status_spinner.setSelection(0);
-    }
-
-    private void updateUserLocation(Location location) {
-        Log.d(TAG, "Update user location with " + location.getLatitude() + " and " + location.getLongitude());
-        mUserManager.setUserLocation(mAuth.getCurrentUser().getUid(), location);
-        mUser.setLatitude((float) location.getLatitude());
-        mUser.setLatitude((float) location.getLongitude());
-    }
-
-    private void setMUserValue(User retrievedUser) {
-        mUser = retrievedUser;
-    }
+//    private void setMUserValue(User retrievedUser) {
+//        mUser = retrievedUser;
+//    }
 
 }
 

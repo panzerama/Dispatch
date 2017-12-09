@@ -3,6 +3,8 @@ package com.indexyear.jd.dispatch.models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,9 +15,12 @@ public class User implements Parcelable{
     private String currentRole;
     private String currentStatus;
     private String email;
+    private String phone;
     private String token;
     private float latitude;
     private float longitude;
+    private String firstName;
+    private String lastName;
 
 
     // required for use with DataSnapshot getValue
@@ -24,37 +29,45 @@ public class User implements Parcelable{
 
     }
 
-    public static User createFromIDAndEmail(String userID, String email) {
-        return new User(userID, email);
-    }
-
-    public User(String currentTeam, String userID, String currentRole, String currentStatus, String email, String token, float latitude, float longitude) {
+    public User(String currentTeam, String userID, String currentRole, String currentStatus, String email, String phone, String token, float latitude, float longitude, String firstName, String lastName) {
         this.currentTeam = currentTeam;
         this.userID = userID;
         this.currentRole = currentRole;
         this.currentStatus = currentStatus;
+        this.email = email;
+        this.phone = phone;
+        this.token = token;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
-    private User(String userID, String email){
-        this("none", userID, "none", "none", email, "none", (float)0, (float)0);
+    protected User(Parcel in) {
+        currentTeam = in.readString();
+        userID = in.readString();
+        currentRole = in.readString();
+        currentStatus = in.readString();
+        email = in.readString();
+        phone = in.readString();
+        token = in.readString();
+        latitude = in.readFloat();
+        longitude = in.readFloat();
+        firstName = in.readString();
+        lastName = in.readString();
     }
 
-    /***
-     * Turns current user into a shallow copy of another, or updates based on retrieved user object.
-     * @param otherUser
-     */
-    public void updateUser(User otherUser){
-        this.currentTeam = otherUser.currentTeam;
-        this.userID = otherUser.userID;
-        this.currentRole = otherUser.currentRole;
-        this.currentStatus = otherUser.currentStatus;
-        this.email = otherUser.email;
-        this.token = otherUser.token;
-        this.latitude = otherUser.latitude;
-        this.longitude = otherUser.longitude;
-    }
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
 
     public String getCurrentTeam() {
         return currentTeam;
@@ -96,6 +109,14 @@ public class User implements Parcelable{
         this.email = email;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public String getToken() {
         return token;
     }
@@ -120,80 +141,84 @@ public class User implements Parcelable{
         this.longitude = longitude;
     }
 
-    /**
-     * Parcelable Implementation
-     */
-    public static final Creator<User> CREATOR = new Creator<User>() {
-        @Override
-        public User createFromParcel(Parcel in) {
-            return new User(in);
-        }
-
-        @Override
-        public User[] newArray(int size) {
-            return new User[size];
-        }
-    };
-
-    protected User(Parcel in) {
-        currentTeam = in.readString();
-        userID = in.readString();
-        currentRole = in.readString();
-        currentStatus = in.readString();
-        email = in.readString();
-        token = in.readString();
-        latitude = in.readFloat();
-        longitude = in.readFloat();
+    public String getFirstName() {
+        return firstName;
     }
 
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    @Exclude
     public Map<String, Object> toMap() {
-        Map<String, Object> employeeValues = new HashMap<>();
+        HashMap<String, Object> result = new HashMap<>();
 
-        employeeValues.put("currentMCT", currentTeam);
-        employeeValues.put("userID", userID);
-        employeeValues.put("currentRole", currentRole);
-        employeeValues.put("currentStatus", currentStatus);
-        employeeValues.put("email", email);
-        employeeValues.put("token", token);
-        employeeValues.put("latitude", latitude);
-        employeeValues.put("longitude", longitude);
+        result.put("currentTeam", currentTeam);
+        result.put("userID", userID);
+        result.put("currentRole", currentRole);
+        result.put("currentStatus", currentStatus);
+        result.put("email", email);
+        result.put("phone", phone);
+        result.put("token", token);
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
+        result.put("firstName", firstName);
+        result.put("lastName", lastName);
 
-        return employeeValues;
+        return result;
     }
 
-
-    /**
-     * Describe the kinds of special objects contained in this Parcelable
-     * instance's marshaled representation. For example, if the object will
-     * include a file descriptor in the output of {@link #writeToParcel(Parcel, int)},
-     * the return value of this method must include the
-     * {@link #CONTENTS_FILE_DESCRIPTOR} bit.
-     *
-     * @return a bitmask indicating the set of special object types marshaled
-     * by this Parcelable object instance.
-     * @see #CONTENTS_FILE_DESCRIPTOR
-     */
     @Override
     public int describeContents() {
         return 0;
     }
 
-    /**
-     * Flatten this object in to a Parcel.
-     *
-     * @param dest  The Parcel in which the object should be written.
-     * @param flags Additional flags about how the object should be written.
-     *              May be 0 or {@link #PARCELABLE_WRITE_RETURN_VALUE}.
-     */
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(currentTeam);
-        dest.writeString(userID);
-        dest.writeString(currentRole);
-        dest.writeString(currentStatus);
-        dest.writeString(email);
-        dest.writeString(token);
-        dest.writeFloat(latitude);
-        dest.writeFloat(longitude);
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(currentTeam);
+        parcel.writeString(userID);
+        parcel.writeString(currentRole);
+        parcel.writeString(currentStatus);
+        parcel.writeString(email);
+        parcel.writeString(phone);
+        parcel.writeString(token);
+        parcel.writeFloat(latitude);
+        parcel.writeFloat(longitude);
+        parcel.writeString(firstName);
+        parcel.writeString(lastName);
+    }
+
+    /***
+     * Turns current user into a shallow copy of another, or updates based on retrieved user object.
+     * @param otherUser
+     */
+    public void updateUser(User otherUser){
+        this.currentTeam = otherUser.currentTeam;
+        this.userID = otherUser.userID;
+        this.currentRole = otherUser.currentRole;
+        this.currentStatus = otherUser.currentStatus;
+        this.email = otherUser.email;
+        this.phone = otherUser.email;
+        this.token = otherUser.token;
+        this.latitude = otherUser.latitude;
+        this.longitude = otherUser.longitude;
+        this.firstName = otherUser.firstName;
+        this.lastName = otherUser.lastName;
+    }
+
+    public static User createFromIDAndEmail(String userID, String email) {
+        User user =  new User();
+        user.setEmail(email);
+        user.setUserID(userID);
+
+        return user;
     }
 }

@@ -11,6 +11,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -34,6 +35,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -133,13 +135,6 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        //TODO Resolve Crash Issue
-        //Changing visibility of item is causing crash
-        //So was previous method
-        //Commenting out for now until resolved
-        //Determine more stable approach
-        //createAddressInput();
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(map);
         mapFragment.getMapAsync(this);
         getLocationPermission();
@@ -159,19 +154,24 @@ public class MainActivity extends AppCompatActivity
         }
 
         mUserManager = new UserManager();
+        determineIntent();
+        createAddressDialogButton();
+        context = getApplicationContext();
 
-        mUser = getIntent().getParcelableExtra("user");
+        DEFAULT_ZOOM = 13;
+        mDefaultLocation = new LatLng(0, 0);
+    }
 
+    private void createAddressDialogButton() {
         fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        if(mUser.getCurrentRole().equalsIgnoreCase("MCT")) {
-            fab.setVisibility(View.GONE);
-        }
-
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mUser.getCurrentRole().equals("Dispatcher")) { CreateAddressDialog(); }
+                if (mUser != null) {
+                    if (mUser.getCurrentRole().equalsIgnoreCase("Dispatcher")) {
+                        CreateAddressDialog();
+                    }
+                }
             }
         });
 
@@ -188,36 +188,45 @@ public class MainActivity extends AppCompatActivity
         //registers receiver?
         //newMessage messageReceiver = new newMessage();
         //registerReceiver(messageReceiver, new IntentFilter(NEW_MESSAGE));
+        if (mUser != null) {
+            if (mUser.getCurrentRole().equalsIgnoreCase("Mobile Crisis Team")) {
+                fab.setVisibility(View.GONE);
+            }
+        }
     }
 
-    private void determineIntent() {
+    private boolean determineIntent() {
         // figure out which way to handle the incoming intent
         String incomingIntentPurpose = getIntent().getStringExtra("intent_purpose");
 
-        if (incomingIntentPurpose != null && incomingIntentPurpose.equals("crisis_map_update")) {
+        if (incomingIntentPurpose != null) {
 
-            IGetLatLngListener getLatLngListener = new IGetLatLngListener() {
-                @Override
-                public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
-                    //set the LatLng of the Crisis
-                    LatLng addressPosition;
-                    addressPosition = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
-
-                    //Use the new LatLng to place a pin on the map.
-                    PlacePinAndPositionCamera(addressPosition);
-                }
-            };
-
-            //if we have a Crisis with the intent get the Crisis Object
-            CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
-            CrisisManager acceptedCrisisManager = new CrisisManager();
-            Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
-
-            //pass itself to it's own helper methods to get the lat and lng state assigned
-            acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
-        } else {
-            mUser = getIntent().getParcelableExtra("user");
+            switch (incomingIntentPurpose) {
+                case "crisis_map_update":
+                    IGetLatLngListener getLatLngListener = new IGetLatLngListener() {
+                        @Override
+                        public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
+                            //set the LatLng of the Crisis
+                            LatLng addressPosition;
+                            addressPosition = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
+                            //Use the new LatLng to place a pin on the map.
+                            PlacePinAndPositionCamera(addressPosition);
+                        }
+                    };
+                    //if we have a Crisis with the intent get the Crisis Object
+                    CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
+                    CrisisManager acceptedCrisisManager = new CrisisManager();
+                    Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
+                    //pass itself to it's own helper methods to get the lat and lng state assigned
+                    acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
+                    break;
+                case "passing_user":
+                    mUser = getIntent().getParcelableExtra("user");
+                    break;
+            }
+            return true;
         }
+        return false;
     }
 
     @Override
@@ -337,9 +346,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         switch (item.getItemId()) {
-            case R.id.nav_message:
-                Intent intent = new Intent(this, MessengerActivity.class);
-                this.startActivity(intent);
+            default:
                 break;
         }
 
@@ -348,10 +355,18 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    @Override
+    public void onBackPressed(){
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+    }
+
     private void CreateAddressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.crisis_dialog_title)
-               .setMessage(R.string.crisis_dialog_message);
+                .setMessage(R.string.crisis_dialog_message);
 
         //address input
         final AppCompatEditText input = new AppCompatEditText(this);
@@ -364,16 +379,18 @@ public class MainActivity extends AppCompatActivity
                 crisisAddress = input.getText().toString();
                 IGetLatLngListener latLngListener = new IGetLatLngListener() {
                     @Override
-                    public void onCrisisGetLatLng(Crisis locationUpdatedCrisis) {
-                        // 11/29/17 JD: only create and pass address when lat and long are found and
-                        // this is triggered.
+                    public void onCrisisGetLatLng(final Crisis locationUpdatedCrisis) {
 
-                        CrisisManager successfulLatLngCrisisManager = new CrisisManager();
-                        successfulLatLngCrisisManager.addCrisisToDatabase(locationUpdatedCrisis);
+                        LatLng identifiedLatLng = new LatLng(locationUpdatedCrisis.getLatitude(), locationUpdatedCrisis.getLongitude());
+                        PlacePinAndPositionCamera(identifiedLatLng);
 
-                        Intent i = new Intent(context, DispatchTeamActivity.class);
-                        i.putExtra("crisis", new CrisisParcel(locationUpdatedCrisis));
-                        startActivity(i);
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            public void run() {
+                                // Actions to do after 10 seconds
+                                confirmAddressDialog(locationUpdatedCrisis);
+                            }
+                        }, 2000);
                     }
                 };
                 // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
@@ -409,16 +426,19 @@ public class MainActivity extends AppCompatActivity
         statusSpinner.setAdapter(adapter);
 
         // gets the current status and positions the spinner accordingly
-        // String currentUserStatus = (mUser != null) ? mUser.getCurrentStatus() : "Offline";
-        int spinnerPosition = adapter.getPosition(mUser.getCurrentStatus());
-        statusSpinner.setSelection(spinnerPosition);
+        if (mUser != null) {
+            int spinnerPosition = adapter.getPosition(mUser.getCurrentStatus());
+            statusSpinner.setSelection(spinnerPosition);
+        }
 
         statusSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String text = statusSpinner.getSelectedItem().toString();
-                mUserManager.setUserStatus(mUser.getUserID(), text);
-                mUser.setCurrentStatus(text);
+                if (mUser != null) {
+                    mUserManager.setUserStatus(mUser.getUserID(), text);
+                    mUser.setCurrentStatus(text);
+                }
             }
 
             @Override
@@ -503,7 +523,7 @@ public class MainActivity extends AppCompatActivity
     private void createAddressInput() {
 
         // If the current user is dispatch, then this should be create address dialog.
-        if(mUser.getCurrentRole().equals("MCT")){
+        if (mUser.getCurrentRole().equals("Mobile Crisis Team")) {
             fab.setVisibility(View.INVISIBLE);
         } else {
             fab.setVisibility(View.VISIBLE);
@@ -514,6 +534,36 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    private void confirmAddressDialog(final Crisis confirmedCrisis) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.confirm_crisis_address_title)
+                .setMessage(R.string.confirm_crisis_address_message);
+
+        builder.setPositiveButton(R.string.crisis_dialog_positive, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //create new dialog, is this the right place?
+                CrisisManager successfulLatLngCrisisManager = new CrisisManager();
+                successfulLatLngCrisisManager.addCrisisToDatabase(confirmedCrisis);
+                Intent dispatchActivity = new Intent(context, DispatchTeamActivity.class);
+                dispatchActivity.putExtra("user", mUser);
+                dispatchActivity.putExtra("intent_purpose", "passing_user");
+                dispatchActivity.putExtra("crisis", new CrisisParcel(confirmedCrisis));
+                //put extra user
+                startActivity(dispatchActivity);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     private void bindLocationService() {

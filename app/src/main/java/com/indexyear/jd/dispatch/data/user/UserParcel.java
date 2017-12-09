@@ -19,7 +19,9 @@ public class UserParcel implements Parcelable {
         float latitude = in.readFloat();
         float longitude = in.readFloat();
 
-        mUser = new User(currentTeam, userID, currentRole, currentStatus, email, token, latitude, longitude);
+        mUser = new User();
+        mUser.setCurrentTeam(currentTeam);
+
     }
 
     public UserParcel(User inUser){

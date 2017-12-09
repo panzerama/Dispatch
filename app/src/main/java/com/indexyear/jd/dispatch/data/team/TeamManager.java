@@ -21,24 +21,23 @@ import java.util.List;
 
 public class TeamManager {
 
-    private DatabaseReference mDatabase;
     private List<ITeamEventListener> mListeners;
     private List<Team> mCurrentTeamsList;
+    private IGetTeamsListener mGetTeamsListener;
+    private DatabaseReference dbRoot;
 
     public TeamManager() {
         mCurrentTeamsList = new ArrayList<>();
         mListeners = new ArrayList<>();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        dbRoot = FirebaseDatabase.getInstance().getReference();
 
         // keeps a current list of teams in this object
-        mDatabase.child("teams").addValueEventListener(new ValueEventListener() {
+        dbRoot.child("teams").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 List<Team> currentTeams = new ArrayList<>();
                 for (DataSnapshot snap : dataSnapshot.getChildren()) {
-                    Team t = new TeamFirebaseMapper().fromDataSnapshot(snap);
-                    Log.d("TeamManager", "OnDataChange - team id from snapshot = " + snap.child("teamID").getValue(String.class));
-                    Log.d("TeamManager", "OnDataChange - team name = " + t.getTeamName());
+                    Team t = snap.getValue(Team.class);
                     currentTeams.add(t);
                 }
                 updateCurrentTeamsList(currentTeams);
@@ -51,12 +50,12 @@ public class TeamManager {
         });
 
         // monitors changes to particular teams
-        mDatabase.child("teams").addChildEventListener(new ChildEventListener() {
+        dbRoot.child("teams").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (ITeamEventListener mListener: mListeners) {
-                    mListener.onTeamCreated(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onTeamCreated(dataSnapshot.getValue(Team.class));
                 }
             }
 
@@ -64,7 +63,7 @@ public class TeamManager {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (ITeamEventListener mListener: mListeners) {
-                    mListener.onTeamUpdated(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onTeamUpdated(dataSnapshot.getValue(Team.class));
                 }
             }
 
@@ -72,7 +71,7 @@ public class TeamManager {
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 if (mListeners.isEmpty()) { return; }
                 for (ITeamEventListener mListener: mListeners) {
-                    mListener.onTeamRemoved(new TeamFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onTeamRemoved(dataSnapshot.getValue(Team.class));
                 }
             }
 
@@ -90,17 +89,31 @@ public class TeamManager {
 
     public void addNewListener(ITeamEventListener newListener) { mListeners.add(newListener); }
 
-    public void addEmployeeAndToken(Team team, User updateUser) {
-        Log.d("TeamManager", "add user " + updateUser.getUserID() + " and " + team.getTeamID());
-        mDatabase.child("teams").child(team.getTeamID()).child("teamMembers").child(updateUser.getUserID()).updateChildren(updateUser.toMap());
-    }
-
-    public List<Team> getCurrentTeamsList() {
-        return mCurrentTeamsList;
-    }
+//    public List<Team> getCurrentTeamsList() {
+//        return mCurrentTeamsList;
+//    }
 
     private void updateCurrentTeamsList(List<Team> currentList) {
         mCurrentTeamsList = currentList;
     }
 
+    public void getTeams(IGetTeamsListener teamsListener){
+        mGetTeamsListener = teamsListener;
+        dbRoot.child("teams").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                List<Team> currentTeams = new ArrayList<>();
+                for (DataSnapshot snap : dataSnapshot.getChildren()) {
+                    Team t = snap.getValue(Team.class);
+                    currentTeams.add(t);
+                }
+                mGetTeamsListener.onGetTeams(currentTeams);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                mGetTeamsListener.onFailedTeams();
+            }
+        });
+    }
 }

@@ -69,8 +69,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/action_sign_in"
-                android:textStyle="bold" />
+                android:textStyle="normal|bold"
+                android:textSize="20sp"
+                android:textColor="@color/authui_colorActivated"
+                android:background="@color/colorPrimaryBondiBlue"
+                android:text="@string/action_sign_in" />
 
             <Button
                 android:id="@+id/email_sign_out_button"
@@ -78,8 +81,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/action_sign_out"
-                android:textStyle="bold" />
+                android:textStyle="normal|bold"
+                android:textSize="20sp"
+                android:textColor="@color/authui_colorActivated"
+                android:background="@color/colorPrimaryBondiBlue"
+                android:text="@string/action_sign_out" />
 
         </LinearLayout>
     </ScrollView>
