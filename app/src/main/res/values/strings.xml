@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Dispatch</string>
     <string name="title_activity_route_map">Route Map</string>
-    <string name="title_activity_login">Log In</string>
+    <string name="title_activity_login">DESC</string>
     <string name="title_dispatch_team">Choose team</string>
     <string name="confirm_crisis_address_title">Confirm address</string>
     <string name="confirm_crisis_address_message">Was the pin you saw in the right place?</string>
