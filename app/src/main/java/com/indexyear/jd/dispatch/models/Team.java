@@ -5,9 +5,7 @@ import android.os.Parcelable;
 
 import com.google.firebase.database.Exclude;
 
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -118,6 +116,7 @@ public class Team implements Parcelable{
     public float getLatitude() {
         return latitude;
     }
+    public String getLatitudeAsString() { return String.valueOf(latitude); }
 
     public void setLatitude(float latitude) {
         this.latitude = latitude;
@@ -126,6 +125,7 @@ public class Team implements Parcelable{
     public float getLongitude() {
         return longitude;
     }
+    public String getLongitudeAsString() { return String.valueOf(longitude); }
 
     public void setLongitude(float longitude) {
         this.longitude = longitude;

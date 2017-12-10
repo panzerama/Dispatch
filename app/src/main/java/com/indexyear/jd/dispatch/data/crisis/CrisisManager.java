@@ -19,8 +19,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.indexyear.jd.dispatch.R;
+import com.indexyear.jd.dispatch.data.team.IGetTeamsListener;
 import com.indexyear.jd.dispatch.data.team.ITeamTravelTimeListener;
+import com.indexyear.jd.dispatch.data.team.TeamManager;
 import com.indexyear.jd.dispatch.models.Crisis;
+import com.indexyear.jd.dispatch.models.Team;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,7 +41,9 @@ public class CrisisManager {
     private DatabaseReference mDatabase; //Firebase reference
     private List<ICrisisEventListener> mListeners;
     private IGetLatLngListener getLatLngListener;
+    
     private ITeamTravelTimeListener getTravelTimeListener;
+    private List<Team> teams = new ArrayList<>();
 
     public CrisisManager(){
         mListeners = new ArrayList<>();
@@ -237,14 +242,15 @@ public class CrisisManager {
         // Start the queue
         mRequestQueue.start();
 
+        retrieveTeams();
 
-        String urlForGoogleMaps = "https://maps.googleapis.com/maps/api/geocode/json?address=" + crisisAddress +
-                "&key=" + googleKey;
 
-        Log.d(TAG, urlForGoogleMaps);
+        String distanceMatrixAddress = buildDistanceMatrixAPI(mCrisis);
+
+        Log.d(TAG, distanceMatrixAddress);
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
-                (Request.Method.GET, urlForGoogleMaps, null, new Response.Listener<JSONObject>() {
+                (Request.Method.GET, distanceMatrixAddress, null, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
@@ -292,8 +298,31 @@ public class CrisisManager {
 
     }
 
-    private String buildDistanceMatrixAPI(Crisis target){
+    private void retrieveTeams(){
+        IGetTeamsListener retrieveTeamsListener = new IGetTeamsListener() {
+            @Override
+            public void onGetTeams(List<Team> retrievedTeams) {
+                teams = retrievedTeams;
+            }
 
+            @Override
+            public void onFailedTeams() {
+                // TODO: 12/9/17 JD error condition needed
+            }
+        };
+
+        TeamManager retrieveTeamsManager = new TeamManager();
+        retrieveTeamsManager.getTeams(retrieveTeamsListener);
+    }
+
+    private String buildDistanceMatrixAPI(Crisis target, Team potentialResponder){
+        String baseAddress = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=";
+
+        baseAddress = baseAddress + target.getLatitudeAsString() + "," + target.getLongitudeAsString();
+        baseAddress = baseAddress + "&destinations=";
+        baseAddress = baseAddress + potentialResponder.get
+
+        return "";
     }
 
 

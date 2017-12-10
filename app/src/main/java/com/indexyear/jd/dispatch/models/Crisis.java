@@ -83,10 +83,12 @@ public class Crisis {
     }
 
     public double getLatitude() { return latitude; }
+    public String getLatitudeAsString() { return String.valueOf(latitude); }
 
     public void setLatitude(double latitude) { this.latitude = latitude; }
 
     public double getLongitude() { return longitude; }
+    public String getLongitudeAsString() { return String.valueOf(longitude); }
 
     public void setLongitude(double longitude) { this.longitude = longitude; }
 
