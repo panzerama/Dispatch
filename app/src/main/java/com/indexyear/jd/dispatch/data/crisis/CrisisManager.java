@@ -25,6 +25,7 @@ import com.indexyear.jd.dispatch.data.team.TeamManager;
 import com.indexyear.jd.dispatch.models.Crisis;
 import com.indexyear.jd.dispatch.models.Team;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -244,10 +245,7 @@ public class CrisisManager {
 
         retrieveTeams();
 
-
-        String distanceMatrixAddress = buildDistanceMatrixAPI(mCrisis);
-
-        Log.d(TAG, distanceMatrixAddress);
+        String distanceMatrixAddress = buildDistanceMatrixAPI(mCrisis, googleKey);
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest
                 (Request.Method.GET, distanceMatrixAddress, null, new Response.Listener<JSONObject>() {
@@ -259,7 +257,7 @@ public class CrisisManager {
                         double lng = 47;
 
                         try {
-                            lat = response.getJSONArray("results").getJSONObject(0)
+                            /*lat = response.getJSONArray("results").getJSONObject(0)
                                     .getJSONObject("geometry").getJSONObject("location")
                                     .getDouble("lat");
                             Log.d(TAG, response.getJSONArray("results").toString());
@@ -272,11 +270,19 @@ public class CrisisManager {
                             // TODO: 12/1/17 JD failure test: what happens if the request is returned without info
                             getLatLngListener.onCrisisGetLatLng(successfulCrisis);
 
-                            /*
+                            *//*
                             12/2/17 LUKE -- Our hope is that LatLngListener being set to null will cause Java's
                             built in Garbage collection to take care of it for us.
-                            */
-                            getLatLngListener = null;
+                            *//*
+                            getLatLngListener = null;*/
+
+                            JSONArray distanceResults = response.getJSONArray("rows").getJSONObject(0).getJSONArray("elements");
+
+                            for (int i=0; i<distanceResults.length(); i++){
+                                JSONObject thisDuration = distanceResults.getJSONObject(i).getJSONObject("duration");
+                                //
+
+                            }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -315,14 +321,22 @@ public class CrisisManager {
         retrieveTeamsManager.getTeams(retrieveTeamsListener);
     }
 
-    private String buildDistanceMatrixAPI(Crisis target, Team potentialResponder){
+    private String buildDistanceMatrixAPI(Crisis target, String googleKey){
         String baseAddress = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=";
 
         baseAddress = baseAddress + target.getLatitudeAsString() + "," + target.getLongitudeAsString();
         baseAddress = baseAddress + "&destinations=";
-        baseAddress = baseAddress + potentialResponder.get
 
-        return "";
+        for (int i=0; i<teams.size(); i++){
+            baseAddress = baseAddress + teams.get(i).getLatitudeAsString() + "," + teams.get(i).getLongitudeAsString();
+            if (i < teams.size()-1){ baseAddress = baseAddress + "|"; }
+        }
+
+        baseAddress = baseAddress + "&key=" + googleKey;
+
+        Log.d(TAG, "buildDistanceMatrixAPI: baseAddress is " + baseAddress);
+
+        return baseAddress;
     }
 
 
