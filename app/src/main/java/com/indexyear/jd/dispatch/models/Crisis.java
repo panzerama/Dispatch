@@ -65,8 +65,6 @@ public class Crisis implements Parcelable{
         status = in.readString();
         latitude = in.readDouble();
         longitude = in.readDouble();
-        firstResponders = new HashMap<String, String>();
-        in.readMap(firstResponders,String.class.getClassLoader());
     }
 
     public static final Creator<Crisis> CREATOR = new Creator<Crisis>() {
@@ -294,7 +292,6 @@ public class Crisis implements Parcelable{
         parcel.writeString(callBackNumber);
         parcel.writeString(timeTeamDispatched);
         parcel.writeString(teamName);
-        parcel.writeMap(firstResponders);
         parcel.writeString(timeArrivedOnScene);
         parcel.writeString(timeResponseComplete);
         parcel.writeString(status);

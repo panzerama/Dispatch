@@ -62,11 +62,8 @@ public class DispatchTeamActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-        //TO-DO Use this address to calculate travel times
-        //and update travel time node on Team object to reflect
-        //those values
         Intent intent = getIntent();
-        Crisis inputCrisisObject = intent.getParcelableExtra("crisis");
+        inputCrisisObject = intent.getParcelableExtra("crisis");
 
         //GET USER OBJECT TO PASS BACK TO MAIN
         mUser = intent.getParcelableExtra("user");
@@ -171,8 +168,10 @@ public class DispatchTeamActivity extends AppCompatActivity {
     }
 
     void triggerNotification(Crisis inputCrisis, Team selectedTeam){
-        inputCrisis.setTeamName(selectedTeam.getTeamName());
-        inputCrisis.setStatus("open");
+        if(!selectedTeam.equals(null)){
+            inputCrisis.setTeamName(selectedTeam.getTeamName());
+            inputCrisis.setStatus("open");
+        }
         mCrisisManager.updateCrisisInDatabase(inputCrisis);
     }
 
