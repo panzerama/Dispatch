@@ -31,7 +31,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -278,11 +280,18 @@ public class CrisisManager {
 
                             JSONArray distanceResults = response.getJSONArray("rows").getJSONObject(0).getJSONArray("elements");
 
+                            // pass these variable as map
+                            Map<String, Integer> travelTimes = new HashMap<>();
+
                             for (int i=0; i<distanceResults.length(); i++){
                                 JSONObject thisDuration = distanceResults.getJSONObject(i).getJSONObject("duration");
-                                //
+                                travelTimes.put(teams.get(i).getTeamID(), 0);
 
                             }
+
+                            // database write?
+
+                            getTravelTimeListener.onSuccess(mCrisis, );
 
                         } catch (JSONException e) {
                             e.printStackTrace();
