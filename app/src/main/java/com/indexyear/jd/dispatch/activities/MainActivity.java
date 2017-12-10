@@ -236,9 +236,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, LocationUpdaterService.class);
-        startService(intent);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//        Intent intent = new Intent(this, LocationUpdaterService.class);
+//        startService(intent);
+//        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
