@@ -46,7 +46,7 @@ public class CrisisManager {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (ICrisisEventListener mListener: mListeners) {
-                    mListener.onCrisisCreated(new CrisisFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onCrisisCreated(dataSnapshot.getValue(Crisis.class));
                 }
             }
 
@@ -54,7 +54,7 @@ public class CrisisManager {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 if (mListeners.isEmpty()) { return; }
                 for (ICrisisEventListener mListener: mListeners) {
-                    mListener.onCrisisUpdated(new CrisisFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onCrisisUpdated(dataSnapshot.getValue(Crisis.class));
                 }
             }
 
@@ -62,7 +62,7 @@ public class CrisisManager {
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 if (mListeners.isEmpty()) { return; }
                 for (ICrisisEventListener mListener: mListeners) {
-                    mListener.onCrisisRemoved(new CrisisFirebaseMapper().fromDataSnapshot(dataSnapshot));
+                    mListener.onCrisisRemoved(dataSnapshot.getValue(Crisis.class));
                 }
             }
 
@@ -78,16 +78,18 @@ public class CrisisManager {
         });
     }
 
-    public Crisis createNewCrisis(String crisisAddress){
-        String newKey = UUID.randomUUID().toString(); // TODO: 11/30/17 JD update to reflect new method of assigning id from push() 
-        Crisis newCrisis = new Crisis(newKey, crisisAddress, "Unspecified", "open");
 
-        DatabaseReference newCrisisNode = mDatabase.child("crisis").child(newCrisis.getCrisisID());
-        newCrisisNode.updateChildren(newCrisis.toMap());
-
-        return newCrisis;
-
-    }
+//TODO 12/9/17 KB not sure we need this
+//    public Crisis createNewCrisis(String crisisAddress){
+//        String newKey = UUID.randomUUID().toString(); // TODO: 11/30/17 JD update to reflect new method of assigning id from push()
+//        Crisis newCrisis = new Crisis(newKey, crisisAddress, "Unspecified", "open");
+//
+//        DatabaseReference newCrisisNode = mDatabase.child("crisis").child(newCrisis.getCrisisID());
+//        newCrisisNode.updateChildren(newCrisis.toMap());
+//
+//        return newCrisis;
+//
+//    }
 
     public void addCrisisToDatabase(Crisis inputCrisis){
         DatabaseReference crisisNode = mDatabase.child("crisis");

@@ -13,7 +13,6 @@ import com.google.firebase.messaging.RemoteMessage;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.activities.CrisisReceived;
 import com.indexyear.jd.dispatch.data.crisis.CrisisManager;
-import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 import com.indexyear.jd.dispatch.data.crisis.ICrisisEventListener;
 import com.indexyear.jd.dispatch.models.Crisis;
 
@@ -94,12 +93,9 @@ public class DescMessagingService extends com.google.firebase.messaging.Firebase
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         // TODO: 11/17/17 JD what I want to do here is to get the crisis by address from the DB
-
-        CrisisParcel crisisParcel = new CrisisParcel(incomingCrisis);
-
         Log.d(TAG, "message data: " + incomingCrisis.getCrisisAddress());
 
-        intent.putExtra("crisis", crisisParcel);
+        intent.putExtra("crisis", incomingCrisis);
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 

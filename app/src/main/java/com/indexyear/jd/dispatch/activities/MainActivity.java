@@ -58,7 +58,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.indexyear.jd.dispatch.R;
 import com.indexyear.jd.dispatch.data.crisis.CrisisManager;
-import com.indexyear.jd.dispatch.data.crisis.CrisisParcel;
 import com.indexyear.jd.dispatch.data.crisis.IGetLatLngListener;
 import com.indexyear.jd.dispatch.data.user.UserManager;
 import com.indexyear.jd.dispatch.models.Crisis;
@@ -213,9 +212,8 @@ public class MainActivity extends AppCompatActivity
                         }
                     };
                     //if we have a Crisis with the intent get the Crisis Object
-                    CrisisParcel acceptedCrisisEvent = getIntent().getParcelableExtra("crisis");
                     CrisisManager acceptedCrisisManager = new CrisisManager();
-                    Crisis intentCrisis = acceptedCrisisEvent.getCrisis();
+                    Crisis intentCrisis = getIntent().getParcelableExtra("crisis");
                     //pass itself to it's own helper methods to get the lat and lng state assigned
                     acceptedCrisisManager.GetLatLng(context, intentCrisis, getLatLngListener);
                     break;
@@ -395,8 +393,8 @@ public class MainActivity extends AppCompatActivity
                 // TODO: 12/2/17 JD Maybe pass the crisis manager so i'm not covering my own code again 
                 CrisisManager inputCrisisManager = new CrisisManager();
                 Crisis crisisToLocate = Crisis.createFromAddress(crisisAddress);
-                crisisToLocate.setTeamName("unset");
-                crisisToLocate.setStatus("unset");
+//                crisisToLocate.setTeamName("unset");
+//                crisisToLocate.setStatus("unset");
                 inputCrisisManager.GetLatLng(context, crisisToLocate, latLngListener);
             }
         });
@@ -558,7 +556,7 @@ public class MainActivity extends AppCompatActivity
                 Intent dispatchActivity = new Intent(context, DispatchTeamActivity.class);
                 dispatchActivity.putExtra("user", mUser);
                 dispatchActivity.putExtra("intent_purpose", "passing_user");
-                dispatchActivity.putExtra("crisis", new CrisisParcel(confirmedCrisis));
+                dispatchActivity.putExtra("crisis", confirmedCrisis);
                 //put extra user
                 startActivity(dispatchActivity);
             }
