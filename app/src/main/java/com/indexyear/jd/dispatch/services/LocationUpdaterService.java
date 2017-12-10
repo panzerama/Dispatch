@@ -200,7 +200,17 @@ public class LocationUpdaterService extends Service implements
     }
 
     @Override
-    public void onLocationChanged(Location location) {
+    public void onLocationChanged(Location l) {
+            if (l != null) {
+            userLocation = new LatLng(l.getLatitude(), l.getLongitude());
+            if (mUser.getUserID() != null) {
+                mDatabase.child("users").child(mUser.getUserID()).child("latitude").setValue(userLocation.latitude);
+                mDatabase.child("users").child(mUser.getUserID()).child("longitude").setValue(userLocation.longitude);
+            } else {
+                Toast.makeText(getApplicationContext(), "Current user not recognized. Try reauthenticating.",
+                        Toast.LENGTH_LONG).show();
+            }
+        }
 
     }
 
