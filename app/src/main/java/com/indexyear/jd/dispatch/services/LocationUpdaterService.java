@@ -49,9 +49,15 @@ public class LocationUpdaterService extends Service implements
     public void onCreate() {
         Log.i(LOGSERVICE, "In onCreate");
         super.onCreate();
+            
+        // Build GoogleApiClient
         buildGoogleApiClient();
+            
+        // Firebase Authorization
         mAuth = FirebaseAuth.getInstance();
         mUserManager = new UserManager();
+            
+        // Set User event listener
         setUserEventListener();
         mUserManager.getUser(mAuth.getCurrentUser().getUid(), new IGetUserListener() {
             @Override
@@ -62,6 +68,7 @@ public class LocationUpdaterService extends Service implements
             public void onFailedSingleUser() {
             }
         });
+            
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
     }
     private void buildGoogleApiClient() {
@@ -74,6 +81,8 @@ public class LocationUpdaterService extends Service implements
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(LOGSERVICE, "onStartCommand");
+            
+        // connect Google Api Client
         if (!mGoogleApiClient.isConnected())
             mGoogleApiClient.connect();
         return START_STICKY;
@@ -105,32 +114,33 @@ public class LocationUpdaterService extends Service implements
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Log.i(LOGSERVICE, "onConnected" + bundle);
+            
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        //lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.i(LOGSERVICE, "Permission not granted");
             return;
         } else {
             Location l = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            // Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            // if (l == null){ l = new Location(LocationManager.GPS_PROVIDER); location.setLatitude(122); location.setLongitude(344);}
+
+            if (l == null){ l = new Location(LocationManager.GPS_PROVIDER); l.setLatitude(0); l.setLongitude(0);}
             userLocation = new LatLng(l.getLatitude(), l.getLongitude());
         }
-        //Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        //if (mLastLocation != null) {
-        //Log.i(LOGSERVICE, "lat " + mLastLocation.getLatitude());
-        //Log.i(LOGSERVICE, "lng " + mLastLocation.getLongitude());
+
         startLocationUpdates();
     }
     private void startLocationUpdates() {
+            
+         // set location interval updates
         initLocationRequest();
+            
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.i(LOGSERVICE, "Permission not granted.");
             return;
         } else {
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-            // LatLng userLocationLatLng = new LatLng(userLocation.latitude, userLocation.longitude);
             buildGoogleApiClient();
+            // enter current location in lat lng into firebase
             if (mUser.getUserID() != null) {
                 mDatabase.child("users").child(mUser.getUserID()).child("latitude").setValue(userLocation.latitude);
                 mDatabase.child("users").child(mUser.getUserID()).child("longitude").setValue(userLocation.longitude);
