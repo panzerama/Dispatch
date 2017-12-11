@@ -1,6 +1,7 @@
 package com.indexyear.jd.dispatch.activities;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -17,16 +18,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.indexyear.jd.dispatch.R;
-import com.indexyear.jd.dispatch.data.user.IUserEventListener;
-import com.indexyear.jd.dispatch.data.user.UserManager;
-import com.indexyear.jd.dispatch.models.User;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class LoginActivity
         extends AppCompatActivity
@@ -58,6 +50,10 @@ public class LoginActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // LUKE - 12/9/17 - lock orientation to portrait mode
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         setContentView(R.layout.activity_login);
 
         // TODO: 10/31/17 JD update the ui function, modify layout to conform to material standards, welcome user already logged in
