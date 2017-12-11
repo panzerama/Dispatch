@@ -205,8 +205,8 @@ public class ShiftStartActivity extends AppCompatActivity {
             userMap.put("currentTeam", selectedTeam);
             user.setCurrentTeam(selectedTeam);
         } else {
-            userMap.put("currentTeam", "DISPATCHER");
-            user.setCurrentTeam("DISPATCHER");
+            userMap.put("currentTeam", "NONE");
+            user.setCurrentTeam("NONE");
         }
 
         mUserManager.updateUser(userMap);
